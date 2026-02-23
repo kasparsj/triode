@@ -52,7 +52,13 @@ Use jsDelivr from this repository:
 <script src="https://cdn.jsdelivr.net/gh/kasparsj/triode@v1.0.0/dist/triode.js"></script>
 <script>
   const triode = new Triode({ detectAudio: false, makeGlobal: true });
-  osc(8, 0.1, 0.8).render();
+  perspective([2, 2, 3], [0, 0, 0], {
+    controls: { enabled: true, modifier: "none" },
+  });
+  stage()
+    .lights({ all: true })
+    .mesh(geom.box(), osc(8, 0.1, 0.8).rotateDeg(noise(1).mult(45)).phong())
+    .render();
 </script>
 ```
 
@@ -70,7 +76,7 @@ Success criteria:
 npm i github:kasparsj/triode#v1.0.0 three
 ```
 
-If you want upstream Hydra instead, install `npm i hydra-synth`. For this repository, import `triode`.
+For this repository, import `triode`.
 
 ```js
 import Triode from "triode";
@@ -80,7 +86,13 @@ const triode = new Triode({
   makeGlobal: true,
 });
 
-osc(8, 0.1, 0.8).render();
+perspective([2, 2, 3], [0, 0, 0], {
+  controls: { enabled: true, modifier: "none" },
+});
+stage()
+  .lights({ all: true })
+  .mesh(geom.box(), osc(8, 0.1, 0.8).rotateDeg(noise(1).mult(45)).phong())
+  .render();
 ```
 
 Non-global mode is also supported:
@@ -94,7 +106,13 @@ const triode = new Triode({
 });
 
 const H = triode.synth;
-H.osc(8, 0.1, 0.8).render();
+H.perspective([2, 2, 3], [0, 0, 0], {
+  controls: { enabled: true, modifier: "none" },
+});
+H.stage()
+  .lights({ all: true })
+  .mesh(H.geom.box(), H.osc(8, 0.1, 0.8).rotateDeg(H.noise(1).mult(45)).phong())
+  .render();
 ```
 
 #### Vite note
