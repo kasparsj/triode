@@ -55,9 +55,9 @@ This preserves intermediate pass wiring while guaranteeing the final output targ
 ## Public vs internal scene helpers
 
 - Public instancing path: `scene().mesh(geometry, material, { instanced: count })`
-- Internal helper: `scene()._mesh(...)`
+- Underscore-prefixed helpers (for example `_mesh`) are internal and not part of the stable public API.
 
-`_mesh` is an internal method and should not be treated as stable public API. Use public scene composition methods in docs, recipes, and production sketches.
+Use public scene composition methods in docs, recipes, and production sketches.
 
 ## Global vs non-global runtime semantics
 

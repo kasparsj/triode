@@ -30,12 +30,13 @@ const sc = scene({background: color(1,1,0)})
     .lights()
     .out();
 
-// add and return instanced box mesh to scene
-const box = sc._mesh(
+// add instanced box mesh to scene using public API
+sc.mesh(
     geom,
     mat,
     {instanced: count}
 );
+const box = sc.at(0);
 
 if (drawLines) {
     // fix box if drawing lines

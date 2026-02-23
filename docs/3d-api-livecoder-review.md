@@ -36,7 +36,7 @@
 | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
 | Globals mutate by default                             | `src/hydra-synth.js:123`; `src/hydra-synth.js:350`; `src/hydra-synth.js:362`; `src/eval-sandbox.js:88`                              | Live-coders get speed, but sketches become host-coupled and harder to reason about in multi-instance contexts | High     | vNext default `globals: false`; add explicit `liveGlobals(true)` for stage/live sessions                                 |
 | Hidden active-runtime context                         | `src/three/runtime.js:25`; `src/three/runtime.js:67`; `src/three/mt.js:151`; `src/three/tx.js:264`                                  | Same helper call can target different runtime depending implicit active state                                 | High     | Bind helper namespaces per instance only (`H.tex`, `H.geom`, etc.) and remove fallback to global active runtime in vNext |
-| Internal API leaks into user workflow                 | `docs/reference/semantic-clarifications.md:56`; `docs/reference/semantic-clarifications.md:58`; `examples/box-instanced-grid.js:34` | Users copy `_mesh` from examples despite docs saying internal                                                 | High     | Replace example usage with public `.mesh(..., { instanced })`; warn on `_` method calls                                  |
+| Internal API leaks into user workflow (partially mitigated)                 | `docs/reference/semantic-clarifications.md:57`; `docs/reference/semantic-clarifications.md:58`; `examples/box-instanced-grid.js:34` | Users may still discover underscore helpers from source browsing even after public examples were cleaned up                                                 | High     | Public examples/docs now use `.mesh(..., { instanced })`; optional next step is warning on `_` method calls                                  |
 | Rotation unit mismatch                                | `src/glsl/glsl-functions.js:360`; `docs/reference/semantic-clarifications.md:7`; `examples/box.js:16`                               | Shader `rotate()` expects degrees while object rotation uses radians; context-switch tax during improvisation | High     | Added `rotateDeg()` and `rotateRad()`; `rotate()` kept as compatibility alias                                 |
 | Orbit controls default to `Alt` and are easy to misread as broken | `src/three/HydraOrbitControls.js:837`; `src/three/HydraOrbitControls.js:1038`; `README.md:138`                                      | “Controls don’t work” is a common live-coding interruption if modifier key behavior is not obvious            | High     | Added `controls.modifier` option (`none`, `alt`, `shift`, `meta`) plus docs/smoke coverage                                                          |
 | Surface is broad and abbreviation-heavy               | `docs/api.md:15`; `docs/api.md:18`; `docs/api.md:136`; `src/hydra-synth.js:209`                                                     | Memorization load is high for newcomers and occasional users                                                  | Medium   | Added long-name aliases (`geom`, `mat`, `tex`, `compose`, `random`, `noiseUtil`) and kept short names for compatibility           |
@@ -313,8 +313,8 @@ Phase 3 (breaking cleanup, major version)
 
 ## F) Quick Wins (next 1-2 sprints)
 
-1. Remove internal `_mesh` from public examples  
-   Files: `examples/box-instanced-grid.js:34`, `docs/reference/semantic-clarifications.md:55`  
+1. Implemented: remove internal `_mesh` from public examples  
+   Files: `examples/box-instanced-grid.js:34`, `docs/reference/semantic-clarifications.md:57`  
    Why: immediate API trust improvement.
 
 2. Implemented: add friendly namespace aliases on `synth`  
@@ -388,6 +388,8 @@ Stale-object deletion, resource disposal, unkeyed hinting, and restart input reb
 | Eval-order object identity drift (when `key` is omitted)   | `src/three/scene.js:143`; `src/three/scene.js:187`; `src/three/scene.js:711`; `src/index.d.ts:53`              | Reordering lines can still retarget unnamed objects because fallback identity remains eval-order-based for sketches that do not opt into `key`        | Medium   | Continue migrating examples/docs to `key` and run the audit helper `scripts/migrate/find-unkeyed-live-calls.mjs`           |
 
 ## H) Updated Quick Wins (next 1-2 sprints)
+
+Update (2026-02-23): public docs/examples now avoid private `_mesh` usage for instancing and demonstrate the stable public path `scene().mesh(..., { instanced })`. Implementation is in `examples/box-instanced-grid.js:34` and `docs/reference/semantic-clarifications.md:57`.
 
 Update (2026-02-23): `stage()` alias is now available as a readability-first entry point to `scene()`. Implementation and coverage are in `src/hydra-synth.js:159`, `src/hydra-synth.js:189`, `src/index.d.ts:206`, `scripts/smoke/browser-non-global-smoke.mjs:114`, and `docs/reference/parameter-reference.md:34`.
 
