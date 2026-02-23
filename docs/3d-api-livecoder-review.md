@@ -391,6 +391,8 @@ Stale-object deletion, resource disposal, unkeyed hinting, and restart input reb
 
 Update (2026-02-23): `arr.image()` now resolves texture loading through the active runtime (`runtime.modules.tx`) instead of `globalThis.tx`, removing hidden global coupling in non-global and multi-instance usage. Implementation and coverage are in `src/three/arr.js:191`, `scripts/smoke/module-load-smoke.mjs:154`, and `scripts/smoke/regression-smoke.mjs:204`.
 
+Update (2026-02-23): remaining flagged playground presets now include explicit `key` usage for scene/primitive calls, and the live-key audit tool gained receiver filtering (`mt.*`, `gm.*`, etc.) to cut false positives. Verification passes via `npm run migrate:check-live-keys:playground` with zero findings. Implementation is in `site/playground/examples.js:224`, `scripts/migrate/find-unkeyed-live-calls.mjs:17`, and `package.json:40`.
+
 Update (2026-02-23): public docs/examples now avoid private `_mesh` usage for instancing and demonstrate the stable public path `scene().mesh(..., { instanced })`. Implementation is in `examples/box-instanced-grid.js:34` and `docs/reference/semantic-clarifications.md:57`.
 
 Update (2026-02-23): `stage()` alias is now available as a readability-first entry point to `scene()`. Implementation and coverage are in `src/hydra-synth.js:159`, `src/hydra-synth.js:189`, `src/index.d.ts:206`, `scripts/smoke/browser-non-global-smoke.mjs:114`, and `docs/reference/parameter-reference.md:34`.
@@ -405,16 +407,16 @@ Update (2026-02-23): orbit control modifier is now configurable via `controls.mo
 
 Update (2026-02-22): explicit `key` usage now covers the first-touch and mid-tier examples in `site/playground/examples.js:55`, `site/playground/examples.js:115`, `site/playground/examples.js:169`, `site/playground/examples.js:391`, `examples/box.js:9`, `examples/tex-map.js:12`, `examples/tex-map.js:25`, and `docs/reference/parameter-reference.md:33`. Internal auto identity (collision-safe), replaced-resource disposal, restart input rebinding, one-time unkeyed hinting, and a codemod-style audit helper are implemented in `src/three/scene.js:19`, `src/three/scene.js:748`, `src/canvas.js:42`, `src/three/scene.js:663`, `scripts/migrate/find-unkeyed-live-calls.mjs:1`, and `docs/reference/live-key-migration.md:1`.
 
-1. Continue migrating remaining examples to explicit `key` usage  
-   Files: `site/playground/examples.js:224`, `site/playground/examples.js:231`, `site/playground/examples.js:289`  
+1. Implemented: continue migrating remaining examples to explicit `key` usage  
+   Files: `site/playground/examples.js:224`, `site/playground/examples.js:232`, `site/playground/examples.js:290`  
    Why: closes the remaining eval-order drift cases in sketches users copy and remix.
 
-2. Add optional CI gate for unkeyed continuous calls  
-   Files: `scripts/migrate/find-unkeyed-live-calls.mjs:1`, `package.json:36`  
+2. Implemented: add optional CI gate for unkeyed continuous calls  
+   Files: `scripts/migrate/find-unkeyed-live-calls.mjs:17`, `package.json:40`, `docs/reference/live-key-migration.md:73`  
    Why: keeps new examples from regressing by failing fast when unkeyed calls are introduced.
 
-3. Regenerate API docs and keep them in lockstep  
-   Files: `docs/api.md:3`, `package.json:35`, `package.json:63`  
+3. Implemented: regenerate API docs and keep them in lockstep  
+   Files: `docs/api.md:3`, `package.json:35`, `package.json:36`  
    Why: improves discoverability and trust in public API docs.
 
 ## I) Impact x Frequency Ranking (Execution Order)

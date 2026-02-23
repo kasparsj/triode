@@ -14,6 +14,18 @@ const IGNORE_DIRS = new Set([
 ]);
 const CALL_PATTERN =
   /(?:\bscene|\.(?:group|mesh|points|linestrip|lineloop|lines|line))\s*\(/g;
+const IGNORED_DOT_CALL_RECEIVERS = new Set([
+  "gm",
+  "mt",
+  "tx",
+  "cmp",
+  "rnd",
+  "nse",
+  "arr",
+  "math",
+  "el",
+  "gui",
+]);
 
 const formatUsage = () => `Usage:
   node scripts/migrate/find-unkeyed-live-calls.mjs [options] [paths...]
@@ -195,6 +207,15 @@ const normalizeCallName = (token) => {
   return withoutParen;
 };
 
+const resolveDotCallReceiver = (source, dotIndex) => {
+  let i = dotIndex - 1;
+  while (i >= 0 && /\s/.test(source[i])) i -= 1;
+  if (i < 0) return "";
+  const end = i + 1;
+  while (i >= 0 && /[$\w]/.test(source[i])) i -= 1;
+  return source.slice(i + 1, end);
+};
+
 const collectFindings = (source, relPath) => {
   const findings = [];
   let match;
@@ -203,6 +224,12 @@ const collectFindings = (source, relPath) => {
     const callName = normalizeCallName(token);
     if (!isTrackedCall(callName)) {
       continue;
+    }
+    if (token.startsWith(".")) {
+      const receiver = resolveDotCallReceiver(source, match.index);
+      if (IGNORED_DOT_CALL_RECEIVERS.has(receiver)) {
+        continue;
+      }
     }
     const openIndex = match.index + token.lastIndexOf("(");
     const closeIndex = findMatchingParen(source, openIndex);

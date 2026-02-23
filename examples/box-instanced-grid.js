@@ -26,7 +26,7 @@ else {
 }
 
 // create scene with yellow background and default lighting setup
-const sc = scene({background: color(1,1,0)})
+const sc = scene({background: color(1,1,0), name: "instanced-grid", key: "instanced-grid"})
     .lights()
     .out();
 
@@ -34,7 +34,7 @@ const sc = scene({background: color(1,1,0)})
 sc.mesh(
     geom,
     mat,
-    {instanced: count}
+    {instanced: count, key: "instanced-grid-mesh"}
 );
 const box = sc.at(0);
 

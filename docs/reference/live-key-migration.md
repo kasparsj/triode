@@ -70,6 +70,12 @@ CI-style fail on findings:
 node ./scripts/migrate/find-unkeyed-live-calls.mjs --strict
 ```
 
+Targeted gate for playground presets:
+
+```bash
+npm run migrate:check-live-keys:playground
+```
+
 ## Notes
 
 - The helper reports likely unkeyed call sites; it does not rewrite files automatically.

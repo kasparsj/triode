@@ -221,16 +221,17 @@ scene({ key: "terrain-displacement-scene" })
     code: `
 perspective([2, 2, 3], [0, 0, 0], { controls: true });
 
-const mapTex = scene()
+const mapTex = scene({ name: "scene-texture-map", key: "scene-texture-map" })
   .points(
     [Math.floor(params.grid), Math.floor(params.grid)],
     mt.squares(gradient(), params.tileSize, cnoise(100).saturate(params.sat)),
+    { key: "scene-texture-points" },
   )
   .tex(o1);
 
-scene()
+scene({ name: "scene-texture-main", key: "scene-texture-main" })
   .lights({ all: true })
-  .mesh(gm.sphere(params.radius, 64, 32), src(mapTex).phong())
+  .mesh(gm.sphere(params.radius, 64, 32), src(mapTex).phong(), { key: "scene-texture-sphere" })
   .out(o0);
 `,
   },
@@ -286,8 +287,12 @@ scene()
 const pos = solid(noise(params.xScale).x, noise(params.yScale).y, noise(params.zScale).z)
   .map(-1, 1, 0, 1);
 
-scene()
-  .lineloop([Math.floor(params.segments)], mt.lineloop(pos, solid(params.r, params.g, params.b, 1)))
+scene({ name: "lineloop-thread", key: "lineloop-thread" })
+  .lineloop(
+    [Math.floor(params.segments)],
+    mt.lineloop(pos, solid(params.r, params.g, params.b, 1)),
+    { key: "lineloop-thread-shape" },
+  )
   .autoClear(params.trail)
   .out();
 `,
@@ -474,8 +479,10 @@ ortho([3, 3, 3], [0, 0, 0], { controls: true });
 const count = Math.max(1, Math.floor(params.count));
 const geom = gm.box(params.width, 1, params.depth);
 const mat = osc(params.freq, 0.08, 0.5).phong();
-const sc = scene({ background: color(0.98, 0.96, 0.9) }).lights({ all: true }).out();
-sc.mesh(geom, mat, { instanced: count });
+const sc = scene({ background: color(0.98, 0.96, 0.9), name: "terrain-instanced", key: "terrain-instanced" })
+  .lights({ all: true })
+  .out();
+sc.mesh(geom, mat, { instanced: count, key: "terrain-instanced-mesh" });
 const mesh = sc.at(0);
 
 const grid = Math.ceil(Math.sqrt(count));
@@ -558,8 +565,8 @@ const pos = solid(
 );
 const col = cnoise(params.colorScale).saturate(params.saturation);
 
-scene()
-  .lines([0, Math.floor(params.count)], mt.lines(pos, col))
+scene({ name: "noise-lines", key: "noise-lines" })
+  .lines([0, Math.floor(params.count)], mt.lines(pos, col), { key: "noise-lines-shape" })
   .autoClear(params.trail)
   .out();
 `,
@@ -606,7 +613,7 @@ scene()
     code: `
 ortho([0, 0, 1], [0, 0, 0], { controls: true });
 
-scene()
+scene({ name: "kaleid-plane", key: "kaleid-plane" })
   .lights({ all: true })
   .mesh(
     gm.plane(2.2, 2.2, params.seg, params.seg),
@@ -614,6 +621,7 @@ scene()
       .kaleid(params.sides)
       .modulate(noise(params.modNoise), params.modAmt)
       .phong(),
+    { key: "kaleid-plane-mesh" },
   )
   .out();
 `,
@@ -668,12 +676,12 @@ scene()
 shadowMap();
 ortho([3, 3, 3], [0, 0, 0], { controls: true });
 
-const sc = scene({ background: color(0.95, 0.97, 1) })
+const sc = scene({ background: color(0.95, 0.97, 1), name: "world-fog-lattice", key: "world-fog-lattice" })
   .lights({ all: true, intensity: params.light })
   .world({ ground: true, fog: true, far: params.far })
   .out();
 
-const group = sc.group({ name: "lattice" });
+const group = sc.group({ name: "lattice", key: "lattice-group" });
 const grid = Math.max(1, Math.floor(params.grid));
 
 for (let i = 0; i < grid; i++) {
@@ -687,6 +695,7 @@ for (let i = 0; i < grid; i++) {
           params.boxSize / 2,
           (j - grid / 2) * params.spacing,
         ),
+        key: "lattice-box-" + i + "-" + j,
       },
     );
   }
@@ -761,8 +770,8 @@ const colorMap = cnoise(params.colorScale).brightness(params.brightness);
 
 solid(0)
   .layer(
-    scene()
-      .points([params.grid, params.grid], mt.dots(position, size, colorMap))
+    scene({ name: "dots-storm", key: "dots-storm" })
+      .points([params.grid, params.grid], mt.dots(position, size, colorMap), { key: "dots-storm-points" })
       .autoClear(params.trail),
   )
   .out();
@@ -816,11 +825,12 @@ solid(0)
     code: `
 perspective([2.6, 1.6, 2.8], [0, 0, 0], { controls: true });
 
-const sc = scene()
+const sc = scene({ name: "torus-pulse", key: "torus-pulse" })
   .lights({ all: true })
   .mesh(
     gm.torus(params.ringRadius, params.tubeRadius, 32, 120),
     osc(params.freq, 0.1, 0.5).phong(),
+    { key: "torus-pulse-mesh" },
   )
   .out();
 
@@ -891,12 +901,13 @@ const tex = tx.data(pixels, {
 });
 const tiled = tx.repeat(tex, Math.floor(params.repeatX), Math.floor(params.repeatY));
 
-scene()
+scene({ name: "repeat-plane", key: "repeat-plane" })
   .mesh(
     gm.plane(2.2, 2.2),
     src(tiled)
       .blend(osc(params.freq, 0.08, 0.2), params.mixAmt)
       .basic(),
+    { key: "repeat-plane-mesh" },
   )
   .out();
 `,
