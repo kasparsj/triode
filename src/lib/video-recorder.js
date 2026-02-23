@@ -67,7 +67,7 @@ class VideoRecorder {
     a.style.display = 'none'
     a.href = url
     let d = new Date()
-    a.download = `hydra-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}-${d.getHours()}.${d.getMinutes()}.${d.getSeconds()}.webm`
+    a.download = `triode-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}-${d.getHours()}.${d.getMinutes()}.${d.getSeconds()}.webm`
     document.body.appendChild(a)
     a.click()
     setTimeout(() => {

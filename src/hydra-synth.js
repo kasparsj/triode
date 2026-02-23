@@ -260,7 +260,7 @@ class HydraRenderer {
       this.precision = precision.toLowerCase()
       //
       // if(!precisionValid){
-      //   console.warn('[hydra-synth warning]\nConstructor was provided an invalid floating point precision value of "' + precision + '". Using default value of "mediump" instead.')
+      //   console.warn('[triode warning]\nConstructor was provided an invalid floating point precision value of "' + precision + '". Using default value of "mediump" instead.')
       // }
     } else {
       let isIOS =
@@ -298,7 +298,7 @@ class HydraRenderer {
         // to do: enable capture stream of specific sources and outputs
         this.synth.vidRecorder = new VidRecorder(this.captureStream)
       } catch (e) {
-        console.warn('[hydra-synth warning]\nnew MediaSource() is not currently supported on iOS.')
+        console.warn('[triode warning]\nnew MediaSource() is not currently supported on iOS.')
         console.error(e)
       }
     }
@@ -472,7 +472,7 @@ class HydraRenderer {
     a.style.display = 'none'
 
     let d = new Date()
-    a.download = `hydra-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}-${d.getHours()}.${d.getMinutes()}.${d.getSeconds()}.png`
+    a.download = `triode-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}-${d.getHours()}.${d.getMinutes()}.${d.getSeconds()}.png`
     document.body.appendChild(a)
     var self = this
     this.canvas.toBlob( (blob) => {
