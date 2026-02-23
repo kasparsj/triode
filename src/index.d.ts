@@ -105,6 +105,7 @@ export interface HydraTransformRenderOptions {
 export interface HydraSceneAttributes {
   name?: string;
   key?: string;
+  reuse?: boolean;
   background?: number | string;
   [key: string]: unknown;
 }
@@ -112,6 +113,7 @@ export interface HydraSceneAttributes {
 export interface HydraObjectOptions {
   name?: string;
   key?: string;
+  reuse?: boolean;
   type?: string;
   instanced?: number;
   lineColor?: number | string;

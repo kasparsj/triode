@@ -30,7 +30,7 @@ For behavior-level edge cases (units, precedence, and internal/public boundaries
 
 | Method                        | Purpose                          | Typical usage                         |
 | ----------------------------- | -------------------------------- | ------------------------------------- |
-| `scene()`                     | Create or fetch a scene handle   | `scene({ name: "main", key: "main" })` |
+| `scene()`                     | Create scene handle (`reuse: true` for name-based lookup)   | `scene({ name: "main", key: "main" })` |
 | `stage()`                     | Alias of `scene()`               | `stage({ name: "main", key: "main" })` |
 | `.mesh(geom, mat, options)`   | Add mesh geometry                | `.mesh(gm.box(), osc().phong(), { key: "hero" })` |
 | `.points(geom, mat, options)` | Add points primitive             | `.points([100, 100], mt.dots())`      |
@@ -50,6 +50,7 @@ Legacy aliases `linestrip(...)` and `lineloop(...)` remain available for compati
 Identity note for live coding:
 
 - `scene({ key: "main" })`, `.group({ key: "cluster" })`, and primitive `options.key` provide stable object reuse keys in `liveMode: "continuous"` when line order changes between evals.
+- Name-based reuse is explicit: pass `reuse: true` on scenes/groups/primitives when you intentionally want `name` to resolve existing objects.
 - Migration helper: [`docs/reference/live-key-migration.md`](./live-key-migration.md) and `npm run migrate:report-live-keys`.
 
 ## Module namespace aliases
@@ -71,6 +72,7 @@ Long-form aliases are available alongside short module names:
 
 | `stage` option | Type | Notes |
 | -------------- | ---- | ----- |
+| `reuse` | `boolean` | Enables name-based scene reuse when `name` is provided. |
 | `camera` | `false \| "perspective" \| "ortho" \| "orthographic" \| object` | Camera preset or full camera config (`type`, `eye`, `target`, camera options). |
 | `lights` | `false \| "basic" \| "studio" \| object` | `basic` uses default lights, `studio` maps to `{ all: true }`. |
 | `world` | `false \| "ground" \| "atmosphere" \| object` | `ground` enables ground, `atmosphere` enables ground + fog. |

@@ -118,7 +118,7 @@ const smokeHtml = `<!doctype html>
         }
 
         const worldScene = A.scene().world({ sun: true, far: 20, ground: false, fog: false });
-        const worldGroup = worldScene.group({ name: '__world' });
+        const worldGroup = worldScene.group({ name: '__world', reuse: true });
         const sun = worldGroup.find({ name: '__sun' })[0];
         if (!sun || !Number.isFinite(sun.position.x) || !Number.isFinite(sun.position.y) || !Number.isFinite(sun.position.z)) {
           throw new Error('World sun defaults produced invalid position');

@@ -59,6 +59,12 @@ This preserves intermediate pass wiring while guaranteeing the final output targ
 
 Use public scene composition methods in docs, recipes, and production sketches.
 
+## Named reuse semantics
+
+- `name` is descriptive by default; it does not imply reuse.
+- Use `reuse: true` when you intentionally want `scene/group/mesh/...` calls with the same `name` to resolve an existing object.
+- For stable live-coding identity across reorder edits, prefer explicit `key`.
+
 ## Global vs non-global runtime semantics
 
 - `makeGlobal: true` installs helpers like `osc`, `scene`, module namespaces, and math helpers into global scope for live-coding ergonomics.

@@ -185,12 +185,18 @@ const nextLiveAutoId = (runtime, type) => {
 };
 
 const withLiveName = (runtime, attributes = {}, type = "object") => {
-    if (!isLiveEvalActive(runtime) || attributes.name) {
+    if (!isLiveEvalActive(runtime)) {
+        return attributes;
+    }
+    if (normalizeLiveKey(attributes.key)) {
         return attributes;
     }
     const state = getLiveEvalState(runtime);
-    if (state && !normalizeLiveKey(attributes.key)) {
+    if (state) {
         state.sawUnkeyedAutoNames = true;
+    }
+    if (Object.prototype.hasOwnProperty.call(attributes, LIVE_AUTO_ID_ATTR)) {
+        return attributes;
     }
     return Object.assign({}, attributes, {
         [LIVE_AUTO_ID_ATTR]: nextLiveAutoId(runtime, type),
@@ -204,6 +210,9 @@ const normalizeLiveKey = (value) => {
     const key = value.trim();
     return key.length > 0 ? key : null;
 };
+
+const shouldReuseNamedObject = (attributes = {}) =>
+    !!(attributes && attributes.reuse === true);
 
 const getLiveKey = (object) => {
     if (!object || !object.userData) {
@@ -776,8 +785,9 @@ const getOrCreateScene = (options, attributes = {}) => {
     const sceneAttributes = withLiveName(runtime, attributes, "scene");
     const {name, key, [LIVE_AUTO_ID_ATTR]: autoId} = sceneAttributes;
     const normalizedKey = normalizeLiveKey(key);
+    const allowNamedReuse = shouldReuseNamedObject(sceneAttributes);
     let scene = normalizedKey ? store.keyedScenes[normalizedKey] : null;
-    if (!scene && name) {
+    if (!scene && allowNamedReuse && name) {
         scene = store.scenes[name];
     }
     if (!scene && autoId) {
@@ -788,14 +798,18 @@ const getOrCreateScene = (options, attributes = {}) => {
     } else {
         scene._runtime = runtime;
     }
-    for (let attr in sceneAttributes) {
-        if (!sceneAttributes.hasOwnProperty(attr)) continue;
+    const sceneProperties = Object.assign({}, sceneAttributes);
+    delete sceneProperties.reuse;
+    delete sceneProperties.key;
+    delete sceneProperties[LIVE_AUTO_ID_ATTR];
+    for (let attr in sceneProperties) {
+        if (!sceneProperties.hasOwnProperty(attr)) continue;
         switch (attr) {
             case 'background':
-                scene[attr] = new THREE.Color(sceneAttributes[attr]);
+                scene[attr] = new THREE.Color(sceneProperties[attr]);
                 break;
             default:
-                scene[attr] = sceneAttributes[attr];
+                scene[attr] = sceneProperties[attr];
                 break;
         }
     }
@@ -814,8 +828,9 @@ const getOrCreateMesh = (attributes = {}, runtime) => {
     const meshAttrs = withLiveName(runtimeRef, attributes, "mesh");
     const {name, key, [LIVE_AUTO_ID_ATTR]: autoId} = meshAttrs;
     const normalizedKey = normalizeLiveKey(key);
+    const allowNamedReuse = shouldReuseNamedObject(meshAttrs);
     let mesh = normalizedKey ? store.keyedMeshes[normalizedKey] : null;
-    if (!mesh && name) {
+    if (!mesh && allowNamedReuse && name) {
         mesh = store.namedMeshes[name];
     }
     if (!mesh && autoId) {
@@ -846,8 +861,9 @@ const getOrCreateInstancedMesh = (attributes, runtime) => {
     const instancedAttrs = withLiveName(runtimeRef, attributes, "instancedMesh");
     const {name, key, geometry, material, count, [LIVE_AUTO_ID_ATTR]: autoId} = instancedAttrs;
     const normalizedKey = normalizeLiveKey(key);
+    const allowNamedReuse = shouldReuseNamedObject(instancedAttrs);
     let mesh = normalizedKey ? store.keyedInstancedMeshes[normalizedKey] : null;
-    if (!mesh && name) {
+    if (!mesh && allowNamedReuse && name) {
         mesh = store.namedInstancedMeshes[name];
     }
     if (!mesh && autoId) {
@@ -878,8 +894,9 @@ const getOrCreateLine = (attributes, runtime) => {
     const lineAttrs = withLiveName(runtimeRef, attributes, "line");
     const {name, key, [LIVE_AUTO_ID_ATTR]: autoId} = lineAttrs;
     const normalizedKey = normalizeLiveKey(key);
+    const allowNamedReuse = shouldReuseNamedObject(lineAttrs);
     let line = normalizedKey ? store.keyedLines[normalizedKey] : null;
-    if (!line && name) {
+    if (!line && allowNamedReuse && name) {
         line = store.namedLines[name];
     }
     if (!line && autoId) {
@@ -905,8 +922,9 @@ const getOrCreateLineLoop = (attributes, runtime) => {
     const lineLoopAttrs = withLiveName(runtimeRef, attributes, "lineLoop");
     const {name, key, [LIVE_AUTO_ID_ATTR]: autoId} = lineLoopAttrs;
     const normalizedKey = normalizeLiveKey(key);
+    const allowNamedReuse = shouldReuseNamedObject(lineLoopAttrs);
     let lineLoop = normalizedKey ? store.keyedLineLoops[normalizedKey] : null;
-    if (!lineLoop && name) {
+    if (!lineLoop && allowNamedReuse && name) {
         lineLoop = store.namedLineLoops[name];
     }
     if (!lineLoop && autoId) {
@@ -932,8 +950,9 @@ const getOrCreateLineSegments = (attributes, runtime) => {
     const lineAttrs = withLiveName(runtimeRef, attributes, "lineSegments");
     const {name, key, [LIVE_AUTO_ID_ATTR]: autoId} = lineAttrs;
     const normalizedKey = normalizeLiveKey(key);
+    const allowNamedReuse = shouldReuseNamedObject(lineAttrs);
     let line = normalizedKey ? store.keyedLineSegments[normalizedKey] : null;
-    if (!line && name) {
+    if (!line && allowNamedReuse && name) {
         line = store.namedLineSegments[name];
     }
     if (!line && autoId) {
@@ -959,8 +978,9 @@ const getOrCreatePoints = (attributes, runtime) => {
     const pointAttrs = withLiveName(runtimeRef, attributes, "points");
     const {name, key, [LIVE_AUTO_ID_ATTR]: autoId} = pointAttrs;
     const normalizedKey = normalizeLiveKey(key);
+    const allowNamedReuse = shouldReuseNamedObject(pointAttrs);
     let point = normalizedKey ? store.keyedPoints[normalizedKey] : null;
-    if (!point && name) {
+    if (!point && allowNamedReuse && name) {
         point = store.namedPoints[name];
     }
     if (!point && autoId) {
@@ -1298,8 +1318,9 @@ const sceneMixin = {
         const store = getStore(this._runtime);
         const {name, key, [LIVE_AUTO_ID_ATTR]: autoId} = groupAttributes;
         const normalizedKey = normalizeLiveKey(key);
+        const allowNamedReuse = shouldReuseNamedObject(groupAttributes);
         let group = normalizedKey ? store.keyedGroups[normalizedKey] : null;
-        if (!group && name) {
+        if (!group && allowNamedReuse && name) {
             group = store.groups[name];
         }
         if (!group && autoId) {

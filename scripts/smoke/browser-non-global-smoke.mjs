@@ -73,6 +73,10 @@ const smokeHtml = `<!doctype html>
         stageConfigApiWorks: null,
         stageConfigCameraPerspective: null,
         stageConfigClearApplied: null,
+        namedSceneReuseRequiresOptIn: null,
+        namedSceneReuseOptInWorks: null,
+        namedObjectReuseRequiresOptIn: null,
+        namedObjectReuseOptInWorks: null,
         onFrameHookWorks: null,
         liveGlobalsToggleWorks: null,
         renderAliasSceneWorks: null,
@@ -124,11 +128,11 @@ const smokeHtml = `<!doctype html>
         window.__smoke.noiseTransformPreserved = typeof H.noise === 'function';
         window.__smoke.stageAliasAvailable = typeof H.stage === 'function';
         if (window.__smoke.stageAliasAvailable) {
-          H.stage({ name: '__aliasStage' })
+          H.stage({ name: '__aliasStage', key: '__aliasStage' })
             .mesh(H.gm.box(), H.mt.meshBasic({ color: 0x557799 }), { key: 'stage-mesh' })
             .render();
           window.__smoke.stageAliasCreatesScene =
-            H.scene({ name: '__aliasStage' }).find({ isMesh: true }).length > 0;
+            H.scene({ name: '__aliasStage', key: '__aliasStage' }).find({ isMesh: true }).length > 0;
         } else {
           window.__smoke.stageAliasCreatesScene = false;
         }
@@ -158,6 +162,54 @@ const smokeHtml = `<!doctype html>
           stageConfigScene._autoClear &&
           Math.abs(stageConfigScene._autoClear.amount - 0.85) < 1e-9
         );
+
+        const namedSceneDefaultA = H.scene({ name: '__reuseNamedSceneDefault' });
+        namedSceneDefaultA.mesh(
+          H.gm.box(),
+          H.mt.meshBasic({ color: 0x446688 }),
+          { key: 'reuse-named-scene-default-mesh' },
+        );
+        const namedSceneDefaultB = H.scene({ name: '__reuseNamedSceneDefault' });
+        window.__smoke.namedSceneReuseRequiresOptIn =
+          namedSceneDefaultA !== namedSceneDefaultB &&
+          namedSceneDefaultB.find({ isMesh: true }).length === 0;
+
+        const namedSceneReuseA = H.scene({ name: '__reuseNamedSceneOptIn', reuse: true });
+        namedSceneReuseA.mesh(
+          H.gm.box(),
+          H.mt.meshBasic({ color: 0x557799 }),
+          { key: 'reuse-named-scene-optin-mesh' },
+        );
+        const namedSceneReuseB = H.scene({ name: '__reuseNamedSceneOptIn', reuse: true });
+        window.__smoke.namedSceneReuseOptInWorks =
+          namedSceneReuseA === namedSceneReuseB &&
+          namedSceneReuseB.find({ isMesh: true }).length === 1;
+
+        const namedObjectScene = H.scene({ name: '__reuseNamedObjectScene', key: '__reuseNamedObjectScene' });
+        namedObjectScene.mesh(
+          H.gm.box(),
+          H.mt.meshBasic({ color: 0x778899 }),
+          { name: '__namedMeshDefault' },
+        );
+        namedObjectScene.mesh(
+          H.gm.sphere(),
+          H.mt.meshBasic({ color: 0x8899aa }),
+          { name: '__namedMeshDefault' },
+        );
+        window.__smoke.namedObjectReuseRequiresOptIn =
+          namedObjectScene.find({ name: '__namedMeshDefault' }).length === 2;
+        namedObjectScene.mesh(
+          H.gm.box(),
+          H.mt.meshBasic({ color: 0x99aabb }),
+          { name: '__namedMeshReuse', reuse: true },
+        );
+        namedObjectScene.mesh(
+          H.gm.sphere(),
+          H.mt.meshBasic({ color: 0xaabbcc }),
+          { name: '__namedMeshReuse', reuse: true },
+        );
+        window.__smoke.namedObjectReuseOptInWorks =
+          namedObjectScene.find({ name: '__namedMeshReuse' }).length === 1;
 
         let onFrameCalls = 0;
         let onFrameDt = null;
@@ -382,27 +434,27 @@ const smokeHtml = `<!doctype html>
         window.__smoke.continuousUnkeyedHintEmitted = unkeyedHintMessages.some(
           (message) => message.includes('Add { key: "..." }'),
         )
-        H.scene({ name: "__continuousPrune" })
+        H.scene({ name: "__continuousPrune", key: "continuous-prune" })
           .mesh(H.gm.box(), H.mt.meshBasic({ color: 0xff0000 }))
           .out()
-        const pruneBefore = H.scene({ name: "__continuousPrune" }).find({ isMesh: true }).length
+        const pruneBefore = H.scene({ name: "__continuousPrune", key: "continuous-prune" }).find({ isMesh: true }).length
         hydra.eval(
-          'const H = window.__smokeRuntime.synth; H.scene({ name: "__continuousPrune" }).out();',
+          'const H = window.__smokeRuntime.synth; H.scene({ name: "__continuousPrune", key: "continuous-prune" }).out();',
         )
-        const pruneAfter = H.scene({ name: "__continuousPrune" }).find({ isMesh: true }).length
+        const pruneAfter = H.scene({ name: "__continuousPrune", key: "continuous-prune" }).find({ isMesh: true }).length
         window.__smoke.continuousPruneRemovedStaleMesh =
           pruneBefore > 0 && pruneAfter === 0
 
-        H.scene({ name: "__continuousTouch" })
+        H.scene({ name: "__continuousTouch", key: "continuous-touch" })
           .mesh(H.gm.box(), H.mt.meshBasic({ color: 0x00ff00 }))
           .out()
         hydra.eval(
-          'const H = window.__smokeRuntime.synth; const sc = H.scene({ name: "__continuousTouch" }).out(); const obj = sc.at(0); if (obj) { obj.rotation.x += 0.01; }',
+          'const H = window.__smokeRuntime.synth; const sc = H.scene({ name: "__continuousTouch", key: "continuous-touch" }).out(); const obj = sc.at(0); if (obj) { obj.rotation.x += 0.01; }',
         )
-        const touchAfter = H.scene({ name: "__continuousTouch" }).find({ isMesh: true }).length
+        const touchAfter = H.scene({ name: "__continuousTouch", key: "continuous-touch" }).find({ isMesh: true }).length
         window.__smoke.continuousPrunePreservedTouchedMesh = touchAfter === 1
 
-        const keyedScene = H.scene({ name: "__continuousKeyed" }).out()
+        const keyedScene = H.scene({ name: "__continuousKeyed", key: "continuous-keyed-scene" }).out()
         keyedScene.mesh(
           H.gm.box(),
           H.mt.meshBasic({ color: 0x33aaff }),
@@ -413,15 +465,15 @@ const smokeHtml = `<!doctype html>
           H.mt.meshBasic({ color: 0xffaa33 }),
           { key: "mesh-b" },
         )
-        const keyedBefore = H.scene({ name: "__continuousKeyed" }).find({ isMesh: true })
+        const keyedBefore = H.scene({ name: "__continuousKeyed", key: "continuous-keyed-scene" }).find({ isMesh: true })
         const keyedBeforeByKey = {}
         keyedBefore.forEach((mesh) => {
           keyedBeforeByKey[mesh.userData && mesh.userData.__hydraLiveKey] = mesh.uuid
         })
         hydra.eval(
-          'const H = window.__smokeRuntime.synth; const sc = H.scene({ name: "__continuousKeyed" }).out(); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0x44ccff }), { key: "mesh-b" }); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0xffcc44 }), { key: "mesh-a" });',
+          'const H = window.__smokeRuntime.synth; const sc = H.scene({ name: "__continuousKeyed", key: "continuous-keyed-scene" }).out(); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0x44ccff }), { key: "mesh-b" }); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0xffcc44 }), { key: "mesh-a" });',
         )
-        const keyedAfter = H.scene({ name: "__continuousKeyed" }).find({ isMesh: true })
+        const keyedAfter = H.scene({ name: "__continuousKeyed", key: "continuous-keyed-scene" }).find({ isMesh: true })
         const keyedAfterByKey = {}
         keyedAfter.forEach((mesh) => {
           keyedAfterByKey[mesh.userData && mesh.userData.__hydraLiveKey] = mesh.uuid
@@ -432,9 +484,9 @@ const smokeHtml = `<!doctype html>
           keyedBeforeByKey["mesh-b"] === keyedAfterByKey["mesh-b"]
 
         hydra.eval(
-          'const H = window.__smokeRuntime.synth; const sc = H.scene({ name: "__continuousReservedName" }).out(); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0xaa3355 }), { name: "__live_mesh_0" }); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0x33aacc }));',
+          'const H = window.__smokeRuntime.synth; const sc = H.scene({ name: "__continuousReservedName", key: "continuous-reserved-name" }).out(); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0xaa3355 }), { name: "__live_mesh_0" }); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0x33aacc }));',
         )
-        const reservedAfterFirst = H.scene({ name: "__continuousReservedName" }).find({
+        const reservedAfterFirst = H.scene({ name: "__continuousReservedName", key: "continuous-reserved-name" }).find({
           isMesh: true,
         })
         const reservedNamedFirst = reservedAfterFirst.filter(
@@ -444,9 +496,9 @@ const smokeHtml = `<!doctype html>
           (mesh) => mesh.name !== "__live_mesh_0",
         )
         hydra.eval(
-          'const H = window.__smokeRuntime.synth; const sc = H.scene({ name: "__continuousReservedName" }).out(); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0xaa44ff }), { name: "__live_mesh_0" }); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0x44ffaa }));',
+          'const H = window.__smokeRuntime.synth; const sc = H.scene({ name: "__continuousReservedName", key: "continuous-reserved-name" }).out(); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0xaa44ff }), { name: "__live_mesh_0" }); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0x44ffaa }));',
         )
-        const reservedAfterSecond = H.scene({ name: "__continuousReservedName" }).find({
+        const reservedAfterSecond = H.scene({ name: "__continuousReservedName", key: "continuous-reserved-name" }).find({
           isMesh: true,
         })
         const reservedNamedSecond = reservedAfterSecond.filter(
@@ -479,11 +531,11 @@ const smokeHtml = `<!doctype html>
           staleMaterialDisposeCount += 1
           disposeMaterial()
         }
-        H.scene({ name: "__continuousDispose" })
+        H.scene({ name: "__continuousDispose", key: "continuous-dispose" })
           .mesh(disposableGeometry, disposableMaterial, { key: "dispose-mesh" })
           .out()
         hydra.eval(
-          'const H = window.__smokeRuntime.synth; H.scene({ name: "__continuousDispose" }).out();',
+          'const H = window.__smokeRuntime.synth; H.scene({ name: "__continuousDispose", key: "continuous-dispose" }).out();',
         )
         window.__smoke.continuousDisposeReleasedRemovedResources =
           staleGeometryDisposeCount === 1 && staleMaterialDisposeCount === 1
@@ -496,11 +548,11 @@ const smokeHtml = `<!doctype html>
           disposeSharedMaterial()
         }
         window.__smokeSharedMaterial = sharedMaterial
-        const sharedScene = H.scene({ name: "__continuousSharedMaterial" }).out()
+        const sharedScene = H.scene({ name: "__continuousSharedMaterial", key: "continuous-shared-material" }).out()
         sharedScene.mesh(H.gm.box(), sharedMaterial, { key: "keep" })
         sharedScene.mesh(H.gm.box(), sharedMaterial, { key: "drop" })
         hydra.eval(
-          'const H = window.__smokeRuntime.synth; const sc = H.scene({ name: "__continuousSharedMaterial" }).out(); sc.mesh(H.gm.box(), window.__smokeSharedMaterial, { key: "keep" });',
+          'const H = window.__smokeRuntime.synth; const sc = H.scene({ name: "__continuousSharedMaterial", key: "continuous-shared-material" }).out(); sc.mesh(H.gm.box(), window.__smokeSharedMaterial, { key: "keep" });',
         )
         window.__smoke.continuousDisposeRetainedSharedMaterial =
           sharedMaterialDisposeCount === 0
@@ -520,13 +572,13 @@ const smokeHtml = `<!doctype html>
           replacedMaterialDisposeCount += 1
           disposeReplacedMaterial()
         }
-        H.scene({ name: "__continuousReplace" })
+        H.scene({ name: "__continuousReplace", key: "continuous-replace" })
           .mesh(replacedGeometry, replacedMaterial, { key: "replace-mesh" })
           .out()
         window.__smokeReplacementGeometry = H.gm.sphere()
         window.__smokeReplacementMaterial = H.mt.meshBasic({ color: 0x66ccff })
         hydra.eval(
-          'const H = window.__smokeRuntime.synth; const sc = H.scene({ name: "__continuousReplace" }).out(); sc.mesh(window.__smokeReplacementGeometry, window.__smokeReplacementMaterial, { key: "replace-mesh" });',
+          'const H = window.__smokeRuntime.synth; const sc = H.scene({ name: "__continuousReplace", key: "continuous-replace" }).out(); sc.mesh(window.__smokeReplacementGeometry, window.__smokeReplacementMaterial, { key: "replace-mesh" });',
         )
         window.__smoke.continuousDisposeReleasedReplacedResources =
           replacedGeometryDisposeCount === 1 && replacedMaterialDisposeCount === 1
@@ -542,7 +594,7 @@ const smokeHtml = `<!doctype html>
           sharedReplacementMaterialDisposeCount += 1
           disposeSharedReplacementMaterial()
         }
-        const sharedReplaceScene = H.scene({ name: "__continuousReplaceShared" }).out()
+        const sharedReplaceScene = H.scene({ name: "__continuousReplaceShared", key: "continuous-replace-shared" }).out()
         sharedReplaceScene.mesh(H.gm.box(), sharedReplacementMaterial, {
           key: "replace-left",
         })
@@ -552,7 +604,7 @@ const smokeHtml = `<!doctype html>
         window.__smokeSharedReplacementMaterial = sharedReplacementMaterial
         window.__smokeReplacementLeftMaterial = H.mt.meshBasic({ color: 0xff8855 })
         hydra.eval(
-          'const H = window.__smokeRuntime.synth; const sc = H.scene({ name: "__continuousReplaceShared" }).out(); sc.mesh(H.gm.box(), window.__smokeReplacementLeftMaterial, { key: "replace-left" }); sc.mesh(H.gm.box(), window.__smokeSharedReplacementMaterial, { key: "replace-right" });',
+          'const H = window.__smokeRuntime.synth; const sc = H.scene({ name: "__continuousReplaceShared", key: "continuous-replace-shared" }).out(); sc.mesh(H.gm.box(), window.__smokeReplacementLeftMaterial, { key: "replace-left" }); sc.mesh(H.gm.box(), window.__smokeSharedReplacementMaterial, { key: "replace-right" });',
         )
         window.__smoke.continuousDisposeRetainedSharedReplacementMaterial =
           sharedReplacementMaterialDisposeCount === 0
@@ -814,6 +866,26 @@ try {
     diagnostics.stageConfigClearApplied,
     true,
     "Expected H.stage(config) clear option to configure scene auto-clear state",
+  );
+  assert.equal(
+    diagnostics.namedSceneReuseRequiresOptIn,
+    true,
+    "Expected named scenes to require reuse:true for implicit name-based reuse",
+  );
+  assert.equal(
+    diagnostics.namedSceneReuseOptInWorks,
+    true,
+    "Expected named scene reuse:true to preserve by-name reuse behavior",
+  );
+  assert.equal(
+    diagnostics.namedObjectReuseRequiresOptIn,
+    true,
+    "Expected named objects to require reuse:true for by-name reuse",
+  );
+  assert.equal(
+    diagnostics.namedObjectReuseOptInWorks,
+    true,
+    "Expected named object reuse:true to reuse existing object identity",
   );
   assert.equal(
     diagnostics.onFrameHookWorks,
