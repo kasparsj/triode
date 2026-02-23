@@ -43,5 +43,5 @@ jobs:
         with:
           name: release-artifacts
           path: |
-            hydra-synth-*.tgz
+            triode-*.tgz
             release-checksums.txt

@@ -1,8 +1,8 @@
 {
-  "name": "hydra-synth",
+  "name": "triode",
   "version": "1.0.0",
   "private": true,
-  "description": "triode: three.js-powered hydra fork for creative coding",
+  "description": "triode: three.js-powered live coding engine for 3D creative coding",
   "type": "module",
   "main": "./dist/hydra-synth.js",
   "types": "./src/index.d.ts",
