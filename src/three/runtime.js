@@ -1,5 +1,6 @@
 const runtimes = new Set()
 let activeRuntime = null
+let runtimeScopeDepth = 0
 
 const setActiveRuntime = (value) => {
   if (!value) {
@@ -23,10 +24,7 @@ const setRuntime = (value, { active = true } = {}) => {
 }
 
 const getRuntime = (fallbackRuntime) => {
-  const runtime =
-    fallbackRuntime ||
-    activeRuntime ||
-    (runtimes.size === 1 ? Array.from(runtimes)[0] : null)
+  const runtime = fallbackRuntime || (runtimeScopeDepth > 0 ? activeRuntime : null)
   if (!runtime) {
     throw new Error(
       'Hydra runtime is not initialized. Create a Hydra instance before using 3D helpers.'
@@ -53,9 +51,11 @@ const clearRuntime = (value) => {
 const withRuntime = (runtime, fn) => {
   const prevRuntime = activeRuntime
   setActiveRuntime(runtime)
+  runtimeScopeDepth += 1
   try {
     return fn()
   } finally {
+    runtimeScopeDepth = Math.max(0, runtimeScopeDepth - 1)
     if (prevRuntime && runtimes.has(prevRuntime)) {
       activeRuntime = prevRuntime
     } else {

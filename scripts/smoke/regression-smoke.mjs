@@ -217,7 +217,12 @@ try {
   };
   runtime.clearRuntime();
   runtime.setRuntime(imageRuntime);
-  const data = await arr.image("mock://image.png", (value) => {
+  assert.throws(() => arr.image("mock://image.png"), /active Hydra runtime/);
+  const imageApi = runtime.bindRuntimeModule(
+    { image: arr.image },
+    imageRuntime,
+  );
+  const data = await imageApi.image("mock://image.png", (value) => {
     callbackData = value;
   });
   runtime.clearRuntime(imageRuntime);

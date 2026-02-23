@@ -95,6 +95,7 @@ const disposeRuntime = () => {
     // no-op
   }
   state.runtime = null;
+  window.__playgroundHydra = null;
 };
 
 const resetRuntime = () => {
@@ -341,15 +342,22 @@ const runSketch = () => {
       state.runtime = new window.Hydra({
         canvas: els.canvas,
         detectAudio: false,
-        makeGlobal: true,
+        makeGlobal: false,
         autoLoop: true,
         liveMode: state.runtimeMode,
       });
     }
     const hydra = state.runtime;
+    window.__playgroundHydra = hydra;
     window.__playgroundParams = { ...state.values };
 
-    const script = `const params = window.__playgroundParams;\n${els.code.value}`;
+    const script = [
+      "const params = window.__playgroundParams;",
+      "const H = window.__playgroundHydra.synth;",
+      "with (H) {",
+      els.code.value,
+      "}",
+    ].join("\n");
     hydra.eval(script);
 
     setStatus(

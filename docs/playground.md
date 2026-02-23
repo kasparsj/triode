@@ -50,7 +50,7 @@ Published URL:
 
 ## Runtime note
 
-The playground currently uses `makeGlobal: true` inside a controlled page context to keep eval ergonomics simple.
+The playground runtime is initialized with `makeGlobal: false` and evaluates snippets against `hydra.synth` scope (`with (H) { ... }`) so helper globals are not installed on `window`.
 
 - `Mode: Continuous` keeps a persistent runtime and evaluates into it.
 - `Mode: Restart` disposes/recreates runtime on every run.

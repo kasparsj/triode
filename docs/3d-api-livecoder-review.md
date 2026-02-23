@@ -400,6 +400,8 @@ Update (2026-02-23): named scene/object reuse is now explicit via `reuse: true`,
 
 Update (2026-02-23): `arr.image()` now resolves texture loading through the active runtime (`runtime.modules.tx`) instead of `globalThis.tx`, removing hidden global coupling in non-global and multi-instance usage. Implementation and coverage are in `src/three/arr.js:191`, `scripts/smoke/module-load-smoke.mjs:154`, and `scripts/smoke/regression-smoke.mjs:204`.
 
+Update (2026-02-23): helper runtime resolution now requires an explicit runtime scope (bound module call / `withRuntime(...)`) instead of ambient singleton fallback, eliminating hidden cross-instance targeting from unscoped helper calls. Implementation is in `src/three/runtime.js`, with helper usage in `src/three/mt.js` and `src/three/tx.js`.
+
 Update (2026-02-23): remaining flagged playground presets now include explicit `key` usage for scene/primitive calls, and the live-key audit tool gained receiver filtering (short + friendly module receivers, e.g. `mt.*`/`mat.*`, `gm.*`/`geom.*`) plus `stage(...)`/`lineLoop(...)`/`lineStrip(...)` coverage. Verification passes via `npm run migrate:check-live-keys:playground` with zero findings. Implementation is in `site/playground/examples.js`, `scripts/migrate/find-unkeyed-live-calls.mjs`, and `package.json`.
 
 Update (2026-02-23): public docs/examples now avoid private `_mesh` usage for instancing and demonstrate the stable public path `stage().mesh(..., { instanced })` (`scene()` remains an alias). Implementation is in `examples/box-instanced-grid.js` and `docs/reference/semantic-clarifications.md`.
@@ -420,6 +422,8 @@ Update (2026-02-23): transform-chain `.material(...)` now supports typed preset 
 
 Update (2026-02-23): orbit control modifier is now configurable via `controls.modifier` with backward-compatible camera options forwarding. Implementation and coverage are in `src/three/HydraOrbitControls.js:92`, `src/lib/mixins.js:12`, `src/index.d.ts:38`, `scripts/smoke/browser-non-global-smoke.mjs:104`, `README.md:138`, and `docs/reference/parameter-reference.md:58`.
 
+Update (2026-02-23): playground runtime now runs in non-global mode (`makeGlobal: false`) and evaluates user snippets against synth scope (`with (H) { ... }`) to preserve live-coding ergonomics without polluting `window`. Implementation is in `site/playground/playground.js` and `docs/playground.md`.
+
 Update (2026-02-22): explicit `key` usage now covers the first-touch and mid-tier examples in `site/playground/examples.js:55`, `site/playground/examples.js:115`, `site/playground/examples.js:169`, `site/playground/examples.js:391`, `examples/box.js:9`, `examples/tex-map.js:12`, `examples/tex-map.js:25`, and `docs/reference/parameter-reference.md:33`. Internal auto identity (collision-safe), replaced-resource disposal, restart input rebinding, one-time unkeyed hinting, and a codemod-style audit helper are implemented in `src/three/scene.js:19`, `src/three/scene.js:748`, `src/canvas.js:42`, `src/three/scene.js:663`, `scripts/migrate/find-unkeyed-live-calls.mjs:1`, and `docs/reference/live-key-migration.md:1`.
 
 1. Implemented: continue migrating remaining examples to explicit `key` usage  
@@ -436,13 +440,13 @@ Update (2026-02-22): explicit `key` usage now covers the first-touch and mid-tie
 
 ## I) Impact x Frequency Ranking (Execution Order)
 
-| Rank | Issue                                                                    | Impact evidence (`file:line`)                                                                                     | Frequency evidence (`file:line`)                                                         | Score (I x F) |
-| ---- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------- |
-| 1    | Global mode still default in playground (runtime default now non-global) | `site/playground/playground.js:344`; `src/hydra-synth.js:127`; `scripts/smoke/browser-non-global-smoke.mjs:682`   | `site/playground/examples.js:55`; `site/playground/examples.js:116`                      | 2 x 3 = 6     |
-| 2    | Orbit controls default to `Alt` (mitigated by `controls.modifier`)       | `src/three/HydraOrbitControls.js:837`; `src/three/HydraOrbitControls.js:1038`; `src/lib/mixins.js:12`             | `examples/box.js:1`; `site/playground/examples.js:49`; `site/playground/examples.js:812` | 2 x 3 = 6     |
-| 3    | Rotation unit mismatch (mitigated by `rotateDeg`/`rotateRad`)            | `src/glsl/glsl-functions.js:384`; `src/glsl/glsl-functions.js:408`; `docs/reference/semantic-clarifications.md:7` | `site/playground/examples.js:52`; `examples/box.js:6`                                    | 2 x 3 = 6     |
-| 4    | Hidden runtime fallback context in helper modules                        | `src/three/runtime.js:25`; `src/three/mt.js:151`; `src/three/tx.js:264`                                           | `site/playground/examples.js:57`; `site/playground/examples.js:116`                      | 4 x 2 = 8     |
-| 5    | Eval-order drift for sketches that omit `key`                            | `src/three/scene.js:143`; `src/three/scene.js:711`; `src/index.d.ts:53`                                           | `site/playground/examples.js:224`; `site/playground/examples.js:289`                     | 3 x 2 = 6     |
+| Rank | Issue                                                                      | Impact evidence (`file:line`)                                                                                     | Frequency evidence (`file:line`)                                                         | Score (I x F) |
+| ---- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------- |
+| 1    | Playground runtime global default (resolved; now non-global by default)    | `site/playground/playground.js`; `docs/playground.md`; `src/hydra-synth.js:127`                                   | `site/playground/examples.js`; `docs/playground.md`                                      | 1 x 1 = 1     |
+| 2    | Orbit controls default to `Alt` (mitigated by `controls.modifier`)         | `src/three/HydraOrbitControls.js:837`; `src/three/HydraOrbitControls.js:1038`; `src/lib/mixins.js:12`             | `examples/box.js:1`; `site/playground/examples.js:49`; `site/playground/examples.js:812` | 2 x 3 = 6     |
+| 3    | Rotation unit mismatch (mitigated by `rotateDeg`/`rotateRad`)              | `src/glsl/glsl-functions.js:384`; `src/glsl/glsl-functions.js:408`; `docs/reference/semantic-clarifications.md:7` | `site/playground/examples.js:52`; `examples/box.js:6`                                    | 2 x 3 = 6     |
+| 4    | Hidden runtime fallback context in helper modules (resolved by scope gate) | `src/three/runtime.js`; `src/three/mt.js:151`; `src/three/tx.js:264`                                              | `site/playground/examples.js`; `scripts/smoke/browser-non-global-smoke.mjs`              | 1 x 1 = 1     |
+| 5    | Eval-order drift for sketches that omit `key`                              | `src/three/scene.js:143`; `src/three/scene.js:711`; `src/index.d.ts:53`                                           | `site/playground/examples.js:224`; `site/playground/examples.js:289`                     | 3 x 2 = 6     |
 
 ## J) Speed/Creativity Success Metrics
 
