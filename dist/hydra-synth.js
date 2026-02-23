@@ -34908,6 +34908,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           break;
         }
         case "linestrip":
+        case "lineStrip":
         case "line strip": {
           width || (width = 10);
           height || (height = 1);
@@ -34926,6 +34927,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           break;
         }
         case "lineloop":
+        case "lineLoop":
         case "line loop": {
           width || (width = 10);
           height || (height = 1);
@@ -40837,10 +40839,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             object = getOrCreatePoints(Object.assign({ geometry, material }, options2), this._runtime);
             break;
           case "line loop":
+          case "lineLoop":
           case "lineloop":
             object = getOrCreateLineLoop(Object.assign({ geometry, material }, options2), this._runtime);
             break;
           case "line strip":
+          case "lineStrip":
           case "linestrip":
             object = getOrCreateLine(Object.assign({ geometry, material }, options2), this._runtime);
             break;
@@ -40897,9 +40901,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         case "points":
           return geometry instanceof GridGeometry ? squares() : points();
         case "line loop":
+        case "lineLoop":
         case "lineloop":
           return geometry instanceof GridGeometry ? lineloop() : lineBasic();
         case "line strip":
+        case "lineStrip":
         case "linestrip":
           return geometry instanceof GridGeometry ? linestrip() : lineBasic();
         case "lines":
@@ -40913,8 +40919,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       switch (type) {
         case "points":
         case "line loop":
+        case "lineLoop":
         case "lineloop":
         case "line strip":
+        case "lineStrip":
         case "linestrip":
         case "lines":
           return hydra(material, options2.material);
@@ -40955,11 +40963,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return this._add(geometry, material, options2);
     },
     _linestrip(geometry, material, options2) {
-      options2 = Object.assign(options2 || {}, { type: "linestrip" });
+      options2 = Object.assign(options2 || {}, { type: "lineStrip" });
       return this._add(geometry, material, options2);
     },
     _lineloop(geometry, material, options2) {
-      options2 = Object.assign(options2 || {}, { type: "lineloop" });
+      options2 = Object.assign(options2 || {}, { type: "lineLoop" });
       return this._add(geometry, material, options2);
     },
     _line(geometry, material, options2) {
@@ -41021,13 +41029,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       this._lines(geometry, material, options2);
       return this;
     },
-    linestrip(geometry, material, options2) {
+    lineStrip(geometry, material, options2) {
       this._linestrip(geometry, material, options2);
       return this;
     },
-    lineloop(geometry, material, options2) {
+    lineLoop(geometry, material, options2) {
       this._lineloop(geometry, material, options2);
       return this;
+    },
+    linestrip(geometry, material, options2) {
+      return this.lineStrip(geometry, material, options2);
+    },
+    lineloop(geometry, material, options2) {
+      return this.lineLoop(geometry, material, options2);
     },
     line(geometry, material, options2) {
       this._line(geometry, material, options2);

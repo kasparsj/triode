@@ -79,6 +79,10 @@ const smokeHtml = `<!doctype html>
         clearAliasSceneWorks: null,
         renderAliasChainWorks: null,
         clearAliasChainWorks: null,
+        lineStripMethodAvailable: null,
+        lineLoopMethodAvailable: null,
+        lineLegacyAliasesAvailable: null,
+        lineCanonicalMethodsRender: null,
         rotateDegAvailable: null,
         rotateRadAvailable: null,
         rotateUnitHelpersCompile: null,
@@ -206,6 +210,21 @@ const smokeHtml = `<!doctype html>
         }
         if (window.__smoke.renderAliasChainWorks) {
           rotateProbe.render(hydra.o[3]);
+        }
+        const lineScene = H.scene({ name: '__lineNaming', key: '__lineNaming' });
+        window.__smoke.lineStripMethodAvailable = typeof lineScene.lineStrip === 'function';
+        window.__smoke.lineLoopMethodAvailable = typeof lineScene.lineLoop === 'function';
+        window.__smoke.lineLegacyAliasesAvailable =
+          typeof lineScene.linestrip === 'function' && typeof lineScene.lineloop === 'function';
+        if (window.__smoke.lineStripMethodAvailable && window.__smoke.lineLoopMethodAvailable) {
+          lineScene
+            .lineStrip([24], null, { key: 'line-strip-canonical' })
+            .lineLoop([24], null, { key: 'line-loop-canonical' });
+          window.__smoke.lineCanonicalMethodsRender =
+            lineScene.find({ isLine: true }).length >= 1 &&
+            lineScene.find({ isLineLoop: true }).length >= 1;
+        } else {
+          window.__smoke.lineCanonicalMethodsRender = false;
         }
         window.__smoke.rotateDegAvailable = typeof rotateProbe.rotateDeg === 'function';
         window.__smoke.rotateRadAvailable = typeof rotateProbe.rotateRad === 'function';
@@ -825,6 +844,26 @@ try {
     diagnostics.clearAliasChainWorks,
     true,
     "Expected transform chains to expose clear() alias for autoClear()",
+  );
+  assert.equal(
+    diagnostics.lineStripMethodAvailable,
+    true,
+    "Expected scene handles to expose canonical lineStrip() helper",
+  );
+  assert.equal(
+    diagnostics.lineLoopMethodAvailable,
+    true,
+    "Expected scene handles to expose canonical lineLoop() helper",
+  );
+  assert.equal(
+    diagnostics.lineLegacyAliasesAvailable,
+    true,
+    "Expected legacy linestrip()/lineloop() aliases to remain available",
+  );
+  assert.equal(
+    diagnostics.lineCanonicalMethodsRender,
+    true,
+    "Expected lineStrip()/lineLoop() helpers to create line primitives",
   );
   assert.equal(
     diagnostics.rotateDegAvailable,

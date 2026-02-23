@@ -160,7 +160,11 @@ export interface HydraSceneApi {
   quad(material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
   points(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
   lines(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
+  lineStrip(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
+  lineLoop(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
+  /** @deprecated Use lineStrip(...) instead. */
   linestrip(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
+  /** @deprecated Use lineLoop(...) instead. */
   lineloop(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
   line(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
   circle(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;

@@ -304,7 +304,7 @@ Phase 2 (additive vNext surface)
 Phase 3 (breaking cleanup, major version)
 
 1. Implemented: flip default from global to non-global.
-2. Make canonical method names primary (`lineLoop`, `lineStrip`), keep old aliases behind compat layer.
+2. Implemented: make canonical method names primary (`lineLoop`, `lineStrip`), keep old aliases behind compat layer.
 3. Make scene/object reuse opt-in (`reuse: true`) for named resources.
 
 - Deprecation/shim: one major cycle with warnings + codemod.
@@ -392,6 +392,8 @@ Stale-object deletion, resource disposal, unkeyed hinting, and restart input reb
 Update (2026-02-23): runtime now exposes `stage(config)` presets, `onFrame((dt, time) => ...)`, and `liveGlobals(enable?)` toggles for clearer live-coding ergonomics with explicit global opt-in. Implementation and coverage are in `src/hydra-synth.js:159`, `src/hydra-synth.js:188`, `src/hydra-synth.js:833`, `src/index.d.ts:71`, `src/index.d.ts:239`, and `scripts/smoke/browser-non-global-smoke.mjs:114`.
 
 Update (2026-02-23): constructor default now uses `makeGlobal: false` for host-safe behavior, with explicit global opt-in preserved via `makeGlobal: true` and `liveGlobals(true)`. Implementation and coverage are in `src/hydra-synth.js:127`, `scripts/smoke/browser-non-global-smoke.mjs:53`, `scripts/smoke/browser-non-global-smoke.mjs:111`, and `docs/reference/parameter-reference.md:14`.
+
+Update (2026-02-23): canonical scene line helpers are now `lineStrip(...)` and `lineLoop(...)`, while legacy lowercase aliases (`linestrip`, `lineloop`) remain as compatibility shims. Implementation and coverage are in `src/three/scene.js:1023`, `src/three/scene.js:1173`, `src/three/scene.js:1254`, `src/index.d.ts:163`, `src/lib/GridGeometry.js:73`, and `scripts/smoke/browser-non-global-smoke.mjs:82`.
 
 Update (2026-02-23): `arr.image()` now resolves texture loading through the active runtime (`runtime.modules.tx`) instead of `globalThis.tx`, removing hidden global coupling in non-global and multi-instance usage. Implementation and coverage are in `src/three/arr.js:191`, `scripts/smoke/module-load-smoke.mjs:154`, and `scripts/smoke/regression-smoke.mjs:204`.
 

@@ -97,6 +97,8 @@
     "quad",
     "points",
     "lines",
+    "lineStrip",
+    "lineLoop",
     "linestrip",
     "lineloop",
     "line",
@@ -288,7 +290,7 @@
     "constructorOptions": 17,
     "hydraRendererMembers": 14,
     "hydraSynthMembers": 55,
-    "sceneMembers": 23,
+    "sceneMembers": 25,
     "transformChainMembers": 11,
     "modules": 10,
     "transforms": 69

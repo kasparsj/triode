@@ -1021,10 +1021,12 @@ const sceneMixin = {
                     object = getOrCreatePoints(Object.assign({geometry, material}, options), this._runtime);
                     break;
                 case 'line loop':
+                case 'lineLoop':
                 case 'lineloop':
                     object = getOrCreateLineLoop(Object.assign({geometry, material}, options), this._runtime);
                     break;
                 case 'line strip':
+                case 'lineStrip':
                 case 'linestrip':
                     object = getOrCreateLine(Object.assign({geometry, material}, options), this._runtime)
                     break;
@@ -1100,9 +1102,11 @@ const sceneMixin = {
             case 'points':
                 return geometry instanceof GridGeometry ? mt.squares() : mt.points();
             case 'line loop':
+            case 'lineLoop':
             case 'lineloop':
                 return geometry instanceof GridGeometry ? mt.lineloop() : mt.lineBasic();
             case 'line strip':
+            case 'lineStrip':
             case 'linestrip':
                 return geometry instanceof GridGeometry ? mt.linestrip() : mt.lineBasic();
             case 'lines':
@@ -1117,8 +1121,10 @@ const sceneMixin = {
         switch (type) {
             case 'points':
             case 'line loop':
+            case 'lineLoop':
             case 'lineloop':
             case 'line strip':
+            case 'lineStrip':
             case 'linestrip':
             case 'lines':
                 return mt.hydra(material, options.material);
@@ -1169,12 +1175,12 @@ const sceneMixin = {
     },
 
     _linestrip(geometry, material, options) {
-        options = Object.assign(options || {}, { type: 'linestrip' });
+        options = Object.assign(options || {}, { type: 'lineStrip' });
         return this._add(geometry, material, options);
     },
 
     _lineloop(geometry, material, options) {
-        options = Object.assign(options || {}, { type: 'lineloop' });
+        options = Object.assign(options || {}, { type: 'lineLoop' });
         return this._add(geometry, material, options);
     },
 
@@ -1249,14 +1255,22 @@ const sceneMixin = {
         return this;
     },
 
-    linestrip(geometry, material, options) {
+    lineStrip(geometry, material, options) {
         this._linestrip(geometry, material, options);
         return this;
     },
 
-    lineloop(geometry, material, options) {
+    lineLoop(geometry, material, options) {
         this._lineloop(geometry, material, options);
         return this;
+    },
+
+    linestrip(geometry, material, options) {
+        return this.lineStrip(geometry, material, options);
+    },
+
+    lineloop(geometry, material, options) {
+        return this.lineLoop(geometry, material, options);
     },
 
     line(geometry, material, options) {

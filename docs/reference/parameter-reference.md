@@ -35,7 +35,8 @@ For behavior-level edge cases (units, precedence, and internal/public boundaries
 | `.mesh(geom, mat, options)`   | Add mesh geometry                | `.mesh(gm.box(), osc().phong(), { key: "hero" })` |
 | `.points(geom, mat, options)` | Add points primitive             | `.points([100, 100], mt.dots())`      |
 | `.lines(...)`                 | Add line segments                | `.lines([100], mt.lines())`           |
-| `.lineloop(...)`              | Add closed line loop             | `.lineloop([200], mt.lineloop())`     |
+| `.lineStrip(...)`             | Add connected line strip         | `.lineStrip([200], mt.linestrip())`   |
+| `.lineLoop(...)`              | Add closed line loop             | `.lineLoop([200], mt.lineloop())`     |
 | `.lights(options)`            | Configure runtime lights group   | `.lights({ all: true })`              |
 | `.world(options)`             | Configure sky/ground/fog helpers | `.world({ ground: true, fog: true })` |
 | `.group(attrs)`               | Create/attach subgroup           | `scene({ key: "main" }).group({ name: "cluster", key: "cluster" })` |
@@ -43,6 +44,8 @@ For behavior-level edge cases (units, precedence, and internal/public boundaries
 | `.render(output, options)`    | Alias of `.out(...)`             | `.render(o0)`                         |
 | `.autoClear(amount, color)`   | Set accumulation clear behavior  | `.autoClear(0.2)`                     |
 | `.clear(amount, color)`       | Alias of `.autoClear(...)`       | `.clear(0.2)`                         |
+
+Legacy aliases `linestrip(...)` and `lineloop(...)` remain available for compatibility.
 
 Identity note for live coding:
 
