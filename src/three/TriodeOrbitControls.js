@@ -1321,6 +1321,4 @@ class TriodeMapControls extends TriodeOrbitControls {
 export {
     TriodeOrbitControls,
     TriodeMapControls,
-    TriodeOrbitControls as HydraOrbitControls,
-    TriodeMapControls as HydraMapControls,
 };

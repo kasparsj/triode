@@ -62,4 +62,4 @@ class TriodeUniform
     }
 }
 
-export { TriodeUniform, TriodeUniform as HydraUniform };
+export { TriodeUniform };

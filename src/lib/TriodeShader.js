@@ -138,7 +138,4 @@ export {
     TriodeShader,
     TriodeFragmentShader,
     TriodeVertexShader,
-    TriodeShader as HydraShader,
-    TriodeFragmentShader as HydraFragmentShader,
-    TriodeVertexShader as HydraVertexShader,
 }

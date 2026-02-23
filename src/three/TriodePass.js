@@ -284,9 +284,3 @@ class TriodeFadePass extends TriodeMaterialPass
 }
 
 export { TriodeShaderPass, TriodeMaterialPass, TriodeRenderPass, TriodeFadePass };
-export {
-    TriodeShaderPass as HydraShaderPass,
-    TriodeMaterialPass as HydraMaterialPass,
-    TriodeRenderPass as HydraRenderPass,
-    TriodeFadePass as HydraFadePass,
-};
