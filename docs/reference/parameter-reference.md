@@ -62,6 +62,7 @@ Deprecation guidance:
 Identity note for live coding:
 
 - `stage({ key: "main" })` (or `scene({ key: "main" })`), `.group({ key: "cluster" })`, and primitive `options.key` provide stable object reuse keys in `liveMode: "continuous"` when line order changes between evals.
+- Cross-function/cross-file structural rewrites are intentionally not inferred for identity; use explicit `key` when you need hard identity guarantees.
 - Name-based reuse is explicit: pass `reuse: true` on scenes/groups/primitives when you intentionally want `name` to resolve existing objects.
 - Migration helper: [`docs/reference/live-key-migration.md`](./live-key-migration.md) and `npm run migrate:report-live-keys`.
 
@@ -77,6 +78,10 @@ Long-form aliases are available alongside short module names:
 | `cmp`           | `compose`      | Composition/pipeline utilities.                                              |
 | `rnd`           | `random`       | Random helpers.                                                              |
 | `nse`           | `noiseUtil`    | Noise utility module alias; `noise()` remains the shader generator function. |
+
+Runtime scope note:
+
+- Use runtime-bound module APIs (`H.mat`, `H.geom`, `H.tex`, etc. or global helpers when enabled) instead of unscoped internal module imports, so helper calls resolve to the intended Hydra instance.
 
 ## Stage helper config
 

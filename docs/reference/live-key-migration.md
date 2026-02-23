@@ -6,6 +6,12 @@ Use this guide when a sketch runs with `liveMode: "continuous"` and you want sta
 
 In continuous mode, unnamed objects now receive source-based auto IDs that reduce reorder drift. Explicit `key` values are still the most stable option across major refactors, extracted helpers, and structural rewrites.
 
+## Design decision
+
+- We are not adding deeper implicit identity inference across cross-file/cross-function refactors.
+- Reason: those refactors can change call-site shape in ways that are not reliably inferable at runtime without new, brittle heuristics.
+- Contract: if identity must survive major structural rewrites, set explicit `key` values.
+
 ## Quick recipe
 
 1. Add a scene key:
