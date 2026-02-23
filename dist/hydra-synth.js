@@ -36166,6 +36166,29 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     }
   };
+  const globalWarnings = /* @__PURE__ */ new Set();
+  const getRuntimeWarnings = (runtime) => {
+    if (runtime && runtime._deprecationWarnings instanceof Set) {
+      return runtime._deprecationWarnings;
+    }
+    return globalWarnings;
+  };
+  const isLegacyRuntime = (runtime) => !!(runtime && runtime.legacy === true);
+  const warnDeprecation = (runtime, code, message) => {
+    if (isLegacyRuntime(runtime)) {
+      return false;
+    }
+    const warnings = getRuntimeWarnings(runtime);
+    if (warnings.has(code)) {
+      return false;
+    }
+    warnings.add(code);
+    try {
+      console.warn(message);
+    } catch (_error) {
+    }
+    return true;
+  };
   const HorizontalBlurShader = {
     name: "HorizontalBlurShader",
     uniforms: {
@@ -39964,6 +39987,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   const LIVE_AUTO_ID_KEY = "__hydraLiveAutoId";
   const LIVE_AUTO_ID_ATTR = "__liveAutoId";
   const LIVE_AUTO_PREFIX = "__hydraLiveAuto";
+  const INTERNAL_CALL_ATTR = "__hydraInternalCall";
   const LIVE_KEY_HINT = '[triode] Continuous live mode assigned source-based identity slots for unkeyed objects. Add { key: "..." } for fully stable identity across major refactors.';
   const createStore = () => ({
     scenes: /* @__PURE__ */ Object.create(null),
@@ -40229,6 +40253,23 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     return key.length > 0 ? key : null;
   };
   const shouldReuseNamedObject = (attributes = {}) => !!(attributes && attributes.reuse === true);
+  const toInternalCallOptions = (options2) => Object.assign({}, options2 || {}, {
+    [INTERNAL_CALL_ATTR]: true
+  });
+  const normalizeInternalCall = (options2) => {
+    const internal = !!(options2 && Object.prototype.hasOwnProperty.call(options2, INTERNAL_CALL_ATTR));
+    if (!internal) {
+      return { internal: false, options: options2 };
+    }
+    const normalized = Object.assign({}, options2);
+    delete normalized[INTERNAL_CALL_ATTR];
+    return { internal: true, options: normalized };
+  };
+  const warnInternalSceneMethodUsage = (runtime, methodName, publicMethod) => warnDeprecation(
+    runtime,
+    `scene-internal-${methodName}`,
+    `[triode] ${methodName}(...) is internal and may change. Use ${publicMethod}(...) instead. Pass legacy:true to suppress compatibility warnings.`
+  );
   const getLiveKey = (object) => {
     if (!object || !object.userData) {
       return null;
@@ -41126,37 +41167,69 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return mesh2;
     },
     _mesh(geometry, material, options2) {
-      options2 = Object.assign(options2 || {}, { type: "triangles" });
-      return this._add(geometry, material, options2);
+      const { internal, options: normalizedOptions } = normalizeInternalCall(options2);
+      if (!internal) {
+        warnInternalSceneMethodUsage(this._runtime, "_mesh", "mesh");
+      }
+      const meshOptions = Object.assign(normalizedOptions || {}, { type: "triangles" });
+      return this._add(geometry, material, meshOptions);
     },
     _quad(material, options2) {
-      options2 = Object.assign(options2 || {}, { type: "quad" });
-      return this._add(material, options2);
+      const { internal, options: normalizedOptions } = normalizeInternalCall(options2);
+      if (!internal) {
+        warnInternalSceneMethodUsage(this._runtime, "_quad", "quad");
+      }
+      const quadOptions = Object.assign(normalizedOptions || {}, { type: "quad" });
+      return this._add(material, quadOptions);
     },
     _points(geometry, material, options2) {
-      options2 = Object.assign(options2 || {}, { type: "points" });
-      return this._add(geometry, material, options2);
+      const { internal, options: normalizedOptions } = normalizeInternalCall(options2);
+      if (!internal) {
+        warnInternalSceneMethodUsage(this._runtime, "_points", "points");
+      }
+      const pointOptions = Object.assign(normalizedOptions || {}, { type: "points" });
+      return this._add(geometry, material, pointOptions);
     },
     _lines(geometry, material, options2) {
+      const { internal, options: normalizedOptions } = normalizeInternalCall(options2);
+      if (!internal) {
+        warnInternalSceneMethodUsage(this._runtime, "_lines", "lines");
+      }
       geometry = geometry || [1, 1];
-      options2 = Object.assign(options2 || {}, { type: "lines" });
-      return this._add(geometry, material, options2);
+      const lineOptions = Object.assign(normalizedOptions || {}, { type: "lines" });
+      return this._add(geometry, material, lineOptions);
     },
     _linestrip(geometry, material, options2) {
-      options2 = Object.assign(options2 || {}, { type: "lineStrip" });
-      return this._add(geometry, material, options2);
+      const { internal, options: normalizedOptions } = normalizeInternalCall(options2);
+      if (!internal) {
+        warnInternalSceneMethodUsage(this._runtime, "_linestrip", "lineStrip");
+      }
+      const lineStripOptions = Object.assign(normalizedOptions || {}, { type: "lineStrip" });
+      return this._add(geometry, material, lineStripOptions);
     },
     _lineloop(geometry, material, options2) {
-      options2 = Object.assign(options2 || {}, { type: "lineLoop" });
-      return this._add(geometry, material, options2);
+      const { internal, options: normalizedOptions } = normalizeInternalCall(options2);
+      if (!internal) {
+        warnInternalSceneMethodUsage(this._runtime, "_lineloop", "lineLoop");
+      }
+      const lineLoopOptions = Object.assign(normalizedOptions || {}, { type: "lineLoop" });
+      return this._add(geometry, material, lineLoopOptions);
     },
     _line(geometry, material, options2) {
+      const { internal, options: normalizedOptions } = normalizeInternalCall(options2);
+      if (!internal) {
+        warnInternalSceneMethodUsage(this._runtime, "_line", "line");
+      }
       if (!geometry.isBufferGeometry) {
         geometry = line$1(geometry);
       }
-      return this._lines(geometry, material, options2);
+      return this._lines(geometry, material, toInternalCallOptions(normalizedOptions));
     },
     _circle(geometry, material, options2) {
+      const { internal, options: normalizedOptions } = normalizeInternalCall(options2);
+      if (!internal) {
+        warnInternalSceneMethodUsage(this._runtime, "_circle", "circle");
+      }
       if (typeof geometry === "undefined") {
         geometry = circle$1();
       } else if (!geometry.isBufferGeometry) {
@@ -41165,9 +41238,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
         geometry = circle$1(...geometry);
       }
-      return this._mesh(geometry, material, options2);
+      return this._mesh(geometry, material, toInternalCallOptions(normalizedOptions));
     },
     _ellipse(geometry, material, options2) {
+      const { internal, options: normalizedOptions } = normalizeInternalCall(options2);
+      if (!internal) {
+        warnInternalSceneMethodUsage(this._runtime, "_ellipse", "ellipse");
+      }
       if (typeof geometry === "undefined") {
         geometry = ellipse();
       } else if (!geometry.isBufferGeometry) {
@@ -41176,9 +41253,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
         geometry = ellipse(...geometry);
       }
-      return this._mesh(geometry, material, options2);
+      return this._mesh(geometry, material, toInternalCallOptions(normalizedOptions));
     },
     _triangle(geometry, material, options2) {
+      const { internal, options: normalizedOptions } = normalizeInternalCall(options2);
+      if (!internal) {
+        warnInternalSceneMethodUsage(this._runtime, "_triangle", "triangle");
+      }
       if (typeof geometry === "undefined") {
         geometry = triangle();
       } else if (!geometry.isBufferGeometry) {
@@ -41187,42 +41268,42 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
         geometry = triangle(...geometry);
       }
-      return this._mesh(geometry, material, options2);
+      return this._mesh(geometry, material, toInternalCallOptions(normalizedOptions));
     },
     add(geometry, material, options2) {
       this._add(...arguments);
       return this;
     },
     mesh(geometry, material, options2) {
-      this._mesh(geometry, material, options2);
+      this._mesh(geometry, material, toInternalCallOptions(options2));
       return this;
     },
     box(material, options2) {
-      this._mesh(box(), material, options2);
+      this._mesh(box(), material, toInternalCallOptions(options2));
       return this;
     },
     sphere(material, options2) {
-      this._mesh(sphere(), material, options2);
+      this._mesh(sphere(), material, toInternalCallOptions(options2));
       return this;
     },
     quad(material, options2) {
-      this._quad(material, options2);
+      this._quad(material, toInternalCallOptions(options2));
       return this;
     },
     points(geometry, material, options2) {
-      this._points(geometry, material, options2);
+      this._points(geometry, material, toInternalCallOptions(options2));
       return this;
     },
     lines(geometry, material, options2) {
-      this._lines(geometry, material, options2);
+      this._lines(geometry, material, toInternalCallOptions(options2));
       return this;
     },
     lineStrip(geometry, material, options2) {
-      this._linestrip(geometry, material, options2);
+      this._linestrip(geometry, material, toInternalCallOptions(options2));
       return this;
     },
     lineLoop(geometry, material, options2) {
-      this._lineloop(geometry, material, options2);
+      this._lineloop(geometry, material, toInternalCallOptions(options2));
       return this;
     },
     linestrip(geometry, material, options2) {
@@ -41232,24 +41313,24 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return this.lineLoop(geometry, material, options2);
     },
     line(geometry, material, options2) {
-      this._line(geometry, material, options2);
+      this._line(geometry, material, toInternalCallOptions(options2));
       return this;
     },
     instanced(geometry, material, count, options2 = {}) {
-      return this._mesh(geometry, material, Object.assign({}, options2, {
+      return this._mesh(geometry, material, toInternalCallOptions(Object.assign({}, options2, {
         instanced: count
-      }));
+      })));
     },
     circle(geometry, material, options2) {
-      this._circle(geometry, material, options2);
+      this._circle(geometry, material, toInternalCallOptions(options2));
       return this;
     },
     ellipse(geometry, material, options2) {
-      this._ellipse(geometry, material, options2);
+      this._ellipse(geometry, material, toInternalCallOptions(options2));
       return this;
     },
     triangle(geometry, material, options2) {
-      this._triangle(geometry, material, options2);
+      this._triangle(geometry, material, toInternalCallOptions(options2));
       return this;
     },
     group(attributes = {}) {
@@ -43283,6 +43364,12 @@ vec4 _mod289(vec4 x)
         utils: this.utils
       });
     }
+    _getRuntime() {
+      if (this.defaultOutput && this.defaultOutput.synth) {
+        return this.defaultOutput.synth;
+      }
+      return null;
+    }
     _addMethod(method, transform) {
       this.glslTransforms[method] = transform;
       let retval = void 0;
@@ -43294,6 +43381,13 @@ vec4 _mod289(vec4 x)
       }
       const self2 = this;
       this.sourceClass.prototype[method] = function(...args) {
+        if (method === "rotate") {
+          warnDeprecation(
+            self2._getRuntime(),
+            "rotate-ambiguous",
+            "[triode] rotate(...) uses degrees. Use rotateDeg(...) or rotateRad(...) for explicit units. Pass legacy:true to suppress compatibility warnings."
+          );
+        }
         if (this.transforms.length === 0 || transform.type !== "src" && transform.type !== "vert") {
           this.transforms.push({ name: method, transform, userArgs: args, synth: self2 });
         } else {
@@ -46440,7 +46534,7 @@ vec4 _mod289(vec4 x)
       height = 720,
       numSources = 4,
       numOutputs = 4,
-      makeGlobal = false,
+      makeGlobal,
       autoLoop = true,
       detectAudio = true,
       enableStreamCapture = true,
@@ -46450,7 +46544,8 @@ vec4 _mod289(vec4 x)
       css3DElement,
       precision,
       onError,
-      liveMode = "continuous",
+      liveMode,
+      legacy = false,
       extendTransforms = {}
       // add your own functions on init
     } = {}) {
@@ -46460,12 +46555,15 @@ vec4 _mod289(vec4 x)
       this.height = height;
       this.renderAll = false;
       this.detectAudio = detectAudio;
-      this.makeGlobal = makeGlobal;
-      this.liveMode = liveMode === "continuous" ? "continuous" : "restart";
+      this.legacy = legacy === true;
+      this.makeGlobal = typeof makeGlobal === "boolean" ? makeGlobal : this.legacy;
+      const resolvedLiveMode = typeof liveMode === "string" ? liveMode : this.legacy ? "restart" : "continuous";
+      this.liveMode = resolvedLiveMode === "continuous" ? "continuous" : "restart";
       this._disposed = false;
       this._loop = null;
       this._globalHelpersInstalled = false;
       this._mathHelpersInstalled = false;
+      this._deprecationWarnings = /* @__PURE__ */ new Set();
       this._runtimeErrorHandler = typeof onError === "function" ? onError : null;
       this.canvas = initCanvas(canvas, this);
       this.width = this.canvas.width;
@@ -46507,6 +46605,7 @@ vec4 _mod289(vec4 x)
         // user defined function run after update
         onError: this._runtimeErrorHandler,
         liveMode: this.liveMode,
+        legacy: this.legacy,
         hush: this.hush.bind(this),
         resetRuntime: this.resetRuntime.bind(this),
         tick: this.tick.bind(this),
@@ -46548,7 +46647,7 @@ vec4 _mod289(vec4 x)
       this.synth.compose = this.modules.cmp;
       this.synth.random = this.modules.rnd;
       this.synth.noiseUtil = this.modules.nse;
-      if (makeGlobal) {
+      if (this.makeGlobal) {
         this._installGlobalHelpers();
         this._installMathHelpers();
       }
@@ -46587,7 +46686,7 @@ vec4 _mod289(vec4 x)
         this._loop = loop(this.tick.bind(this));
         this._loop.start();
       }
-      this.sandbox = new EvalSandbox(this.synth, makeGlobal, ["speed", "update", "afterUpdate", "click", "mousedown", "mouseup", "mousemove", "keydown", "keyup", "bpm", "fps"]);
+      this.sandbox = new EvalSandbox(this.synth, this.makeGlobal, ["speed", "update", "afterUpdate", "click", "mousedown", "mouseup", "mousemove", "keydown", "keyup", "bpm", "fps"]);
     }
     eval(code) {
       const continuousEval = this.liveMode === "continuous";

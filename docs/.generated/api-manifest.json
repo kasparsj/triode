@@ -16,6 +16,7 @@
     "precision",
     "onError",
     "liveMode",
+    "legacy",
     "extendTransforms"
   ],
   "hydraRendererMembers": [
@@ -55,6 +56,7 @@
     "keyup",
     "onError",
     "liveMode",
+    "legacy",
     "render",
     "liveGlobals",
     "setResolution",
@@ -293,9 +295,9 @@
     ]
   },
   "counts": {
-    "constructorOptions": 17,
+    "constructorOptions": 18,
     "hydraRendererMembers": 14,
-    "hydraSynthMembers": 55,
+    "hydraSynthMembers": 56,
     "sceneMembers": 30,
     "transformChainMembers": 12,
     "modules": 10,

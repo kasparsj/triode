@@ -10,6 +10,7 @@ This page documents behavior that is easy to misread when jumping between Hydra-
 - `rotate` and `rotateDeg` convert `angle` to radians internally before applying rotation.
 - `speed` is added as a time term in shader space (`ang + speed * time`) and is treated as radians-per-time-unit.
 - Three.js object rotations (for example `mesh.rotation.x += ...`) use **radians**.
+- Calling `rotate(...)` emits a one-time compatibility warning that points to `rotateDeg(...)` / `rotateRad(...)`.
 
 Rule of thumb: use `rotateDeg(...)` for degree-based sketches, `rotateRad(...)` when matching Three.js radians, and reserve `rotate(...)` for legacy compatibility.
 
@@ -68,6 +69,7 @@ This preserves intermediate pass wiring while guaranteeing the final output targ
 
 - Public instancing path: `stage().mesh(geometry, material, { instanced: count })`
 - Underscore-prefixed helpers (for example `_mesh`) are internal and not part of the stable public API.
+- Calling underscore scene helpers directly emits a one-time compatibility warning with the public replacement.
 
 Use public scene composition methods in docs, recipes, and production sketches.
 
@@ -83,5 +85,6 @@ Use public scene composition methods in docs, recipes, and production sketches.
 - `makeGlobal: true` installs helpers like `osc`, `stage`, module namespaces, and math helpers into global scope for live-coding ergonomics.
 - `makeGlobal: false` keeps APIs under `hydra.synth` for host-safe embedding and multi-instance control.
 - Current constructor default is `makeGlobal: false`; opt into globals explicitly with constructor config or `hydra.synth.liveGlobals(true)`.
+- `legacy: true` restores compatibility constructor defaults (`makeGlobal: true`, `liveMode: "restart"`) and suppresses compatibility warnings.
 
 Prefer non-global mode for application integration, editor embedding, and test harnesses.

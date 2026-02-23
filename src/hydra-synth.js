@@ -124,7 +124,7 @@ class HydraRenderer {
     height = 720,
     numSources = 4,
     numOutputs = 4,
-    makeGlobal = false,
+    makeGlobal,
     autoLoop = true,
     detectAudio = true,
     enableStreamCapture = true,
@@ -134,7 +134,8 @@ class HydraRenderer {
     css3DElement,
     precision,
     onError,
-    liveMode = 'continuous',
+    liveMode,
+    legacy = false,
     extendTransforms = {} // add your own functions on init
   } = {}) {
 
@@ -146,12 +147,21 @@ class HydraRenderer {
     this.height = height
     this.renderAll = false
     this.detectAudio = detectAudio
-    this.makeGlobal = makeGlobal
-    this.liveMode = liveMode === 'continuous' ? 'continuous' : 'restart'
+    this.legacy = legacy === true
+    this.makeGlobal =
+      typeof makeGlobal === 'boolean' ? makeGlobal : this.legacy
+    const resolvedLiveMode =
+      typeof liveMode === 'string'
+        ? liveMode
+        : this.legacy
+          ? 'restart'
+          : 'continuous'
+    this.liveMode = resolvedLiveMode === 'continuous' ? 'continuous' : 'restart'
     this._disposed = false
     this._loop = null
     this._globalHelpersInstalled = false
     this._mathHelpersInstalled = false
+    this._deprecationWarnings = new Set()
     this._runtimeErrorHandler = typeof onError === 'function' ? onError : null
 
     this.canvas = initCanvas(canvas, this);
@@ -187,6 +197,7 @@ class HydraRenderer {
       afterUpdate: (dt) => {},// user defined function run after update
       onError: this._runtimeErrorHandler,
       liveMode: this.liveMode,
+      legacy: this.legacy,
       hush: this.hush.bind(this),
       resetRuntime: this.resetRuntime.bind(this),
       tick: this.tick.bind(this),
@@ -234,7 +245,7 @@ class HydraRenderer {
     // `noise` remains the shader generator function; expose module utilities under noiseUtil.
     this.synth.noiseUtil = this.modules.nse
 
-    if (makeGlobal) {
+    if (this.makeGlobal) {
       this._installGlobalHelpers()
       this._installMathHelpers()
     }
@@ -300,7 +311,7 @@ class HydraRenderer {
     }
 
     // final argument is properties that the user can set, all others are treated as read-only
-    this.sandbox = new Sandbox(this.synth, makeGlobal, ['speed', 'update', 'afterUpdate', 'click', 'mousedown', 'mouseup', 'mousemove', 'keydown', 'keyup', 'bpm', 'fps'])
+    this.sandbox = new Sandbox(this.synth, this.makeGlobal, ['speed', 'update', 'afterUpdate', 'click', 'mousedown', 'mouseup', 'mousemove', 'keydown', 'keyup', 'bpm', 'fps'])
   }
 
   eval(code) {

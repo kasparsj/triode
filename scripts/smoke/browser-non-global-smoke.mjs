@@ -90,6 +90,8 @@ const smokeHtml = `<!doctype html>
         rotateDegAvailable: null,
         rotateRadAvailable: null,
         rotateUnitHelpersCompile: null,
+        rotateDeprecationWarned: null,
+        privateSceneMethodDeprecationWarned: null,
         orbitModifierDefaultRequiresAlt: null,
         orbitModifierDefaultAltWorks: null,
         orbitModifierNoneAllowsWheel: null,
@@ -114,6 +116,8 @@ const smokeHtml = `<!doctype html>
         continuousUnkeyedHintEmitted: null,
         canvasInputReboundToActiveRuntime: null,
         keyboardInputReboundToActiveRuntime: null,
+        legacyModeDefaultsApplied: null,
+        legacyModeSuppressesDeprecationWarnings: null,
         canvasCount: 0
       };
       try {
@@ -288,6 +292,25 @@ const smokeHtml = `<!doctype html>
         } else {
           window.__smoke.rotateUnitHelpersCompile = false;
         }
+        const deprecationWarnings = [];
+        const originalConsoleWarnForDeprecations = console.warn;
+        console.warn = (...args) => {
+          deprecationWarnings.push(args.map((value) => String(value)).join(" "));
+          originalConsoleWarnForDeprecations.apply(console, args);
+        };
+        H.osc(3, 0.05, 0.7).rotate(15).tex();
+        H.scene({ name: "__internalWarningProbe" })._mesh(
+          H.gm.box(),
+          H.mt.meshBasic({ color: 0x223344 }),
+        );
+        console.warn = originalConsoleWarnForDeprecations;
+        window.__smoke.rotateDeprecationWarned = deprecationWarnings.some((message) =>
+          message.includes("rotate(...) uses degrees"),
+        );
+        window.__smoke.privateSceneMethodDeprecationWarned =
+          deprecationWarnings.some((message) =>
+            message.includes("_mesh(...) is internal"),
+          );
         H.perspective([2, 2, 3], [0, 0, 0], { controls: true, domElement: hydra.canvas });
         const defaultCamera = hydra.o[0] && hydra.o[0]._camera ? hydra.o[0]._camera : null;
         const controlsDefault = defaultCamera && defaultCamera.userData ? defaultCamera.userData.controls : null;
@@ -692,6 +715,39 @@ const smokeHtml = `<!doctype html>
         window.__smoke.keyboardInputReboundToActiveRuntime =
           firstRuntimeKeydownCount === 1 && reboundRuntimeKeydownCount === 1
         reboundRuntime.dispose()
+        const legacyWarnings = []
+        const originalConsoleWarnForLegacy = console.warn
+        console.warn = (...args) => {
+          legacyWarnings.push(args.map((value) => String(value)).join(" "))
+          originalConsoleWarnForLegacy.apply(console, args)
+        }
+        const legacyCanvas = document.createElement('canvas')
+        legacyCanvas.width = 320
+        legacyCanvas.height = 240
+        const legacyRuntime = new Hydra({
+          canvas: legacyCanvas,
+          detectAudio: false,
+          autoLoop: false,
+          legacy: true,
+        })
+        const HL = legacyRuntime.synth
+        HL.osc(3, 0.05, 0.7).rotate(15).tex()
+        HL.scene({ name: "__legacyInternalWarningProbe" })._mesh(
+          HL.gm.box(),
+          HL.mt.meshBasic({ color: 0x445566 }),
+        )
+        window.__smoke.legacyModeDefaultsApplied =
+          legacyRuntime.makeGlobal === true &&
+          legacyRuntime.liveMode === 'restart' &&
+          HL.legacy === true
+        window.__smoke.legacyModeSuppressesDeprecationWarnings =
+          !legacyWarnings.some(
+            (message) =>
+              message.includes('rotate(...) uses degrees') ||
+              message.includes('_mesh(...) is internal'),
+          )
+        legacyRuntime.dispose()
+        console.warn = originalConsoleWarnForLegacy
         window.__smoke.ready = true
       } catch (error) {
         window.__smoke.error = error && error.stack ? error.stack : String(error)
@@ -987,6 +1043,16 @@ try {
     "Expected rotateDeg/rotateRad helpers to compile to textures without errors",
   );
   assert.equal(
+    diagnostics.rotateDeprecationWarned,
+    true,
+    "Expected rotate(...) usage to emit deprecation warning toward rotateDeg/rotateRad",
+  );
+  assert.equal(
+    diagnostics.privateSceneMethodDeprecationWarned,
+    true,
+    "Expected direct underscore scene methods to emit deprecation warning toward public methods",
+  );
+  assert.equal(
     diagnostics.orbitModifierDefaultRequiresAlt,
     true,
     "Expected default orbit controls to ignore wheel input without Alt modifier",
@@ -1105,6 +1171,16 @@ try {
     diagnostics.keyboardInputReboundToActiveRuntime,
     true,
     "Expected keyboard input events to route to the active runtime after restart",
+  );
+  assert.equal(
+    diagnostics.legacyModeDefaultsApplied,
+    true,
+    "Expected legacy:true to restore compatibility defaults (makeGlobal/liveMode) and expose synth.legacy",
+  );
+  assert.equal(
+    diagnostics.legacyModeSuppressesDeprecationWarnings,
+    true,
+    "Expected legacy:true runtime to suppress rotate/internal-method deprecation warnings",
   );
   assert.deepEqual(
     errors,

@@ -1,6 +1,7 @@
 import GlslSource from './glsl-source.js'
 import glslFunctions from './glsl/glsl-functions.js'
 import {typeLookup, processGlsl} from "./types.js";
+import { warnDeprecation } from "./lib/deprecations.js";
 
 class GeneratorFactory {
   constructor ({
@@ -52,6 +53,13 @@ class GeneratorFactory {
     })
   }
 
+  _getRuntime() {
+    if (this.defaultOutput && this.defaultOutput.synth) {
+      return this.defaultOutput.synth;
+    }
+    return null;
+  }
+
  _addMethod (method, transform) {
     this.glslTransforms[method] = transform
     let retval = undefined
@@ -63,6 +71,13 @@ class GeneratorFactory {
     }
     const self = this
     this.sourceClass.prototype[method] = function (...args) {
+      if (method === 'rotate') {
+        warnDeprecation(
+          self._getRuntime(),
+          'rotate-ambiguous',
+          '[triode] rotate(...) uses degrees. Use rotateDeg(...) or rotateRad(...) for explicit units. Pass legacy:true to suppress compatibility warnings.'
+        )
+      }
       if (this.transforms.length === 0 || (transform.type !== 'src' && transform.type !== 'vert')) {
         this.transforms.push({name: method, transform: transform, userArgs: args, synth: self})
       }

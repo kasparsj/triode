@@ -6,6 +6,7 @@ import {FullScreenQuad} from "three/examples/jsm/postprocessing/Pass.js";
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import { CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import {cameraMixin, sourceMixin, mixClass, autoClearMixin} from "../lib/mixins.js";
+import { warnDeprecation } from "../lib/deprecations.js";
 import * as layers from "./layers.js";
 import * as lights from "./lights.js";
 import * as world from "./world.js";
@@ -19,6 +20,7 @@ const LIVE_IDENTITY_KEY = "__hydraLiveKey";
 const LIVE_AUTO_ID_KEY = "__hydraLiveAutoId";
 const LIVE_AUTO_ID_ATTR = "__liveAutoId";
 const LIVE_AUTO_PREFIX = "__hydraLiveAuto";
+const INTERNAL_CALL_ATTR = "__hydraInternalCall";
 const LIVE_KEY_HINT =
     "[triode] Continuous live mode assigned source-based identity slots for unkeyed objects. Add { key: \"...\" } for fully stable identity across major refactors.";
 
@@ -324,6 +326,29 @@ const normalizeLiveKey = (value) => {
 
 const shouldReuseNamedObject = (attributes = {}) =>
     !!(attributes && attributes.reuse === true);
+
+const toInternalCallOptions = (options) =>
+    Object.assign({}, options || {}, {
+        [INTERNAL_CALL_ATTR]: true,
+    });
+
+const normalizeInternalCall = (options) => {
+    const internal =
+        !!(options && Object.prototype.hasOwnProperty.call(options, INTERNAL_CALL_ATTR));
+    if (!internal) {
+        return {internal: false, options};
+    }
+    const normalized = Object.assign({}, options);
+    delete normalized[INTERNAL_CALL_ATTR];
+    return {internal: true, options: normalized};
+};
+
+const warnInternalSceneMethodUsage = (runtime, methodName, publicMethod) =>
+    warnDeprecation(
+        runtime,
+        `scene-internal-${methodName}`,
+        `[triode] ${methodName}(...) is internal and may change. Use ${publicMethod}(...) instead. Pass legacy:true to suppress compatibility warnings.`,
+    );
 
 const getLiveKey = (object) => {
     if (!object || !object.userData) {
@@ -1306,44 +1331,76 @@ const sceneMixin = {
     },
 
     _mesh(geometry, material, options) {
-        options = Object.assign(options || {}, { type: 'triangles' });
-        return this._add(geometry, material, options);
+        const {internal, options: normalizedOptions} = normalizeInternalCall(options);
+        if (!internal) {
+            warnInternalSceneMethodUsage(this._runtime, "_mesh", "mesh");
+        }
+        const meshOptions = Object.assign(normalizedOptions || {}, { type: 'triangles' });
+        return this._add(geometry, material, meshOptions);
     },
 
     _quad(material, options) {
-        options = Object.assign(options || {}, { type: 'quad' });
-        return this._add(material, options);
+        const {internal, options: normalizedOptions} = normalizeInternalCall(options);
+        if (!internal) {
+            warnInternalSceneMethodUsage(this._runtime, "_quad", "quad");
+        }
+        const quadOptions = Object.assign(normalizedOptions || {}, { type: 'quad' });
+        return this._add(material, quadOptions);
     },
 
     _points(geometry, material, options) {
-        options = Object.assign(options || {}, { type: 'points' });
-        return this._add(geometry, material, options);
+        const {internal, options: normalizedOptions} = normalizeInternalCall(options);
+        if (!internal) {
+            warnInternalSceneMethodUsage(this._runtime, "_points", "points");
+        }
+        const pointOptions = Object.assign(normalizedOptions || {}, { type: 'points' });
+        return this._add(geometry, material, pointOptions);
     },
 
     _lines(geometry, material, options) {
+        const {internal, options: normalizedOptions} = normalizeInternalCall(options);
+        if (!internal) {
+            warnInternalSceneMethodUsage(this._runtime, "_lines", "lines");
+        }
         geometry = geometry || [1, 1];
-        options = Object.assign(options || {}, { type: 'lines' });
-        return this._add(geometry, material, options);
+        const lineOptions = Object.assign(normalizedOptions || {}, { type: 'lines' });
+        return this._add(geometry, material, lineOptions);
     },
 
     _linestrip(geometry, material, options) {
-        options = Object.assign(options || {}, { type: 'lineStrip' });
-        return this._add(geometry, material, options);
+        const {internal, options: normalizedOptions} = normalizeInternalCall(options);
+        if (!internal) {
+            warnInternalSceneMethodUsage(this._runtime, "_linestrip", "lineStrip");
+        }
+        const lineStripOptions = Object.assign(normalizedOptions || {}, { type: 'lineStrip' });
+        return this._add(geometry, material, lineStripOptions);
     },
 
     _lineloop(geometry, material, options) {
-        options = Object.assign(options || {}, { type: 'lineLoop' });
-        return this._add(geometry, material, options);
+        const {internal, options: normalizedOptions} = normalizeInternalCall(options);
+        if (!internal) {
+            warnInternalSceneMethodUsage(this._runtime, "_lineloop", "lineLoop");
+        }
+        const lineLoopOptions = Object.assign(normalizedOptions || {}, { type: 'lineLoop' });
+        return this._add(geometry, material, lineLoopOptions);
     },
 
     _line(geometry, material, options) {
+        const {internal, options: normalizedOptions} = normalizeInternalCall(options);
+        if (!internal) {
+            warnInternalSceneMethodUsage(this._runtime, "_line", "line");
+        }
         if (!geometry.isBufferGeometry) {
             geometry = gm.line(geometry);
         }
-        return this._lines(geometry, material, options);
+        return this._lines(geometry, material, toInternalCallOptions(normalizedOptions));
     },
 
     _circle(geometry, material, options) {
+        const {internal, options: normalizedOptions} = normalizeInternalCall(options);
+        if (!internal) {
+            warnInternalSceneMethodUsage(this._runtime, "_circle", "circle");
+        }
         if (typeof geometry === 'undefined') {
             geometry = gm.circle();
         }
@@ -1353,10 +1410,14 @@ const sceneMixin = {
             }
             geometry = gm.circle(...geometry);
         }
-        return this._mesh(geometry, material, options)
+        return this._mesh(geometry, material, toInternalCallOptions(normalizedOptions))
     },
 
     _ellipse(geometry, material, options) {
+        const {internal, options: normalizedOptions} = normalizeInternalCall(options);
+        if (!internal) {
+            warnInternalSceneMethodUsage(this._runtime, "_ellipse", "ellipse");
+        }
         if (typeof geometry === 'undefined') {
             geometry = gm.ellipse();
         }
@@ -1366,10 +1427,14 @@ const sceneMixin = {
             }
             geometry = gm.ellipse(...geometry);
         }
-        return this._mesh(geometry, material, options);
+        return this._mesh(geometry, material, toInternalCallOptions(normalizedOptions));
     },
 
     _triangle(geometry, material, options) {
+        const {internal, options: normalizedOptions} = normalizeInternalCall(options);
+        if (!internal) {
+            warnInternalSceneMethodUsage(this._runtime, "_triangle", "triangle");
+        }
         if (typeof geometry === 'undefined') {
             geometry = gm.triangle();
         }
@@ -1379,7 +1444,7 @@ const sceneMixin = {
             }
             geometry = gm.triangle(...geometry);
         }
-        return this._mesh(geometry, material, options);
+        return this._mesh(geometry, material, toInternalCallOptions(normalizedOptions));
     },
 
     add(geometry, material, options) {
@@ -1388,42 +1453,42 @@ const sceneMixin = {
     },
 
     mesh(geometry, material, options) {
-        this._mesh(geometry, material, options);
+        this._mesh(geometry, material, toInternalCallOptions(options));
         return this;
     },
 
     box(material, options) {
-        this._mesh(gm.box(), material, options);
+        this._mesh(gm.box(), material, toInternalCallOptions(options));
         return this;
     },
 
     sphere(material, options) {
-        this._mesh(gm.sphere(), material, options);
+        this._mesh(gm.sphere(), material, toInternalCallOptions(options));
         return this;
     },
 
     quad(material, options) {
-        this._quad(material, options);
+        this._quad(material, toInternalCallOptions(options));
         return this;
     },
 
     points(geometry, material, options) {
-        this._points(geometry, material, options);
+        this._points(geometry, material, toInternalCallOptions(options));
         return this;
     },
 
     lines(geometry, material, options) {
-        this._lines(geometry, material, options);
+        this._lines(geometry, material, toInternalCallOptions(options));
         return this;
     },
 
     lineStrip(geometry, material, options) {
-        this._linestrip(geometry, material, options);
+        this._linestrip(geometry, material, toInternalCallOptions(options));
         return this;
     },
 
     lineLoop(geometry, material, options) {
-        this._lineloop(geometry, material, options);
+        this._lineloop(geometry, material, toInternalCallOptions(options));
         return this;
     },
 
@@ -1436,28 +1501,28 @@ const sceneMixin = {
     },
 
     line(geometry, material, options) {
-        this._line(geometry, material, options);
+        this._line(geometry, material, toInternalCallOptions(options));
         return this;
     },
 
     instanced(geometry, material, count, options = {}) {
-        return this._mesh(geometry, material, Object.assign({}, options, {
+        return this._mesh(geometry, material, toInternalCallOptions(Object.assign({}, options, {
             instanced: count,
-        }));
+        })));
     },
 
     circle(geometry, material, options) {
-        this._circle(geometry, material, options);
+        this._circle(geometry, material, toInternalCallOptions(options));
         return this;
     },
 
     ellipse(geometry, material, options) {
-        this._ellipse(geometry, material, options);
+        this._ellipse(geometry, material, toInternalCallOptions(options));
         return this;
     },
 
     triangle(geometry, material, options) {
-        this._triangle(geometry, material, options);
+        this._triangle(geometry, material, toInternalCallOptions(options));
         return this;
     },
 

@@ -15,6 +15,7 @@ export interface HydraOptions {
   precision?: "lowp" | "mediump" | "highp";
   onError?: HydraRuntimeErrorHandler;
   liveMode?: HydraLiveMode;
+  legacy?: boolean;
   extendTransforms?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
@@ -260,6 +261,7 @@ export interface HydraSynthApi {
   keyup: (event: KeyboardEvent) => void;
   onError?: HydraRuntimeErrorHandler;
   liveMode: HydraLiveMode;
+  legacy: boolean;
   render: (output?: unknown) => void;
   liveGlobals: (enable?: boolean) => boolean;
   setResolution: (width: number, height: number) => void;
@@ -302,6 +304,7 @@ declare class HydraRenderer {
   constructor(options?: HydraOptions);
   readonly synth: HydraSynthApi;
   readonly liveMode: HydraLiveMode;
+  readonly legacy: boolean;
   readonly canvas: HTMLCanvasElement;
   readonly width: number;
   readonly height: number;
