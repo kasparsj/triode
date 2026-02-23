@@ -31,6 +31,8 @@ const state = {
   debounceId: null,
   shareDebounceId: null,
   shareStatusTimeoutId: null,
+  resizeFrameId: null,
+  resizeObserver: null,
 };
 
 const asNumber = (value) => {
@@ -42,15 +44,77 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 const isSameNumber = (left, right) => Math.abs(left - right) <= FLOAT_EPSILON;
 
-const syncCanvasResolution = () => {
+const syncCanvasResolution = (runtime = state.runtime) => {
   const rect = els.canvas.getBoundingClientRect();
+  if (!rect.width || !rect.height) {
+    return false;
+  }
   const dpr = window.devicePixelRatio || 1;
   const width = Math.max(1, Math.floor(rect.width * dpr));
   const height = Math.max(1, Math.floor(rect.height * dpr));
+
+  if (runtime && typeof runtime.setResolution === "function") {
+    if (runtime.canvas.width !== width || runtime.canvas.height !== height) {
+      runtime.setResolution(width, height);
+      return true;
+    }
+    return false;
+  }
+
   if (els.canvas.width !== width || els.canvas.height !== height) {
     els.canvas.width = width;
     els.canvas.height = height;
+    return true;
   }
+  return false;
+};
+
+const withViewportCameraOptions = (runtime, options) => {
+  if (options && typeof options === "object" && !Array.isArray(options)) {
+    if (options.width != null || options.height != null) {
+      return options;
+    }
+    return {
+      ...options,
+      width: runtime.width,
+      height: runtime.height,
+    };
+  }
+  return {
+    width: runtime.width,
+    height: runtime.height,
+  };
+};
+
+const bindPlaygroundCameraHelpers = (runtime) => {
+  if (!runtime || runtime.__playgroundCameraHelpersBound) {
+    return;
+  }
+
+  const bindCameraMethod = (methodName) => (eye, target, options) =>
+    runtime.output[methodName](
+      eye,
+      target,
+      withViewportCameraOptions(runtime, options),
+    );
+
+  runtime.synth.camera = bindCameraMethod("camera");
+  runtime.synth.perspective = bindCameraMethod("perspective");
+  runtime.synth.ortho = bindCameraMethod("ortho");
+  runtime.__playgroundCameraHelpersBound = true;
+};
+
+const queueResizeRefresh = () => {
+  if (state.resizeFrameId) {
+    return;
+  }
+  state.resizeFrameId = window.requestAnimationFrame(() => {
+    state.resizeFrameId = null;
+    const resized = syncCanvasResolution();
+    if (resized) {
+      queueRun();
+    }
+  });
 };
 
 const setStatus = (text, isError = false) => {
@@ -326,10 +390,10 @@ const queueRun = () => {
 const runSketch = () => {
   clearError();
   setStatus("Running");
-  syncCanvasResolution();
   if (state.runtimeMode === "restart") {
     disposeRuntime();
   }
+  syncCanvasResolution();
 
   try {
     if (typeof window.Triode !== "function") {
@@ -348,6 +412,8 @@ const runSketch = () => {
       });
     }
     const triode = state.runtime;
+    syncCanvasResolution(triode);
+    bindPlaygroundCameraHelpers(triode);
     window.__playgroundTriode = triode;
     window.__playgroundParams = { ...state.values };
 
@@ -361,7 +427,9 @@ const runSketch = () => {
     triode.eval(script);
 
     setStatus(
-      state.runtimeMode === "continuous" ? "Live (continuous)" : "Live (restart)",
+      state.runtimeMode === "continuous"
+        ? "Live (continuous)"
+        : "Live (restart)",
     );
   } catch (error) {
     setStatus("Error", true);
@@ -427,9 +495,16 @@ const initialize = () => {
     });
   }
 
-  window.addEventListener("resize", () => {
-    queueRun();
+  window.addEventListener("resize", queueResizeRefresh, { passive: true });
+  window.addEventListener("orientationchange", queueResizeRefresh, {
+    passive: true,
   });
+  if (typeof ResizeObserver === "function" && els.canvas.parentElement) {
+    state.resizeObserver = new ResizeObserver(() => {
+      queueResizeRefresh();
+    });
+    state.resizeObserver.observe(els.canvas.parentElement);
+  }
 
   const seed = readUrlState();
   state.runtimeMode = seed.mode || "continuous";
