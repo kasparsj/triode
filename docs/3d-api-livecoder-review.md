@@ -293,7 +293,7 @@ Phase 1 (non-breaking, fastest ROI)
 
 Phase 2 (additive vNext surface)
 
-1. Introduce `stage(config)` presets and `onFrame`.
+1. Implemented: introduce `stage(config)` presets and `onFrame`.
 2. Add `rotateDeg` + `rotateRad`; keep `rotate` as compatibility alias.
 3. Add control modifier option for orbit controls.
 
@@ -388,6 +388,8 @@ Stale-object deletion, resource disposal, unkeyed hinting, and restart input reb
 | Eval-order object identity drift (when `key` is omitted)   | `src/three/scene.js:143`; `src/three/scene.js:187`; `src/three/scene.js:711`; `src/index.d.ts:53`              | Reordering lines can still retarget unnamed objects because fallback identity remains eval-order-based for sketches that do not opt into `key`        | Medium   | Continue migrating examples/docs to `key` and run the audit helper `scripts/migrate/find-unkeyed-live-calls.mjs`           |
 
 ## H) Updated Quick Wins (next 1-2 sprints)
+
+Update (2026-02-23): runtime now exposes `stage(config)` presets, `onFrame((dt, time) => ...)`, and `liveGlobals(enable?)` toggles for clearer live-coding ergonomics with explicit global opt-in. Implementation and coverage are in `src/hydra-synth.js:159`, `src/hydra-synth.js:188`, `src/hydra-synth.js:833`, `src/index.d.ts:71`, `src/index.d.ts:239`, and `scripts/smoke/browser-non-global-smoke.mjs:114`.
 
 Update (2026-02-23): `arr.image()` now resolves texture loading through the active runtime (`runtime.modules.tx`) instead of `globalThis.tx`, removing hidden global coupling in non-global and multi-instance usage. Implementation and coverage are in `src/three/arr.js:191`, `scripts/smoke/module-load-smoke.mjs:154`, and `scripts/smoke/regression-smoke.mjs:204`.
 

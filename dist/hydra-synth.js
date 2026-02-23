@@ -46133,6 +46133,7 @@ vec4 _mod289(vec4 x)
   const helperGlobalBindings = /* @__PURE__ */ new Map();
   const MISSING_MATH_HELPER = Symbol("hydra-missing-math-helper");
   const mathHelperBindings = /* @__PURE__ */ new Map();
+  const isPlainObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
   const installHelperGlobal = (key, owner, value) => {
     if (typeof window === "undefined") {
       return;
@@ -46237,6 +46238,7 @@ vec4 _mod289(vec4 x)
       this.width = this.canvas.width;
       this.height = this.canvas.height;
       const sceneApi = this.scene.bind(this);
+      const stageApi = this.stage.bind(this);
       this.synth = {
         time: 0,
         bpm: 30,
@@ -46254,6 +46256,7 @@ vec4 _mod289(vec4 x)
         update: (dt) => {
         },
         // user defined update function
+        onFrame: this.onFrame.bind(this),
         click: (event) => {
         },
         mousedown: (event) => {
@@ -46276,7 +46279,8 @@ vec4 _mod289(vec4 x)
         tick: this.tick.bind(this),
         shadowMap: this.shadowMap.bind(this),
         scene: sceneApi,
-        stage: sceneApi,
+        stage: stageApi,
+        liveGlobals: this.liveGlobals.bind(this),
         ortho: (...args) => this.output.ortho.apply(this.output, args),
         perspective: (...args) => this.output.perspective.apply(this.output, args),
         screenCoords: (w, h) => this.output.screenCoords(w, h),
@@ -46834,6 +46838,158 @@ vec4 _mod289(vec4 x)
           attributes
         )
       );
+    }
+    stage(config = {}) {
+      const stageConfig = isPlainObject(config) ? config : {};
+      const {
+        camera: camera2,
+        lights: lights2,
+        world: world2,
+        clear,
+        autoClear,
+        output,
+        render: render2,
+        out,
+        cssRenderer,
+        renderTarget,
+        fx,
+        layers,
+        ...sceneAttributes
+      } = stageConfig;
+      const stageScene = this.scene(sceneAttributes);
+      if (camera2 !== void 0 && camera2 !== false) {
+        this._applyStageCamera(camera2);
+      }
+      if (lights2 !== void 0 && lights2 !== false) {
+        this._applyStageLights(stageScene, lights2);
+      }
+      if (world2 !== void 0 && world2 !== false) {
+        this._applyStageWorld(stageScene, world2);
+      }
+      const clearValue = clear !== void 0 ? clear : autoClear;
+      if (clearValue !== void 0) {
+        this._applyStageClear(stageScene, clearValue);
+      }
+      const shouldRender = render2 === true || out === true || output !== void 0 || cssRenderer !== void 0 || renderTarget !== void 0 || fx !== void 0 || layers !== void 0;
+      if (shouldRender) {
+        const renderOptions = {};
+        if (cssRenderer !== void 0) renderOptions.cssRenderer = cssRenderer;
+        if (renderTarget !== void 0) renderOptions.renderTarget = renderTarget;
+        if (fx !== void 0) renderOptions.fx = fx;
+        if (layers !== void 0) renderOptions.layers = layers;
+        stageScene.render(output, renderOptions);
+      }
+      return stageScene;
+    }
+    onFrame(callback) {
+      if (typeof callback !== "function") {
+        return;
+      }
+      const updateFn = (dt) => {
+        callback(dt, this.synth.time);
+      };
+      this.synth.update = updateFn;
+      if (this.sandbox && typeof this.sandbox.set === "function") {
+        this.sandbox.set("update", updateFn);
+      }
+    }
+    liveGlobals(enable = true) {
+      const nextState = !!enable;
+      if (this.makeGlobal === nextState) {
+        return this.makeGlobal;
+      }
+      if (!this.sandbox) {
+        this.makeGlobal = nextState;
+        return this.makeGlobal;
+      }
+      if (nextState) {
+        this.makeGlobal = true;
+        this.sandbox.makeGlobal = true;
+        Object.keys(this.synth).forEach((property) => {
+          this.sandbox.add(property);
+        });
+        this._installGlobalHelpers();
+        this._installMathHelpers();
+      } else {
+        this.makeGlobal = false;
+        this.sandbox.destroy();
+        this.sandbox.makeGlobal = false;
+        this._restoreGlobalHelpers();
+        this._restoreMathHelpers();
+      }
+      return this.makeGlobal;
+    }
+    _applyStageCamera(cameraConfig) {
+      if (cameraConfig === true) {
+        this.output.perspective();
+        return;
+      }
+      if (typeof cameraConfig === "string") {
+        switch (cameraConfig.toLowerCase()) {
+          case "perspective":
+            this.output.perspective();
+            break;
+          case "orthographic":
+          case "ortho":
+          default:
+            this.output.ortho();
+            break;
+        }
+        return;
+      }
+      if (!isPlainObject(cameraConfig)) {
+        return;
+      }
+      const cameraType = typeof cameraConfig.type === "string" ? cameraConfig.type.toLowerCase() : this.output._camera instanceof PerspectiveCamera ? "perspective" : "ortho";
+      const { eye, target, type, ...cameraOptions } = cameraConfig;
+      if (cameraType === "perspective") {
+        this.output.perspective(eye, target, cameraOptions);
+      } else {
+        this.output.ortho(eye, target, cameraOptions);
+      }
+    }
+    _applyStageLights(stageScene, lightsConfig) {
+      if (lightsConfig === true || lightsConfig === "basic") {
+        stageScene.lights();
+        return;
+      }
+      if (lightsConfig === "studio") {
+        stageScene.lights({ all: true });
+        return;
+      }
+      if (isPlainObject(lightsConfig)) {
+        stageScene.lights(lightsConfig);
+        return;
+      }
+      stageScene.lights();
+    }
+    _applyStageWorld(stageScene, worldConfig) {
+      if (worldConfig === true || worldConfig === "ground") {
+        stageScene.world({ ground: true });
+        return;
+      }
+      if (worldConfig === "atmosphere") {
+        stageScene.world({ ground: true, fog: true });
+        return;
+      }
+      if (isPlainObject(worldConfig)) {
+        stageScene.world(worldConfig);
+        return;
+      }
+      stageScene.world();
+    }
+    _applyStageClear(stageScene, clearConfig) {
+      if (typeof clearConfig === "number") {
+        stageScene.clear(clearConfig);
+        return;
+      }
+      if (isPlainObject(clearConfig)) {
+        const amount = typeof clearConfig.amount === "number" ? clearConfig.amount : 1;
+        const color2 = clearConfig.color !== void 0 ? clearConfig.color : 0;
+        stageScene.clear(amount, color2, clearConfig);
+        return;
+      }
+      stageScene.clear();
     }
   }
   return HydraRenderer;

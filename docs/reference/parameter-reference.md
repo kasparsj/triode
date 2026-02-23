@@ -62,6 +62,20 @@ Long-form aliases are available alongside short module names:
 | `rnd`           | `random`       | Random helpers. |
 | `nse`           | `noiseUtil`    | Noise utility module alias; `noise()` remains the shader generator function. |
 
+## Stage helper config
+
+`stage(config)` is a readability-first scene bootstrap helper. It calls `scene(...)` under the hood and applies optional presets:
+
+| `stage` option | Type | Notes |
+| -------------- | ---- | ----- |
+| `camera` | `false \| "perspective" \| "ortho" \| "orthographic" \| object` | Camera preset or full camera config (`type`, `eye`, `target`, camera options). |
+| `lights` | `false \| "basic" \| "studio" \| object` | `basic` uses default lights, `studio` maps to `{ all: true }`. |
+| `world` | `false \| "ground" \| "atmosphere" \| object` | `ground` enables ground, `atmosphere` enables ground + fog. |
+| `clear` / `autoClear` | `number \| { amount, color, ... }` | Configures scene accumulation clear behavior. |
+| `output` | `unknown` | Optional output target when rendering from config. |
+| `render` / `out` | `boolean` | If `true`, stage invokes `.render(...)` immediately. |
+| `cssRenderer`, `renderTarget`, `fx`, `layers` | varied | Forwarded to render options when auto-render is enabled. |
+
 ## Camera helper options
 
 | Method                              | Inputs                                | Notes                                   |
@@ -112,7 +126,9 @@ Long-form aliases are available alongside short module names:
 | Hook                                         | Purpose                                            |
 | -------------------------------------------- | -------------------------------------------------- |
 | `update(dt)`                                 | user animation/update function each frame interval |
+| `onFrame((dt, time) => void)`               | convenience helper to bind `update` with `time`    |
 | `afterUpdate(dt)`                            | post-render callback                               |
 | `click`, `mousedown`, `mouseup`, `mousemove` | input event hooks routed from canvas               |
 | `keydown`, `keyup`                           | keyboard hooks routed from document                |
 | `onError(error, { context, time })`          | centralized runtime error handling                 |
+| `liveGlobals(enable?)`                       | toggles runtime global helper installation         |

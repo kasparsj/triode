@@ -29,6 +29,9 @@
     "tick",
     "shadowMap",
     "scene",
+    "stage",
+    "onFrame",
+    "liveGlobals",
     "dispose"
   ],
   "hydraSynthMembers": [
@@ -42,6 +45,7 @@
     "speed",
     "mouse",
     "update",
+    "onFrame",
     "afterUpdate",
     "click",
     "mousedown",
@@ -52,6 +56,7 @@
     "onError",
     "liveMode",
     "render",
+    "liveGlobals",
     "setResolution",
     "hush",
     "resetRuntime",
@@ -281,8 +286,8 @@
   },
   "counts": {
     "constructorOptions": 17,
-    "hydraRendererMembers": 11,
-    "hydraSynthMembers": 53,
+    "hydraRendererMembers": 14,
+    "hydraSynthMembers": 55,
     "sceneMembers": 23,
     "transformChainMembers": 11,
     "modules": 10,

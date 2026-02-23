@@ -69,6 +69,11 @@ const smokeHtml = `<!doctype html>
         noiseTransformPreserved: null,
         stageAliasAvailable: null,
         stageAliasCreatesScene: null,
+        stageConfigApiWorks: null,
+        stageConfigCameraPerspective: null,
+        stageConfigClearApplied: null,
+        onFrameHookWorks: null,
+        liveGlobalsToggleWorks: null,
         renderAliasSceneWorks: null,
         clearAliasSceneWorks: null,
         renderAliasChainWorks: null,
@@ -120,6 +125,63 @@ const smokeHtml = `<!doctype html>
             H.scene({ name: '__aliasStage' }).find({ isMesh: true }).length > 0;
         } else {
           window.__smoke.stageAliasCreatesScene = false;
+        }
+        const stageConfigScene = H.stage({
+          name: '__stageConfig',
+          key: '__stageConfig',
+          camera: {
+            type: 'perspective',
+            eye: [2.2, 1.6, 2.8],
+            target: [0, 0, 0],
+            controls: false,
+          },
+          lights: 'studio',
+          world: 'ground',
+          clear: { amount: 0.85, color: 0x000000 },
+        });
+        stageConfigScene
+          .mesh(H.gm.box(), H.mt.meshBasic({ color: 0x446688 }), { key: 'stage-config-mesh' })
+          .render();
+        const stageCamera = hydra.o[0] && hydra.o[0]._camera ? hydra.o[0]._camera : null;
+        window.__smoke.stageConfigApiWorks =
+          !!(stageConfigScene && stageConfigScene.find({ isMesh: true }).length === 1);
+        window.__smoke.stageConfigCameraPerspective =
+          !!(stageCamera && stageCamera.isPerspectiveCamera === true);
+        window.__smoke.stageConfigClearApplied = !!(
+          stageConfigScene &&
+          stageConfigScene._autoClear &&
+          Math.abs(stageConfigScene._autoClear.amount - 0.85) < 1e-9
+        );
+
+        let onFrameCalls = 0;
+        let onFrameDt = null;
+        let onFrameTime = null;
+        H.onFrame((dt, time) => {
+          onFrameCalls += 1;
+          onFrameDt = dt;
+          onFrameTime = time;
+        });
+        hydra.tick(16);
+        hydra.tick(16);
+        window.__smoke.onFrameHookWorks =
+          onFrameCalls >= 2 && onFrameDt === 16 && typeof onFrameTime === 'number';
+
+        if (typeof H.liveGlobals === 'function') {
+          const enabledState = H.liveGlobals(true);
+          const hasOscGlobalWhileEnabled = typeof window.osc === 'function';
+          const hasLoadScriptGlobalWhileEnabled = typeof window.loadScript === 'function';
+          const disabledState = H.liveGlobals(false);
+          const hasOscGlobalAfterDisable = typeof window.osc === 'function';
+          const hasLoadScriptGlobalAfterDisable = typeof window.loadScript === 'function';
+          window.__smoke.liveGlobalsToggleWorks =
+            enabledState === true &&
+            disabledState === false &&
+            hasOscGlobalWhileEnabled &&
+            hasLoadScriptGlobalWhileEnabled &&
+            !hasOscGlobalAfterDisable &&
+            !hasLoadScriptGlobalAfterDisable;
+        } else {
+          window.__smoke.liveGlobalsToggleWorks = false;
         }
 
         const aliasScene = H.scene({ name: '__aliasRenderClear' });
@@ -711,6 +773,31 @@ try {
     diagnostics.stageAliasCreatesScene,
     true,
     "Expected H.stage(...) alias to create and render a scene handle",
+  );
+  assert.equal(
+    diagnostics.stageConfigApiWorks,
+    true,
+    "Expected H.stage(config) to create a scene and preserve scene composition methods",
+  );
+  assert.equal(
+    diagnostics.stageConfigCameraPerspective,
+    true,
+    "Expected H.stage(config) camera preset to configure perspective camera",
+  );
+  assert.equal(
+    diagnostics.stageConfigClearApplied,
+    true,
+    "Expected H.stage(config) clear option to configure scene auto-clear state",
+  );
+  assert.equal(
+    diagnostics.onFrameHookWorks,
+    true,
+    "Expected H.onFrame(fn) to bind update callback with dt/time parameters",
+  );
+  assert.equal(
+    diagnostics.liveGlobalsToggleWorks,
+    true,
+    "Expected H.liveGlobals(enable) to install and remove globals at runtime",
   );
   assert.equal(
     diagnostics.renderAliasSceneWorks,

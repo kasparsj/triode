@@ -55,6 +55,41 @@ export interface HydraCameraOptions {
   [key: string]: unknown;
 }
 
+export type HydraStageCameraPreset = "perspective" | "ortho" | "orthographic";
+
+export interface HydraStageCameraConfig extends HydraCameraOptions {
+  type?: HydraStageCameraPreset;
+  eye?: HydraNumericTuple;
+  target?: HydraNumericTuple;
+}
+
+export interface HydraStageConfig extends HydraSceneAttributes {
+  camera?: boolean | HydraStageCameraPreset | HydraStageCameraConfig;
+  lights?: boolean | "basic" | "studio" | Record<string, unknown>;
+  world?: boolean | "ground" | "atmosphere" | Record<string, unknown>;
+  clear?:
+    | number
+    | {
+        amount?: number;
+        color?: number | string;
+        [key: string]: unknown;
+      };
+  autoClear?:
+    | number
+    | {
+        amount?: number;
+        color?: number | string;
+        [key: string]: unknown;
+      };
+  output?: unknown;
+  render?: boolean;
+  out?: boolean;
+  cssRenderer?: HydraTransformRenderOptions["cssRenderer"];
+  renderTarget?: unknown;
+  fx?: Record<string, unknown>;
+  layers?: unknown;
+}
+
 export interface HydraModuleApi {
   [key: string]: HydraModuleMethod;
 }
@@ -187,6 +222,7 @@ export interface HydraSynthApi {
   speed: number;
   mouse: unknown;
   update: (dt: number) => void;
+  onFrame: (callback: (dt: number, time: number) => void) => void;
   afterUpdate: (dt: number) => void;
   click: (event: Event) => void;
   mousedown: (event: Event) => void;
@@ -197,13 +233,14 @@ export interface HydraSynthApi {
   onError?: HydraRuntimeErrorHandler;
   liveMode: HydraLiveMode;
   render: (output?: unknown) => void;
+  liveGlobals: (enable?: boolean) => boolean;
   setResolution: (width: number, height: number) => void;
   hush: () => void;
   resetRuntime: () => void;
   tick: (dt: number, uniforms?: unknown) => void;
   shadowMap: (options?: Record<string, unknown>) => void;
   scene: (attributes?: HydraSceneAttributes) => HydraSceneApi;
-  stage: (attributes?: HydraSceneAttributes) => HydraSceneApi;
+  stage: (config?: HydraStageConfig) => HydraSceneApi;
   ortho: (eye?: HydraNumericTuple, target?: HydraNumericTuple, options?: HydraCameraOptions) => unknown;
   perspective: (eye?: HydraNumericTuple, target?: HydraNumericTuple, options?: HydraCameraOptions) => unknown;
   screenCoords: (width?: number, height?: number) => unknown;
@@ -252,6 +289,9 @@ declare class HydraRenderer {
   tick(dt: number, uniforms?: unknown): void;
   shadowMap(options?: Record<string, unknown>): void;
   scene(attributes?: HydraSceneAttributes): HydraSceneApi;
+  stage(config?: HydraStageConfig): HydraSceneApi;
+  onFrame(callback: (dt: number, time: number) => void): void;
+  liveGlobals(enable?: boolean): boolean;
   dispose(): void;
 }
 
