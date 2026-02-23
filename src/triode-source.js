@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Derived in part from hydra-synth/src/hydra-source.js (https://github.com/hydra-synth/hydra-synth).
 import Webcam from './lib/webcam.js'
 import Screen from './lib/screenmedia.js'
 import * as THREE from "three";

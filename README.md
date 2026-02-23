@@ -232,6 +232,11 @@ Use these docs before shipping:
 - Release tags (`v*`) run version/changelog/tag metadata verification and attach tarball + checksum artifacts.
 - GitHub Pages deploys generated docs and runnable examples from repository sources on every push to `main`.
 
-## License
+## License (AGPL-3.0)
 
-AGPL-3.0-only (see [`LICENSE`](./LICENSE)).
+- triode is licensed `AGPL-3.0-only` (see [`LICENSE`](./LICENSE)).
+- triode includes portions derived from Hydra / hydra-synth; see [`NOTICE`](./NOTICE) and [`docs/compliance/agpl_audit.md`](./docs/compliance/agpl_audit.md).
+- Corresponding source for this project is published at: <https://github.com/kasparsj/triode>.
+- Hosted docs/examples built by `npm run site:build` include a visible footer link labeled `Source code` that points to the repository and, when available, the exact build commit (`TRIODE_GIT_SHA`/`GIT_SHA`/`GITHUB_SHA`).
+- For hosted deployments of modified versions, publish the running source revision and keep a visible `Source code` link in the UI (the generated site footer is the default mechanism in this repository).
+- Third-party dependency license inventory: [`docs/compliance/third_party_licenses.md`](./docs/compliance/third_party_licenses.md).

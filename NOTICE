@@ -1,0 +1,34 @@
+Triode NOTICE
+=============
+
+This project (`triode`) includes code that is based on and/or derived from Hydra and hydra-synth.
+
+Upstream projects
+-----------------
+- Hydra: https://github.com/hydra-synth/hydra
+- hydra-synth: https://github.com/hydra-synth/hydra-synth
+
+Attribution
+-----------
+- Original Hydra / hydra-synth authors include ojack and project contributors.
+- Portions of this repository are adapted from hydra-synth source code and remain under AGPL-3.0-compatible terms.
+- triode itself is distributed as AGPL-3.0-only; see `LICENSE`.
+
+Significant upstream-derived components (modified/adapted)
+----------------------------------------------------------
+- `src/triode-synth.js` (adapted from hydra-synth runtime entrypoint patterns)
+- `src/triode-source.js` (adapted from hydra-synth source/media handling)
+- `src/hydra-source.js` (upstream-compatible source implementation with triode adaptations)
+- `src/output.js` (upstream output/pipeline lineage with triode renderer changes)
+- `src/generator-factory.js` (upstream transform/generator factory lineage)
+- `src/generate-glsl.js` (upstream GLSL generation lineage)
+- `src/glsl-source.js` (upstream shader-chain source lineage)
+- `src/glsl/glsl-functions.js` (upstream function set lineage)
+- `src/glsl/utility-functions.js` (upstream GLSL utility lineage)
+- `src/glsl/renderpass-functions.js` (upstream renderpass helper lineage)
+- `src/format-arguments.js` (upstream argument normalization lineage)
+- `src/eval-sandbox.js` and `src/lib/sandbox.js` (upstream eval sandbox lineage)
+- `src/lib/array-utils.js`, `src/lib/audio.js`, `src/lib/mouse-event.js`, `src/lib/video-recorder.js` (upstream utility lineage)
+- `src/lib/mouse.js`, `src/lib/easing-functions.js`, `src/lib/screenmedia.js`, `src/lib/webcam.js` (upstream-origin files retained with minimal or no changes)
+
+Further audit detail is tracked in `docs/compliance/agpl_audit.md`.

@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import fssync from "node:fs";
 import path from "node:path";
+import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -8,6 +9,56 @@ const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, "..", "..");
 const outDir = path.resolve(rootDir, process.env.SITE_OUT_DIR || "site-dist");
 const githubRepoUrl = "https://github.com/kasparsj/triode";
+
+const readPackageVersion = () => {
+  try {
+    const packageJson = JSON.parse(
+      fssync.readFileSync(path.join(rootDir, "package.json"), "utf8"),
+    );
+    return typeof packageJson.version === "string"
+      ? packageJson.version.trim()
+      : "0.0.0";
+  } catch (_error) {
+    return "0.0.0";
+  }
+};
+
+const resolveGitSha = () => {
+  const fromEnv = (
+    process.env.TRIODE_GIT_SHA ||
+    process.env.GIT_SHA ||
+    process.env.GITHUB_SHA ||
+    ""
+  ).trim();
+  if (fromEnv) {
+    return fromEnv;
+  }
+  try {
+    return execSync("git rev-parse HEAD", {
+      cwd: rootDir,
+      stdio: ["ignore", "pipe", "ignore"],
+    })
+      .toString()
+      .trim();
+  } catch (_error) {
+    return "";
+  }
+};
+
+const buildMetadata = (() => {
+  const version = (process.env.TRIODE_VERSION || readPackageVersion()).trim();
+  const gitSha = resolveGitSha();
+  const shortSha = gitSha ? gitSha.slice(0, 12) : "main";
+  const sourceTreeUrl = gitSha ? `${githubRepoUrl}/tree/${gitSha}` : githubRepoUrl;
+  const displayLabel = `v${version} (${shortSha})`;
+  return {
+    version,
+    gitSha,
+    shortSha,
+    sourceTreeUrl,
+    displayLabel,
+  };
+})();
 
 const primaryNavItems = [
   { key: "overview", label: "Home", output: "index.html" },
@@ -633,6 +684,7 @@ const renderLayout = ({
 
   const repoLink =
     '<a class="repo" href="https://github.com/kasparsj/triode">GitHub</a>';
+  const sourceOffer = `<a href="${escapeAttr(buildMetadata.sourceTreeUrl)}">Source code</a> <span class="footer-meta">(AGPL-3.0-only, ${escapeHtml(buildMetadata.displayLabel)})</span>`;
 
   return `<!doctype html>
 <html lang="en">
@@ -657,7 +709,7 @@ const renderLayout = ({
         </div>
       </header>
       ${content}
-      <p class="footer-note">Generated from repository docs and examples.</p>
+      <p class="footer-note">Generated from repository docs and examples. <span aria-hidden="true">-</span> ${sourceOffer}</p>
     </div>
     ${scripts}
   </body>
@@ -1250,6 +1302,18 @@ const copyStaticAssets = async () => {
       recursive: true,
     },
   );
+
+  const playgroundIndexPath = path.join(outDir, "playground", "index.html");
+  const playgroundHtml = await fs.readFile(playgroundIndexPath, "utf8");
+  const withSourceHref = playgroundHtml.replace(
+    /(id="source-code-link"[^>]*href=")[^"]*(")/,
+    `$1${buildMetadata.sourceTreeUrl}$2`,
+  );
+  const withSourceVersion = withSourceHref.replace(
+    /(<span id="source-code-version">)[^<]*(<\/span>)/,
+    `$1(AGPL-3.0-only, ${buildMetadata.displayLabel})$2`,
+  );
+  await fs.writeFile(playgroundIndexPath, withSourceVersion, "utf8");
 };
 
 const writeNotFoundPage = async () => {
@@ -1296,6 +1360,7 @@ const build = async () => {
   console.log(`Site generated at ${outDir}`);
   console.log(`Docs pages: ${docPages.length}`);
   console.log(`Example pages: ${exampleSources.length}`);
+  console.log(`Source offer: ${buildMetadata.sourceTreeUrl} (${buildMetadata.displayLabel})`);
 };
 
 await build();

@@ -588,6 +588,15 @@ pre code {
   margin: 0.85rem 0 0.45rem;
 }
 
+.footer-note a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.footer-meta {
+  white-space: nowrap;
+}
+
 @media (max-width: 980px) {
   .doc-grid {
     grid-template-columns: 1fr;

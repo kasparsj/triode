@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Derived in part from hydra-synth/src/glsl-source.js (https://github.com/hydra-synth/hydra-synth).
 import generateGlsl from './generate-glsl.js'
 import utilityGlsl from './glsl/utility-functions.js'
 import {replaceGenType} from "./types.js"

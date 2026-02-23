@@ -1,4 +1,6 @@
 // handles code evaluation and attaching relevant objects to global and evaluation contexts
+// SPDX-License-Identifier: AGPL-3.0-only
+// Derived in part from hydra-synth/src/eval-sandbox.js (https://github.com/hydra-synth/hydra-synth).
 
 import Sandbox from './lib/sandbox.js'
 import ArrayUtils from './lib/array-utils.js'

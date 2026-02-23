@@ -25,6 +25,7 @@
     "examples/",
     "README.md",
     "LICENSE",
+    "NOTICE",
     "CHANGELOG.md"
   ],
   "scripts": {

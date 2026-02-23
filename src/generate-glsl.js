@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Derived in part from hydra-synth/src/generate-glsl.js (https://github.com/hydra-synth/hydra-synth).
 import {formatArguments} from './format-arguments.js'
 import {typeLookup, getLookup, getTypeLookup, castType, replaceGenType} from "./types.js";
 import GlslSource from "./glsl-source.js";
@@ -159,5 +161,4 @@ function contains(object, arr) {
   }
   return false
 }
-
 

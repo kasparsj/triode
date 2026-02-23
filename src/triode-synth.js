@@ -1,4 +1,5 @@
-
+// SPDX-License-Identifier: AGPL-3.0-only
+// Derived in part from hydra-synth/src/hydra-synth.js (https://github.com/hydra-synth/hydra-synth).
 import Output from './output.js'
 import loop from 'raf-loop'
 import Source from './triode-source.js'

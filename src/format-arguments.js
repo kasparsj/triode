@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Derived in part from hydra-synth/src/format-arguments.js (https://github.com/hydra-synth/hydra-synth).
 import arrayUtils from './lib/array-utils.js'
 import {getLookup} from "./types.js";
 import Output from "./output.js";

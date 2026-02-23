@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Derived in part from hydra-synth/src/output.js (https://github.com/hydra-synth/hydra-synth).
 import * as THREE from "three";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { ClearPass } from "three/examples/jsm/postprocessing/ClearPass.js";
