@@ -30216,7 +30216,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         });
       }
     }
-    // index only relevant in atom-triode + desktop apps
+    // index only relevant in atom-hydra + desktop apps
     initScreen(index = 0, options2 = {}) {
       const self2 = this;
       Screen().then(function(response) {
@@ -40007,6 +40007,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   const LIVE_AUTO_PREFIX = "__triodeLiveAuto";
   const INTERNAL_CALL_ATTR = "__triodeInternalCall";
   const LEGACY_INTERNAL_CALL_ATTR = "__hydraInternalCall";
+  const SCENE_STORE_NAME_PREFIX = "name:";
+  const SCENE_STORE_KEY_PREFIX = "key:";
+  const SCENE_STORE_AUTO_PREFIX = "auto:";
+  const SCENE_STORE_UUID_PREFIX = "uuid:";
   const LIVE_KEY_HINT = '[triode] Continuous live mode assigned source-based identity slots for unkeyed objects. Add { key: "..." } for fully stable identity across major refactors.';
   const createStore = () => ({
     scenes: /* @__PURE__ */ Object.create(null),
@@ -40047,10 +40051,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     });
   };
   const clearStore = (store) => {
+    const clearedScenes = /* @__PURE__ */ new Set();
     Object.keys(store.scenes).forEach((key) => {
       const scene = store.scenes[key];
-      if (scene && typeof scene.clear === "function") {
+      if (scene && !clearedScenes.has(scene) && typeof scene.clear === "function") {
         scene.clear();
+        clearedScenes.add(scene);
       }
       delete store.scenes[key];
     });
@@ -40374,6 +40380,57 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     return stored;
   };
+  const normalizeSceneName = (value) => {
+    if (typeof value !== "string") {
+      return null;
+    }
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  };
+  const getSceneStoreKey = ({ scene, name, key, autoId } = {}) => {
+    const normalizedName = normalizeSceneName(
+      name !== void 0 ? name : scene && scene.name
+    );
+    if (normalizedName) {
+      return `${SCENE_STORE_NAME_PREFIX}${normalizedName}`;
+    }
+    const normalizedKey = normalizeLiveKey(
+      key !== void 0 ? key : getLiveKey(scene)
+    );
+    if (normalizedKey) {
+      return `${SCENE_STORE_KEY_PREFIX}${normalizedKey}`;
+    }
+    const normalizedAutoId = normalizeLiveAutoId(
+      autoId !== void 0 ? autoId : getLiveAutoId(scene)
+    );
+    if (normalizedAutoId) {
+      return `${SCENE_STORE_AUTO_PREFIX}${normalizedAutoId}`;
+    }
+    if (scene && typeof scene.uuid === "string" && scene.uuid) {
+      return `${SCENE_STORE_UUID_PREFIX}${scene.uuid}`;
+    }
+    return null;
+  };
+  const registerSceneRoot = (store, scene, identities = {}) => {
+    if (!store || !scene) {
+      return;
+    }
+    const storeKey = getSceneStoreKey({
+      scene,
+      name: identities.name,
+      key: identities.key,
+      autoId: identities.autoId
+    });
+    if (!storeKey) {
+      return;
+    }
+    Object.keys(store.scenes).forEach((key) => {
+      if (key !== storeKey && store.scenes[key] === scene) {
+        delete store.scenes[key];
+      }
+    });
+    store.scenes[storeKey] = scene;
+  };
   const markLiveTouch = (runtime, object, { scene = false } = {}) => {
     const state = getLiveEvalState(runtime);
     if (!state || !state.active || !object) {
@@ -40600,8 +40657,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       const key = getLiveKey(object);
       const autoId = getLiveAutoId(object);
-      if (object.isScene && object.name) {
-        store.scenes[object.name] = object;
+      if (object.isScene) {
+        registerSceneRoot(store, object, { key, autoId });
       }
       if (object.isScene && key) {
         store.keyedScenes[key] = object;
@@ -40813,14 +40870,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
   };
   const createMeshEdges = (mesh2, attributes, runtime) => {
-    const line2 = getOrCreateLineSegments({
-      name: mesh2.name,
-      geometry: new EdgesGeometry(attributes.geometry),
-      material: attributes.lineMat || new LineBasicMaterial({
-        color: attributes.lineColor || 0,
-        linewidth: attributes.lineWidth || 3
-      })
-    }, runtime);
+    const line2 = getOrCreateLineSegments(
+      {
+        name: mesh2.name,
+        geometry: new EdgesGeometry(attributes.geometry),
+        material: attributes.lineMat || new LineBasicMaterial({
+          color: attributes.lineColor || 0,
+          linewidth: attributes.lineWidth || 3
+        })
+      },
+      runtime
+    );
     mesh2.add(line2);
   };
   const getOrCreateScene = (options2, attributes = {}) => {
@@ -40833,7 +40893,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const allowNamedReuse = shouldReuseNamedObject(sceneAttributes);
     let scene = normalizedKey ? store.keyedScenes[normalizedKey] : null;
     if (!scene && allowNamedReuse && name) {
-      scene = store.scenes[name];
+      scene = store.scenes[getSceneStoreKey({ name })];
     }
     if (!scene && autoId) {
       scene = store.autoScenes[autoId];
@@ -40858,11 +40918,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           break;
       }
     }
-    if (scene.name) {
-      store.scenes[scene.name] = scene;
-    }
     bindLiveIdentity(scene, normalizedKey, store.keyedScenes);
     bindLiveAutoIdentity(scene, autoId, store.autoScenes);
+    registerSceneRoot(store, scene, {
+      name: scene.name,
+      key: normalizedKey,
+      autoId
+    });
     markLiveTouch(runtime, scene, { scene: true });
     return scene;
   };
@@ -40902,7 +40964,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const runtimeRef = resolveRuntime(runtime);
     const store = getStore(runtimeRef);
     const instancedAttrs = withLiveName(runtimeRef, attributes, "instancedMesh");
-    const { name, key, geometry, material, count, [LIVE_AUTO_ID_ATTR]: autoId } = instancedAttrs;
+    const {
+      name,
+      key,
+      geometry,
+      material,
+      count,
+      [LIVE_AUTO_ID_ATTR]: autoId
+    } = instancedAttrs;
     const normalizedKey = normalizeLiveKey(key);
     const allowNamedReuse = shouldReuseNamedObject(instancedAttrs);
     let mesh2 = normalizedKey ? store.keyedInstancedMeshes[normalizedKey] : null;
@@ -41083,20 +41152,32 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         material = this._handleMaterial(geometry, material, options2);
         switch (type) {
           case "points":
-            object = getOrCreatePoints(Object.assign({ geometry, material }, options2), this._runtime);
+            object = getOrCreatePoints(
+              Object.assign({ geometry, material }, options2),
+              this._runtime
+            );
             break;
           case "line loop":
           case "lineLoop":
           case "lineloop":
-            object = getOrCreateLineLoop(Object.assign({ geometry, material }, options2), this._runtime);
+            object = getOrCreateLineLoop(
+              Object.assign({ geometry, material }, options2),
+              this._runtime
+            );
             break;
           case "line strip":
           case "lineStrip":
           case "linestrip":
-            object = getOrCreateLine(Object.assign({ geometry, material }, options2), this._runtime);
+            object = getOrCreateLine(
+              Object.assign({ geometry, material }, options2),
+              this._runtime
+            );
             break;
           case "lines":
-            object = getOrCreateLineSegments(Object.assign({ geometry, material }, options2), this._runtime);
+            object = getOrCreateLineSegments(
+              Object.assign({ geometry, material }, options2),
+              this._runtime
+            );
             break;
           case "quad":
           default:
@@ -41136,7 +41217,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           material = this._defaultMaterial(geometry, material, options2);
           material.color = color2;
         } else if (material instanceof GlslSource) {
-          material = this._triodeMaterial(geometry, material, options2);
+          material = this._hydraMaterial(geometry, material, options2);
         }
       }
       material.transparent = type !== "quad";
@@ -41163,7 +41244,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       });
     },
-    _triodeMaterial(geometry, material, options2) {
+    _hydraMaterial(geometry, material, options2) {
       return this._withRuntimeScope(() => {
         const { type } = options2 || {};
         switch (type) {
@@ -41175,14 +41256,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           case "lineStrip":
           case "linestrip":
           case "lines":
-            return triode(material, options2.material);
+            return hydra(material, options2.material);
           default:
             return mesh(material, options2.material);
         }
       });
     },
-    _hydraMaterial(geometry, material, options2) {
-      return this._triodeMaterial(geometry, material, options2);
+    _triodeMaterial(geometry, material, options2) {
+      return this._hydraMaterial(geometry, material, options2);
     },
     _createMesh(geometry, material, options2 = {}) {
       let mesh2;
@@ -41191,11 +41272,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         mesh2 = quad._mesh;
       } else if (options2.instanced) {
         mesh2 = getOrCreateInstancedMesh(
-          Object.assign({ geometry, material, count: options2.instanced }, options2),
+          Object.assign(
+            { geometry, material, count: options2.instanced },
+            options2
+          ),
           this._runtime
         );
       } else {
-        mesh2 = getOrCreateMesh(Object.assign({ geometry, material }, options2), this._runtime);
+        mesh2 = getOrCreateMesh(
+          Object.assign({ geometry, material }, options2),
+          this._runtime
+        );
       }
       return mesh2;
     },
@@ -41204,7 +41291,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (!internal) {
         warnInternalSceneMethodUsage(this._runtime, "_mesh", "mesh");
       }
-      const meshOptions = Object.assign(normalizedOptions || {}, { type: "triangles" });
+      const meshOptions = Object.assign(normalizedOptions || {}, {
+        type: "triangles"
+      });
       return this._add(geometry, material, meshOptions);
     },
     _quad(material, options2) {
@@ -41212,7 +41301,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (!internal) {
         warnInternalSceneMethodUsage(this._runtime, "_quad", "quad");
       }
-      const quadOptions = Object.assign(normalizedOptions || {}, { type: "quad" });
+      const quadOptions = Object.assign(normalizedOptions || {}, {
+        type: "quad"
+      });
       return this._add(material, quadOptions);
     },
     _points(geometry, material, options2) {
@@ -41220,7 +41311,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (!internal) {
         warnInternalSceneMethodUsage(this._runtime, "_points", "points");
       }
-      const pointOptions = Object.assign(normalizedOptions || {}, { type: "points" });
+      const pointOptions = Object.assign(normalizedOptions || {}, {
+        type: "points"
+      });
       return this._add(geometry, material, pointOptions);
     },
     _lines(geometry, material, options2) {
@@ -41229,7 +41322,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         warnInternalSceneMethodUsage(this._runtime, "_lines", "lines");
       }
       geometry = geometry || [1, 1];
-      const lineOptions = Object.assign(normalizedOptions || {}, { type: "lines" });
+      const lineOptions = Object.assign(normalizedOptions || {}, {
+        type: "lines"
+      });
       return this._add(geometry, material, lineOptions);
     },
     _linestrip(geometry, material, options2) {
@@ -41237,7 +41332,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (!internal) {
         warnInternalSceneMethodUsage(this._runtime, "_linestrip", "lineStrip");
       }
-      const lineStripOptions = Object.assign(normalizedOptions || {}, { type: "lineStrip" });
+      const lineStripOptions = Object.assign(normalizedOptions || {}, {
+        type: "lineStrip"
+      });
       return this._add(geometry, material, lineStripOptions);
     },
     _lineloop(geometry, material, options2) {
@@ -41245,7 +41342,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (!internal) {
         warnInternalSceneMethodUsage(this._runtime, "_lineloop", "lineLoop");
       }
-      const lineLoopOptions = Object.assign(normalizedOptions || {}, { type: "lineLoop" });
+      const lineLoopOptions = Object.assign(normalizedOptions || {}, {
+        type: "lineLoop"
+      });
       return this._add(geometry, material, lineLoopOptions);
     },
     _line(geometry, material, options2) {
@@ -41256,7 +41355,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (!geometry.isBufferGeometry) {
         geometry = line$1(geometry);
       }
-      return this._lines(geometry, material, toInternalCallOptions(normalizedOptions));
+      return this._lines(
+        geometry,
+        material,
+        toInternalCallOptions(normalizedOptions)
+      );
     },
     _circle(geometry, material, options2) {
       const { internal, options: normalizedOptions } = normalizeInternalCall(options2);
@@ -41271,7 +41374,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
         geometry = circle$1(...geometry);
       }
-      return this._mesh(geometry, material, toInternalCallOptions(normalizedOptions));
+      return this._mesh(
+        geometry,
+        material,
+        toInternalCallOptions(normalizedOptions)
+      );
     },
     _ellipse(geometry, material, options2) {
       const { internal, options: normalizedOptions } = normalizeInternalCall(options2);
@@ -41286,7 +41393,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
         geometry = ellipse(...geometry);
       }
-      return this._mesh(geometry, material, toInternalCallOptions(normalizedOptions));
+      return this._mesh(
+        geometry,
+        material,
+        toInternalCallOptions(normalizedOptions)
+      );
     },
     _triangle(geometry, material, options2) {
       const { internal, options: normalizedOptions } = normalizeInternalCall(options2);
@@ -41301,7 +41412,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
         geometry = triangle(...geometry);
       }
-      return this._mesh(geometry, material, toInternalCallOptions(normalizedOptions));
+      return this._mesh(
+        geometry,
+        material,
+        toInternalCallOptions(normalizedOptions)
+      );
     },
     add(geometry, material, options2) {
       this._add(...arguments);
@@ -41350,9 +41465,15 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return this;
     },
     instanced(geometry, material, count, options2 = {}) {
-      return this._mesh(geometry, material, toInternalCallOptions(Object.assign({}, options2, {
-        instanced: count
-      })));
+      return this._mesh(
+        geometry,
+        material,
+        toInternalCallOptions(
+          Object.assign({}, options2, {
+            instanced: count
+          })
+        )
+      );
     },
     circle(geometry, material, options2) {
       this._circle(geometry, material, toInternalCallOptions(options2));
@@ -41434,7 +41555,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return this.children.length === 0;
     },
     at(index = 0) {
-      const object = this.children.filter((o) => o.name !== groupName$1 && o.name !== groupName)[index];
+      const object = this.children.filter(
+        (o) => o.name !== groupName$1 && o.name !== groupName
+      )[index];
       markLiveTouch(this._runtime, object);
       markLiveTouch(this._runtime, this, { scene: !!this.isScene });
       const sceneRoot = findSceneRoot(this);
@@ -41492,15 +41615,18 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return null;
     }
     createPass(shaderInfo, options2 = {}) {
-      return Object.assign({
-        scene: this,
-        camera: this._camera,
-        // todo: viewport
-        viewport: this._viewport,
-        autoClear: this._autoClear,
-        layers: this._layers,
-        fx: this._fx
-      }, options2);
+      return Object.assign(
+        {
+          scene: this,
+          camera: this._camera,
+          // todo: viewport
+          viewport: this._viewport,
+          autoClear: this._autoClear,
+          layers: this._layers,
+          fx: this._fx
+        },
+        options2
+      );
     }
     lights(options2) {
       options2 || (options2 = { all: true });
@@ -41517,10 +41643,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     world(options2 = {}) {
       if (!options2.near || !options2.far) {
         const camera2 = this.getCamera(options2);
-        options2 = Object.assign({
-          near: camera2.near,
-          far: camera2.far
-        }, options2);
+        options2 = Object.assign(
+          {
+            near: camera2.near,
+            far: camera2.far
+          },
+          options2
+        );
       }
       update(this, options2);
       if (options2.gui) {
@@ -43494,7 +43623,7 @@ vec4 _mod289(vec4 x)
     }, options2);
     return new ShaderMaterial(parameters);
   };
-  const triode = (source, properties = {}) => {
+  const hydra = (source, properties = {}) => {
     let options2 = source;
     if (source instanceof GlslSource) {
       Object.assign(source._material, properties);
@@ -43618,7 +43747,7 @@ vec4 _mod289(vec4 x)
     blendMode: true
   });
   const dots = (pos, size2, color2, fade2, options2 = {}) => {
-    return triode(createRuntimeSource("dots", dotsFunc, [pos, size2, color2, fade2]), Object.assign({
+    return hydra(createRuntimeSource("dots", dotsFunc, [pos, size2, color2, fade2]), Object.assign({
       transparent: true,
       blendMode: "normal"
     }, options2));
@@ -43638,7 +43767,7 @@ vec4 _mod289(vec4 x)
     blendMode: true
   });
   const squares = (pos, size2, color2, fade2, options2 = {}) => {
-    return triode(createRuntimeSource("squares", squaresFunc, [pos, size2, color2, fade2]), Object.assign({
+    return hydra(createRuntimeSource("squares", squaresFunc, [pos, size2, color2, fade2]), Object.assign({
       transparent: true,
       blendMode: "normal"
     }, options2));
@@ -43655,7 +43784,7 @@ vec4 _mod289(vec4 x)
     primitive: "lines"
   });
   const lines = (pos, color2, options2 = {}) => {
-    return triode(createRuntimeSource("lines", linesFunc, [pos, color2]), Object.assign({
+    return hydra(createRuntimeSource("lines", linesFunc, [pos, color2]), Object.assign({
       transparent: true,
       blendMode: "normal"
     }, options2));
@@ -43672,7 +43801,7 @@ vec4 _mod289(vec4 x)
     primitive: "line strip"
   });
   const linestrip = (pos, color2, options2 = {}) => {
-    return triode(createRuntimeSource("linestrip", linestripFunc, [pos, color2]), Object.assign({
+    return hydra(createRuntimeSource("linestrip", linestripFunc, [pos, color2]), Object.assign({
       transparent: true,
       blendMode: "normal"
     }, options2));
@@ -43689,7 +43818,7 @@ vec4 _mod289(vec4 x)
     primitive: "line loop"
   });
   const lineloop = (pos, color2, options2 = {}) => {
-    return triode(createRuntimeSource("lineloop", lineloopFunc, [pos, color2]), Object.assign({
+    return hydra(createRuntimeSource("lineloop", lineloopFunc, [pos, color2]), Object.assign({
       transparent: true,
       blendMode: "normal"
     }, options2));
@@ -43705,7 +43834,7 @@ vec4 _mod289(vec4 x)
     useNormal: false
   });
   const text = (color2, options2 = {}) => {
-    return triode(createRuntimeSource("text", textFunc, [color2]), options2);
+    return hydra(createRuntimeSource("text", textFunc, [color2]), options2);
   };
   const meshFunc = processFunction({
     name: "mesh",
@@ -43717,9 +43846,9 @@ vec4 _mod289(vec4 x)
     primitive: "triangles"
   });
   const mesh = (color2, options2 = {}) => {
-    return triode(createRuntimeSource("mesh", meshFunc, [color2]), options2);
+    return hydra(createRuntimeSource("mesh", meshFunc, [color2]), options2);
   };
-  const hydra = (...args) => triode(...args);
+  const triode = (...args) => hydra(...args);
   const getBlend = (blendMode) => {
     switch (blendMode) {
       case "custom":
@@ -43791,7 +43920,7 @@ vec4 _mod289(vec4 x)
       super(options2);
       const material = options2.material || {};
       material.depthTest = false;
-      this.material = triode(options2, material);
+      this.material = hydra(options2, material);
       this.fsQuad = new FullScreenQuad(this.material);
     }
     render(renderer, writeBuffer, readBuffer) {
