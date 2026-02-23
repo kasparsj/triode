@@ -13,6 +13,15 @@ triode is a three.js-powered live coding engine for 3D scene APIs while keeping 
 - Replace the loaded runtime bundle with triode's `dist/triode.js`. `Triode` is the primary global entrypoint and `Hydra` remains available as a compatibility alias.
 - This repository includes Hydra-compatible runtime pieces, but the main product direction is 3D live coding through triode's Three.js API.
 
+## Upstream Attribution
+
+- triode builds on work from the Hydra ecosystem, especially `hydra-synth`.
+- Original Hydra / hydra-synth authors include `ojack` (Olivia Jack) and project contributors.
+- Upstream projects:
+  - Hydra: <https://github.com/hydra-synth/hydra>
+  - hydra-synth: <https://github.com/hydra-synth/hydra-synth>
+- Repository-level provenance details are tracked in [`NOTICE`](./NOTICE).
+
 ## Distribution Model
 
 - Official distribution is via GitHub tags and release artifacts from this repository.
