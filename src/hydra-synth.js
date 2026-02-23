@@ -306,7 +306,7 @@ class HydraRenderer {
   eval(code) {
     const continuousEval = this.liveMode === 'continuous'
     if (continuousEval) {
-      scene.beginSceneEval(this)
+      scene.beginSceneEval(this, code)
     }
     try {
       this.sandbox.eval(code)

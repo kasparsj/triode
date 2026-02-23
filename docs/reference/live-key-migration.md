@@ -4,7 +4,7 @@ Use this guide when a sketch runs with `liveMode: "continuous"` and you want sta
 
 ## Why migrate
 
-In continuous mode, unnamed objects still depend on eval order. Explicit `key` values make identity stable when you reorder lines or refactor snippets.
+In continuous mode, unnamed objects now receive source-based auto IDs that reduce reorder drift. Explicit `key` values are still the most stable option across major refactors, extracted helpers, and structural rewrites.
 
 ## Quick recipe
 

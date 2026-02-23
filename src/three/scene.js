@@ -11,7 +11,7 @@ import * as lights from "./lights.js";
 import * as world from "./world.js";
 import * as gui from "../gui.js";
 import * as gm from "./gm.js";
-import { getRuntime } from "./runtime.js";
+import { getRuntime, withRuntime } from "./runtime.js";
 
 const runtimeStores = new WeakMap();
 const LIVE_CYCLE_KEY = "__hydraLiveCycle";
@@ -20,7 +20,7 @@ const LIVE_AUTO_ID_KEY = "__hydraLiveAutoId";
 const LIVE_AUTO_ID_ATTR = "__liveAutoId";
 const LIVE_AUTO_PREFIX = "__hydraLiveAuto";
 const LIVE_KEY_HINT =
-    "[triode] Continuous live mode auto-generated identity slots for unkeyed objects. Add { key: \"...\" } for stable identity across reruns.";
+    "[triode] Continuous live mode assigned source-based identity slots for unkeyed objects. Add { key: \"...\" } for fully stable identity across major refactors.";
 
 const createStore = () => ({
     scenes: Object.create(null),
@@ -164,6 +164,8 @@ const getLiveEvalState = (runtime) => {
             hasGraphMutations: false,
             sawUnkeyedAutoNames: false,
             warnedUnkeyedAutoNames: false,
+            sourceLines: [],
+            sourceSignatureCounts: Object.create(null),
         };
     }
     return runtime._liveEvalState;
@@ -174,10 +176,119 @@ const isLiveEvalActive = (runtime) => {
     return !!(state && state.active);
 };
 
-const nextLiveAutoId = (runtime, type) => {
+const hashLiveSignature = (value) => {
+    let hash = 2166136261;
+    for (let i = 0; i < value.length; i += 1) {
+        hash ^= value.charCodeAt(i);
+        hash +=
+            (hash << 1) +
+            (hash << 4) +
+            (hash << 7) +
+            (hash << 8) +
+            (hash << 24);
+    }
+    return (hash >>> 0).toString(36);
+};
+
+const normalizeLiveSourceLine = (value) =>
+    String(value || "")
+        .trim()
+        .replace(/\s+/g, " ");
+
+const normalizeNamedLiveSourceSegment = (value) =>
+    String(value || "")
+        .replace(/0x[0-9a-f]+/gi, "0x0")
+        .replace(/\b\d+(?:\.\d+)?\b/g, "0");
+
+const extractLiveSourceSegment = (line, column) => {
+    if (typeof line !== "string" || line.length === 0) {
+        return "";
+    }
+    const index = Math.min(
+        Math.max(0, (Number.isFinite(column) ? column : 1) - 1),
+        Math.max(0, line.length - 1),
+    );
+    const start = line.lastIndexOf(";", Math.max(0, index - 1));
+    const end = line.indexOf(";", index);
+    const segment = line
+        .slice(start >= 0 ? start + 1 : 0, end >= 0 ? end : line.length)
+        .trim();
+    return segment || line.trim();
+};
+
+const parseLiveStackLocation = (frame) => {
+    if (typeof frame !== "string") {
+        return null;
+    }
+    const match = frame.match(/:(\d+):(\d+)\)?$/);
+    if (!match) {
+        return null;
+    }
+    const line = Number.parseInt(match[1], 10);
+    const column = Number.parseInt(match[2], 10);
+    if (!Number.isFinite(line) || !Number.isFinite(column)) {
+        return null;
+    }
+    return { line, column };
+};
+
+const findLiveSourceSignature = (state, type, { normalizeNumbers = false } = {}) => {
+    if (!state || !Array.isArray(state.sourceLines) || state.sourceLines.length === 0) {
+        return null;
+    }
+    let stack = "";
+    try {
+        stack = String(new Error().stack || "");
+    } catch (_error) {
+        stack = "";
+    }
+    if (!stack) {
+        return null;
+    }
+    const frames = stack.split("\n").slice(1);
+    for (let i = 0; i < frames.length; i += 1) {
+        const frame = frames[i];
+        if (
+            frame.includes("/src/three/scene.js") ||
+            frame.includes("/src/hydra-synth.js") ||
+            frame.includes("/src/three/runtime.js")
+        ) {
+            continue;
+        }
+        const location = parseLiveStackLocation(frame);
+        if (!location) {
+            continue;
+        }
+        if (location.line < 1 || location.line > state.sourceLines.length) {
+            continue;
+        }
+        const sourceLine = state.sourceLines[location.line - 1];
+        const rawSegment = normalizeLiveSourceLine(
+            extractLiveSourceSegment(sourceLine, location.column),
+        );
+        const sourceSegment = normalizeNumbers
+            ? normalizeNamedLiveSourceSegment(rawSegment)
+            : rawSegment;
+        if (!sourceSegment) {
+            continue;
+        }
+        return `${type}_${hashLiveSignature(sourceSegment)}`;
+    }
+    return null;
+};
+
+const nextLiveAutoId = (runtime, type, attributes = {}) => {
     const state = getLiveEvalState(runtime);
     if (!state || !state.active) {
         return null;
+    }
+    const signature = findLiveSourceSignature(state, type, {
+        normalizeNumbers: !!normalizeLiveKey(attributes.name),
+    });
+    if (signature) {
+        const nextSignatureId = state.sourceSignatureCounts[signature] || 0;
+        state.sourceSignatureCounts[signature] = nextSignatureId + 1;
+        return `${LIVE_AUTO_PREFIX}_${signature}_${nextSignatureId}`;
     }
     const nextId = state.counters[type] || 0;
     state.counters[type] = nextId + 1;
@@ -199,7 +310,7 @@ const withLiveName = (runtime, attributes = {}, type = "object") => {
         return attributes;
     }
     return Object.assign({}, attributes, {
-        [LIVE_AUTO_ID_ATTR]: nextLiveAutoId(runtime, type),
+        [LIVE_AUTO_ID_ATTR]: nextLiveAutoId(runtime, type, attributes),
     });
 };
 
@@ -644,7 +755,7 @@ const rebuildStore = (store) => {
     });
 };
 
-const beginSceneEval = (runtime) => {
+const beginSceneEval = (runtime, sourceCode = "") => {
     const runtimeRef = resolveRuntime(runtime);
     if (!runtimeRef) {
         return;
@@ -657,6 +768,11 @@ const beginSceneEval = (runtime) => {
     state.touchedScenes = new Set();
     state.hasGraphMutations = false;
     state.sawUnkeyedAutoNames = false;
+    state.sourceLines =
+        typeof sourceCode === "string"
+            ? sourceCode.replace(/\r\n/g, "\n").split("\n")
+            : [];
+    state.sourceSignatureCounts = Object.create(null);
 };
 
 const resetLiveEvalState = (state) => {
@@ -667,6 +783,8 @@ const resetLiveEvalState = (state) => {
     state.touched.clear();
     state.touchedScenes.clear();
     state.sawUnkeyedAutoNames = false;
+    state.sourceLines = [];
+    state.sourceSignatureCounts = Object.create(null);
 };
 
 const maybeWarnUnkeyedAutoNames = (runtime, state) => {
@@ -1013,6 +1131,16 @@ const sceneMixin = {
         return this;
     },
 
+    _withRuntimeScope(fn) {
+        if (typeof fn !== "function") {
+            return null;
+        }
+        if (this._runtime) {
+            return withRuntime(this._runtime, fn);
+        }
+        return fn();
+    },
+
     _add(geometry, material, options) {
         let object;
         if (geometry instanceof THREE.Object3D) {
@@ -1117,40 +1245,44 @@ const sceneMixin = {
     },
 
     _defaultMaterial(geometry, material, options) {
-        const {type} = options || {};
-        switch (type) {
-            case 'points':
-                return geometry instanceof GridGeometry ? mt.squares() : mt.points();
-            case 'line loop':
-            case 'lineLoop':
-            case 'lineloop':
-                return geometry instanceof GridGeometry ? mt.lineloop() : mt.lineBasic();
-            case 'line strip':
-            case 'lineStrip':
-            case 'linestrip':
-                return geometry instanceof GridGeometry ? mt.linestrip() : mt.lineBasic();
-            case 'lines':
-                return geometry instanceof GridGeometry ? mt.lines() : mt.lineBasic();
-            default:
-                return mt.meshBasic();
-        }
+        return this._withRuntimeScope(() => {
+            const {type} = options || {};
+            switch (type) {
+                case 'points':
+                    return geometry instanceof GridGeometry ? mt.squares() : mt.points();
+                case 'line loop':
+                case 'lineLoop':
+                case 'lineloop':
+                    return geometry instanceof GridGeometry ? mt.lineloop() : mt.lineBasic();
+                case 'line strip':
+                case 'lineStrip':
+                case 'linestrip':
+                    return geometry instanceof GridGeometry ? mt.linestrip() : mt.lineBasic();
+                case 'lines':
+                    return geometry instanceof GridGeometry ? mt.lines() : mt.lineBasic();
+                default:
+                    return mt.meshBasic();
+            }
+        });
     },
 
     _hydraMaterial(geometry, material, options) {
-        const {type} = options || {};
-        switch (type) {
-            case 'points':
-            case 'line loop':
-            case 'lineLoop':
-            case 'lineloop':
-            case 'line strip':
-            case 'lineStrip':
-            case 'linestrip':
-            case 'lines':
-                return mt.hydra(material, options.material);
-            default:
-                return mt.mesh(material, options.material);
-        }
+        return this._withRuntimeScope(() => {
+            const {type} = options || {};
+            switch (type) {
+                case 'points':
+                case 'line loop':
+                case 'lineLoop':
+                case 'lineloop':
+                case 'line strip':
+                case 'lineStrip':
+                case 'linestrip':
+                case 'lines':
+                    return mt.hydra(material, options.material);
+                default:
+                    return mt.mesh(material, options.material);
+            }
+        });
     },
 
     _createMesh(geometry, material, options = {}) {

@@ -105,6 +105,7 @@ const smokeHtml = `<!doctype html>
         continuousPruneRemovedStaleMesh: null,
         continuousPrunePreservedTouchedMesh: null,
         continuousKeyedIdentityStable: null,
+        continuousUnkeyedIdentityStable: null,
         continuousReservedLiveNameNoCollision: null,
         continuousDisposeReleasedRemovedResources: null,
         continuousDisposeRetainedSharedMaterial: null,
@@ -484,6 +485,39 @@ const smokeHtml = `<!doctype html>
           keyedBeforeByKey["mesh-b"] === keyedAfterByKey["mesh-b"]
 
         hydra.eval(
+          'const H = window.__smokeRuntime.synth; const sc = H.scene({ name: "__continuousUnkeyed", key: "continuous-unkeyed-scene" }).out(); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0x3366ff })); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0xff6633 }));',
+        )
+        const unkeyedBefore = H.scene({ name: "__continuousUnkeyed", key: "continuous-unkeyed-scene" }).find({
+          isMesh: true,
+        })
+        const unkeyedBeforeByColor = {}
+        unkeyedBefore.forEach((mesh) => {
+          const colorKey =
+            mesh.material && mesh.material.color
+              ? mesh.material.color.getHexString()
+              : "none"
+          unkeyedBeforeByColor[colorKey] = mesh.uuid
+        })
+        hydra.eval(
+          'const H = window.__smokeRuntime.synth; const sc = H.scene({ name: "__continuousUnkeyed", key: "continuous-unkeyed-scene" }).out(); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0xff6633 })); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0x3366ff }));',
+        )
+        const unkeyedAfter = H.scene({ name: "__continuousUnkeyed", key: "continuous-unkeyed-scene" }).find({
+          isMesh: true,
+        })
+        const unkeyedAfterByColor = {}
+        unkeyedAfter.forEach((mesh) => {
+          const colorKey =
+            mesh.material && mesh.material.color
+              ? mesh.material.color.getHexString()
+              : "none"
+          unkeyedAfterByColor[colorKey] = mesh.uuid
+        })
+        window.__smoke.continuousUnkeyedIdentityStable =
+          unkeyedAfter.length === 2 &&
+          unkeyedBeforeByColor["3366ff"] === unkeyedAfterByColor["3366ff"] &&
+          unkeyedBeforeByColor["ff6633"] === unkeyedAfterByColor["ff6633"]
+
+        hydra.eval(
           'const H = window.__smokeRuntime.synth; const sc = H.scene({ name: "__continuousReservedName", key: "continuous-reserved-name" }).out(); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0xaa3355 }), { name: "__live_mesh_0" }); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0x33aacc }));',
         )
         const reservedAfterFirst = H.scene({ name: "__continuousReservedName", key: "continuous-reserved-name" }).find({
@@ -496,7 +530,7 @@ const smokeHtml = `<!doctype html>
           (mesh) => mesh.name !== "__live_mesh_0",
         )
         hydra.eval(
-          'const H = window.__smokeRuntime.synth; const sc = H.scene({ name: "__continuousReservedName", key: "continuous-reserved-name" }).out(); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0xaa44ff }), { name: "__live_mesh_0" }); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0x44ffaa }));',
+          'const H = window.__smokeRuntime.synth; const sc = H.scene({ name: "__continuousReservedName", key: "continuous-reserved-name" }).out(); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0xaa44ff }), { name: "__live_mesh_0" }); sc.mesh(H.gm.box(), H.mt.meshBasic({ color: 0x33aacc }));',
         )
         const reservedAfterSecond = H.scene({ name: "__continuousReservedName", key: "continuous-reserved-name" }).find({
           isMesh: true,
@@ -1026,6 +1060,11 @@ try {
     diagnostics.continuousKeyedIdentityStable,
     true,
     "Expected keyed meshes to preserve identity across reorder in continuous eval",
+  );
+  assert.equal(
+    diagnostics.continuousUnkeyedIdentityStable,
+    true,
+    "Expected unkeyed meshes to preserve identity across reorder in continuous eval",
   );
   assert.equal(
     diagnostics.continuousReservedLiveNameNoCollision,

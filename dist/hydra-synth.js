@@ -35863,6 +35863,57 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   const SCREEN = "screen";
   const CARTESIAN = "cartesian";
   const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+  const RENDER_OPTION_KEYS = /* @__PURE__ */ new Set([
+    "to",
+    "output",
+    "target",
+    "renderTarget",
+    "css",
+    "cssRenderer",
+    "fx",
+    "layers",
+    "autoClear"
+  ]);
+  const isRenderOptionsObject = (value) => {
+    if (!isObject(value)) {
+      return false;
+    }
+    return Object.keys(value).some((key) => RENDER_OPTION_KEYS.has(key));
+  };
+  const normalizeRenderArgs = (_output, options2 = {}) => {
+    if (!isRenderOptionsObject(_output)) {
+      return {
+        output: _output,
+        options: options2 || {}
+      };
+    }
+    const {
+      to,
+      output,
+      target,
+      renderTarget,
+      css,
+      cssRenderer,
+      ...rest
+    } = _output;
+    const mergedOptions = Object.assign({}, rest, options2 || {});
+    if (renderTarget !== void 0 && mergedOptions.renderTarget === void 0) {
+      mergedOptions.renderTarget = renderTarget;
+    }
+    if (target !== void 0 && mergedOptions.renderTarget === void 0) {
+      mergedOptions.renderTarget = target;
+    }
+    if (cssRenderer !== void 0 && mergedOptions.cssRenderer === void 0) {
+      mergedOptions.cssRenderer = cssRenderer;
+    }
+    if (css !== void 0 && mergedOptions.cssRenderer === void 0) {
+      mergedOptions.cssRenderer = css;
+    }
+    return {
+      output: to !== void 0 ? to : output,
+      options: mergedOptions
+    };
+  };
   const resolveControlsOptions = (cameraOptions, target) => {
     const controls = cameraOptions.controls;
     if (!controls) {
@@ -36048,11 +36099,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       this._viewport = {};
     },
     out(_output, options2 = {}) {
-      const output = _output || this.defaultOutput;
+      const normalized = normalizeRenderArgs(_output, options2);
+      const output = normalized.output || this.defaultOutput;
       this.output = output;
       const glsl = this.compile();
       try {
-        output._set(glsl, options2);
+        output._set(glsl, normalized.options);
       } catch (error) {
         console.log("shader could not compile", error);
       }
@@ -36062,10 +36114,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return this.out(_output, options2);
     },
     tex(_output, options2 = {}) {
+      const normalized = normalizeRenderArgs(_output, options2);
       if (!this.output) {
-        this.out(_output);
+        this.out(normalized.output, normalized.options);
       }
-      return this.output.renderTexture(options2);
+      return this.output.renderTexture(normalized.options);
+    },
+    texture(_output, options2 = {}) {
+      return this.tex(_output, options2);
     },
     texMat(_output, options2 = {}) {
       const params = this._material;
@@ -39710,7 +39766,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     if (!window.dat) {
       window.dat = createFallbackDatApi();
       console.warn(
-        "[hydra-three] dat.gui script unavailable; using fallback no-op GUI."
+        "[triode] dat.gui script unavailable; using fallback no-op GUI."
       );
     }
     return window.dat;
@@ -39719,7 +39775,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const datApi = await ensureDat();
     patchDat(datApi);
   };
-  const create$2 = async (name = "hydra-three") => {
+  const create$2 = async (name = "triode") => {
     if (!guis[name]) {
       const datApi = window.dat || await ensureDat();
       patchDat(datApi);
@@ -39834,6 +39890,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   }, Symbol.toStringTag, { value: "Module" }));
   const runtimes = /* @__PURE__ */ new Set();
   let activeRuntime = null;
+  let runtimeScopeDepth = 0;
   const setActiveRuntime = (value) => {
     if (!value) {
       activeRuntime = null;
@@ -39854,7 +39911,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     return value;
   };
   const getRuntime = (fallbackRuntime) => {
-    const runtime = fallbackRuntime || activeRuntime || (runtimes.size === 1 ? Array.from(runtimes)[0] : null);
+    const runtime = fallbackRuntime || (runtimeScopeDepth > 0 ? activeRuntime : null);
     if (!runtime) {
       throw new Error(
         "Hydra runtime is not initialized. Create a Hydra instance before using 3D helpers."
@@ -39877,9 +39934,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   const withRuntime = (runtime, fn) => {
     const prevRuntime = activeRuntime;
     setActiveRuntime(runtime);
+    runtimeScopeDepth += 1;
     try {
       return fn();
     } finally {
+      runtimeScopeDepth = Math.max(0, runtimeScopeDepth - 1);
       if (prevRuntime && runtimes.has(prevRuntime)) {
         activeRuntime = prevRuntime;
       } else {
@@ -39905,7 +39964,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   const LIVE_AUTO_ID_KEY = "__hydraLiveAutoId";
   const LIVE_AUTO_ID_ATTR = "__liveAutoId";
   const LIVE_AUTO_PREFIX = "__hydraLiveAuto";
-  const LIVE_KEY_HINT = '[hydra-three] Continuous live mode auto-generated identity slots for unkeyed objects. Add { key: "..." } for stable identity across reruns.';
+  const LIVE_KEY_HINT = '[triode] Continuous live mode assigned source-based identity slots for unkeyed objects. Add { key: "..." } for fully stable identity across major refactors.';
   const createStore = () => ({
     scenes: /* @__PURE__ */ Object.create(null),
     keyedScenes: /* @__PURE__ */ Object.create(null),
@@ -40040,7 +40099,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         touchedScenes: /* @__PURE__ */ new Set(),
         hasGraphMutations: false,
         sawUnkeyedAutoNames: false,
-        warnedUnkeyedAutoNames: false
+        warnedUnkeyedAutoNames: false,
+        sourceLines: [],
+        sourceSignatureCounts: /* @__PURE__ */ Object.create(null)
       };
     }
     return runtime._liveEvalState;
@@ -40049,10 +40110,94 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const state = getLiveEvalState(runtime);
     return !!(state && state.active);
   };
-  const nextLiveAutoId = (runtime, type) => {
+  const hashLiveSignature = (value) => {
+    let hash = 2166136261;
+    for (let i = 0; i < value.length; i += 1) {
+      hash ^= value.charCodeAt(i);
+      hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+    }
+    return (hash >>> 0).toString(36);
+  };
+  const normalizeLiveSourceLine = (value) => String(value || "").trim().replace(/\s+/g, " ");
+  const normalizeNamedLiveSourceSegment = (value) => String(value || "").replace(/0x[0-9a-f]+/gi, "0x0").replace(/\b\d+(?:\.\d+)?\b/g, "0");
+  const extractLiveSourceSegment = (line2, column) => {
+    if (typeof line2 !== "string" || line2.length === 0) {
+      return "";
+    }
+    const index = Math.min(
+      Math.max(0, (Number.isFinite(column) ? column : 1) - 1),
+      Math.max(0, line2.length - 1)
+    );
+    const start = line2.lastIndexOf(";", Math.max(0, index - 1));
+    const end = line2.indexOf(";", index);
+    const segment = line2.slice(start >= 0 ? start + 1 : 0, end >= 0 ? end : line2.length).trim();
+    return segment || line2.trim();
+  };
+  const parseLiveStackLocation = (frame) => {
+    if (typeof frame !== "string") {
+      return null;
+    }
+    const match = frame.match(/:(\d+):(\d+)\)?$/);
+    if (!match) {
+      return null;
+    }
+    const line2 = Number.parseInt(match[1], 10);
+    const column = Number.parseInt(match[2], 10);
+    if (!Number.isFinite(line2) || !Number.isFinite(column)) {
+      return null;
+    }
+    return { line: line2, column };
+  };
+  const findLiveSourceSignature = (state, type, { normalizeNumbers = false } = {}) => {
+    if (!state || !Array.isArray(state.sourceLines) || state.sourceLines.length === 0) {
+      return null;
+    }
+    let stack2 = "";
+    try {
+      stack2 = String(new Error().stack || "");
+    } catch (_error) {
+      stack2 = "";
+    }
+    if (!stack2) {
+      return null;
+    }
+    const frames = stack2.split("\n").slice(1);
+    for (let i = 0; i < frames.length; i += 1) {
+      const frame = frames[i];
+      if (frame.includes("/src/three/scene.js") || frame.includes("/src/hydra-synth.js") || frame.includes("/src/three/runtime.js")) {
+        continue;
+      }
+      const location = parseLiveStackLocation(frame);
+      if (!location) {
+        continue;
+      }
+      if (location.line < 1 || location.line > state.sourceLines.length) {
+        continue;
+      }
+      const sourceLine = state.sourceLines[location.line - 1];
+      const rawSegment = normalizeLiveSourceLine(
+        extractLiveSourceSegment(sourceLine, location.column)
+      );
+      const sourceSegment = normalizeNumbers ? normalizeNamedLiveSourceSegment(rawSegment) : rawSegment;
+      if (!sourceSegment) {
+        continue;
+      }
+      return `${type}_${hashLiveSignature(sourceSegment)}`;
+    }
+    return null;
+  };
+  const nextLiveAutoId = (runtime, type, attributes = {}) => {
     const state = getLiveEvalState(runtime);
     if (!state || !state.active) {
       return null;
+    }
+    const signature = findLiveSourceSignature(state, type, {
+      normalizeNumbers: !!normalizeLiveKey(attributes.name)
+    });
+    if (signature) {
+      const nextSignatureId = state.sourceSignatureCounts[signature] || 0;
+      state.sourceSignatureCounts[signature] = nextSignatureId + 1;
+      return `${LIVE_AUTO_PREFIX}_${signature}_${nextSignatureId}`;
     }
     const nextId = state.counters[type] || 0;
     state.counters[type] = nextId + 1;
@@ -40073,7 +40218,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return attributes;
     }
     return Object.assign({}, attributes, {
-      [LIVE_AUTO_ID_ATTR]: nextLiveAutoId(runtime, type)
+      [LIVE_AUTO_ID_ATTR]: nextLiveAutoId(runtime, type, attributes)
     });
   };
   const normalizeLiveKey = (value) => {
@@ -40479,7 +40624,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       visit(scene);
     });
   };
-  const beginSceneEval = (runtime) => {
+  const beginSceneEval = (runtime, sourceCode = "") => {
     const runtimeRef = resolveRuntime(runtime);
     if (!runtimeRef) {
       return;
@@ -40492,6 +40637,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     state.touchedScenes = /* @__PURE__ */ new Set();
     state.hasGraphMutations = false;
     state.sawUnkeyedAutoNames = false;
+    state.sourceLines = typeof sourceCode === "string" ? sourceCode.replace(/\r\n/g, "\n").split("\n") : [];
+    state.sourceSignatureCounts = /* @__PURE__ */ Object.create(null);
   };
   const resetLiveEvalState = (state) => {
     if (!state) {
@@ -40501,6 +40648,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     state.touched.clear();
     state.touchedScenes.clear();
     state.sawUnkeyedAutoNames = false;
+    state.sourceLines = [];
+    state.sourceSignatureCounts = /* @__PURE__ */ Object.create(null);
   };
   const maybeWarnUnkeyedAutoNames = (runtime, state) => {
     if (!runtime || !state || state.warnedUnkeyedAutoNames) {
@@ -40830,6 +40979,15 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       this.translateZ(z);
       return this;
     },
+    _withRuntimeScope(fn) {
+      if (typeof fn !== "function") {
+        return null;
+      }
+      if (this._runtime) {
+        return withRuntime(this._runtime, fn);
+      }
+      return fn();
+    },
     _add(geometry, material, options2) {
       let object;
       if (geometry instanceof Object3D$1) {
@@ -40914,39 +41072,43 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return material;
     },
     _defaultMaterial(geometry, material, options2) {
-      const { type } = options2 || {};
-      switch (type) {
-        case "points":
-          return geometry instanceof GridGeometry ? squares() : points();
-        case "line loop":
-        case "lineLoop":
-        case "lineloop":
-          return geometry instanceof GridGeometry ? lineloop() : lineBasic();
-        case "line strip":
-        case "lineStrip":
-        case "linestrip":
-          return geometry instanceof GridGeometry ? linestrip() : lineBasic();
-        case "lines":
-          return geometry instanceof GridGeometry ? lines() : lineBasic();
-        default:
-          return meshBasic();
-      }
+      return this._withRuntimeScope(() => {
+        const { type } = options2 || {};
+        switch (type) {
+          case "points":
+            return geometry instanceof GridGeometry ? squares() : points();
+          case "line loop":
+          case "lineLoop":
+          case "lineloop":
+            return geometry instanceof GridGeometry ? lineloop() : lineBasic();
+          case "line strip":
+          case "lineStrip":
+          case "linestrip":
+            return geometry instanceof GridGeometry ? linestrip() : lineBasic();
+          case "lines":
+            return geometry instanceof GridGeometry ? lines() : lineBasic();
+          default:
+            return meshBasic();
+        }
+      });
     },
     _hydraMaterial(geometry, material, options2) {
-      const { type } = options2 || {};
-      switch (type) {
-        case "points":
-        case "line loop":
-        case "lineLoop":
-        case "lineloop":
-        case "line strip":
-        case "lineStrip":
-        case "linestrip":
-        case "lines":
-          return hydra(material, options2.material);
-        default:
-          return mesh(material, options2.material);
-      }
+      return this._withRuntimeScope(() => {
+        const { type } = options2 || {};
+        switch (type) {
+          case "points":
+          case "line loop":
+          case "lineLoop":
+          case "lineloop":
+          case "line strip":
+          case "lineStrip":
+          case "linestrip":
+          case "lines":
+            return hydra(material, options2.material);
+          default:
+            return mesh(material, options2.material);
+        }
+      });
     },
     _createMesh(geometry, material, options2 = {}) {
       let mesh2;
@@ -41035,6 +41197,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       this._mesh(geometry, material, options2);
       return this;
     },
+    box(material, options2) {
+      this._mesh(box(), material, options2);
+      return this;
+    },
+    sphere(material, options2) {
+      this._mesh(sphere(), material, options2);
+      return this;
+    },
     quad(material, options2) {
       this._quad(material, options2);
       return this;
@@ -41064,6 +41234,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     line(geometry, material, options2) {
       this._line(geometry, material, options2);
       return this;
+    },
+    instanced(geometry, material, count, options2 = {}) {
+      return this._mesh(geometry, material, Object.assign({}, options2, {
+        instanced: count
+      }));
     },
     circle(geometry, material, options2) {
       this._circle(geometry, material, options2);
@@ -41153,6 +41328,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         markLiveTouch(this._runtime, sceneRoot, { scene: true });
       }
       return object;
+    },
+    obj(index = 0) {
+      return this.at(index);
+    },
+    texture(output, options2 = {}) {
+      return this.tex(output, options2);
     },
     find(filter = { isMesh: true }) {
       const props = Object.keys(filter);
@@ -41771,19 +41952,38 @@ vec4 _mod289(vec4 x)
     }, options2);
   };
   GlslSource.prototype.material = function(options2) {
-    this._material = options2;
+    if (typeof options2 === "string") {
+      const type = options2.toLowerCase();
+      const materialOptions = arguments.length > 1 ? arguments[1] : {};
+      switch (type) {
+        case "basic":
+          this._material = Object.assign({}, basicProps, materialOptions);
+          break;
+        case "lambert":
+          this._material = Object.assign({}, lambertProps, materialOptions);
+          break;
+        case "phong":
+          this._material = Object.assign({}, phongProps, materialOptions);
+          break;
+        default:
+          this._material = Object.assign({}, materialOptions);
+          break;
+      }
+      return this;
+    }
+    this._material = Object.assign({}, options2);
     return this;
   };
   GlslSource.prototype.basic = function(options2 = {}) {
-    this.material(Object.assign(basicProps, options2));
+    this.material("basic", options2);
     return this;
   };
   GlslSource.prototype.phong = function(options2 = {}) {
-    this.material(Object.assign(phongProps, options2));
+    this.material("phong", options2);
     return this;
   };
   GlslSource.prototype.lambert = function(options2 = {}) {
-    this.material(Object.assign(lambertProps, options2));
+    this.material("lambert", options2);
     return this;
   };
   GlslSource.prototype.st = function(source) {
@@ -46392,7 +46592,7 @@ vec4 _mod289(vec4 x)
     eval(code) {
       const continuousEval = this.liveMode === "continuous";
       if (continuousEval) {
-        beginSceneEval(this);
+        beginSceneEval(this, code);
       }
       try {
         this.sandbox.eval(code);
@@ -46903,14 +47103,47 @@ vec4 _mod289(vec4 x)
       if (clearValue !== void 0) {
         this._applyStageClear(stageScene, clearValue);
       }
-      const shouldRender = render2 === true || out === true || output !== void 0 || cssRenderer !== void 0 || renderTarget !== void 0 || fx !== void 0 || layers !== void 0;
+      const renderConfig = isPlainObject(render2) && render2 || isPlainObject(out) && out || null;
+      const shouldRender = render2 === true || out === true || !!renderConfig || output !== void 0 || cssRenderer !== void 0 || renderTarget !== void 0 || fx !== void 0 || layers !== void 0;
       if (shouldRender) {
         const renderOptions = {};
-        if (cssRenderer !== void 0) renderOptions.cssRenderer = cssRenderer;
-        if (renderTarget !== void 0) renderOptions.renderTarget = renderTarget;
-        if (fx !== void 0) renderOptions.fx = fx;
-        if (layers !== void 0) renderOptions.layers = layers;
-        stageScene.render(output, renderOptions);
+        let renderOutput = output;
+        if (renderConfig) {
+          const {
+            to,
+            output: configuredOutput,
+            target,
+            renderTarget: configuredRenderTarget,
+            css,
+            cssRenderer: configuredCssRenderer,
+            ...configuredOptions
+          } = renderConfig;
+          renderOutput = to !== void 0 ? to : configuredOutput !== void 0 ? configuredOutput : output;
+          Object.assign(renderOptions, configuredOptions);
+          if (configuredCssRenderer !== void 0) {
+            renderOptions.cssRenderer = configuredCssRenderer;
+          } else if (css !== void 0) {
+            renderOptions.cssRenderer = css;
+          }
+          if (configuredRenderTarget !== void 0) {
+            renderOptions.renderTarget = configuredRenderTarget;
+          } else if (target !== void 0) {
+            renderOptions.renderTarget = target;
+          }
+        }
+        if (cssRenderer !== void 0 && renderOptions.cssRenderer === void 0) {
+          renderOptions.cssRenderer = cssRenderer;
+        }
+        if (renderTarget !== void 0 && renderOptions.renderTarget === void 0) {
+          renderOptions.renderTarget = renderTarget;
+        }
+        if (fx !== void 0 && renderOptions.fx === void 0) {
+          renderOptions.fx = fx;
+        }
+        if (layers !== void 0 && renderOptions.layers === void 0) {
+          renderOptions.layers = layers;
+        }
+        stageScene.render(renderOutput, renderOptions);
       }
       return stageScene;
     }

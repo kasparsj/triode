@@ -75,7 +75,8 @@ Use public scene composition methods in docs, recipes, and production sketches.
 
 - `name` is descriptive by default; it does not imply reuse.
 - Use `reuse: true` when you intentionally want `scene/group/mesh/...` calls with the same `name` to resolve an existing object.
-- For stable live-coding identity across reorder edits, prefer explicit `key`.
+- Unkeyed calls in continuous mode receive source-based auto IDs to reduce reorder drift.
+- For strongest live-coding identity guarantees across larger refactors, prefer explicit `key`.
 
 ## Global vs non-global runtime semantics
 
