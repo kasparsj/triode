@@ -8,6 +8,10 @@
     "makeGlobal",
     "autoLoop",
     "detectAudio",
+    "errorPolicy",
+    "argPolicy",
+    "arrayHelpers",
+    "cssRenderers",
     "enableStreamCapture",
     "webgl",
     "canvas",
@@ -16,6 +20,8 @@
     "precision",
     "onError",
     "liveMode",
+    "clock",
+    "adapters",
     "legacy",
     "extendTransforms"
   ],
@@ -25,6 +31,10 @@
     "getScreenImage",
     "hush",
     "resetRuntime",
+    "reset",
+    "freeze",
+    "resume",
+    "step",
     "loadScript",
     "setResolution",
     "tick",
@@ -62,10 +72,16 @@
     "setResolution",
     "hush",
     "resetRuntime",
+    "reset",
+    "freeze",
+    "resume",
+    "step",
     "tick",
     "shadowMap",
     "scene",
     "stage",
+    "errorPolicy",
+    "argPolicy",
     "ortho",
     "perspective",
     "screenCoords",
@@ -113,6 +129,7 @@
     "world",
     "group",
     "layer",
+    "layerAdd",
     "lookAt",
     "out",
     "render",
@@ -122,6 +139,7 @@
     "obj",
     "texture",
     "instanced",
+    "instancedAdd",
     "find",
     "empty"
   ],
@@ -181,6 +199,26 @@
       "description": ""
     },
     {
+      "name": "errorPolicy",
+      "signature": "errorPolicy?: TriodeRuntimeErrorPolicy",
+      "description": ""
+    },
+    {
+      "name": "argPolicy",
+      "signature": "argPolicy?: TriodeArgPolicy",
+      "description": ""
+    },
+    {
+      "name": "arrayHelpers",
+      "signature": "arrayHelpers?: TriodeArrayHelpersMode",
+      "description": ""
+    },
+    {
+      "name": "cssRenderers",
+      "signature": "cssRenderers?: TriodeCssRenderersMode",
+      "description": ""
+    },
+    {
       "name": "enableStreamCapture",
       "signature": "enableStreamCapture?: boolean",
       "description": ""
@@ -221,6 +259,16 @@
       "description": ""
     },
     {
+      "name": "clock",
+      "signature": "clock?: TriodeClock",
+      "description": ""
+    },
+    {
+      "name": "adapters",
+      "signature": "adapters?: Partial<TriodeRuntimeAdapters>",
+      "description": ""
+    },
+    {
       "name": "legacy",
       "signature": "legacy?: boolean",
       "description": ""
@@ -239,7 +287,7 @@
     },
     {
       "name": "eval",
-      "signature": "eval(code: string): void",
+      "signature": "eval(code: string, options?: TriodeEvalOptions): void",
       "description": ""
     },
     {
@@ -249,12 +297,32 @@
     },
     {
       "name": "hush",
-      "signature": "hush(): void",
+      "signature": "hush(options?: { hooks?: boolean; outputs?: boolean; sources?: boolean }): void",
       "description": ""
     },
     {
       "name": "resetRuntime",
-      "signature": "resetRuntime(): void",
+      "signature": "resetRuntime(options?: TriodeResetOptions): void",
+      "description": ""
+    },
+    {
+      "name": "reset",
+      "signature": "reset(options?: TriodeResetOptions): void",
+      "description": ""
+    },
+    {
+      "name": "freeze",
+      "signature": "freeze(time?: number): void",
+      "description": ""
+    },
+    {
+      "name": "resume",
+      "signature": "resume(): void",
+      "description": ""
+    },
+    {
+      "name": "step",
+      "signature": "step(dtMs?: number): void",
       "description": ""
     },
     {
@@ -426,12 +494,32 @@
     },
     {
       "name": "hush",
-      "signature": "hush: () => void",
+      "signature": "hush: (options?: { hooks?: boolean; outputs?: boolean; sources?: boolean }) => void",
       "description": ""
     },
     {
       "name": "resetRuntime",
-      "signature": "resetRuntime: () => void",
+      "signature": "resetRuntime: (options?: TriodeResetOptions) => void",
+      "description": ""
+    },
+    {
+      "name": "reset",
+      "signature": "reset: (options?: TriodeResetOptions) => void",
+      "description": ""
+    },
+    {
+      "name": "freeze",
+      "signature": "freeze: (time?: number) => void",
+      "description": ""
+    },
+    {
+      "name": "resume",
+      "signature": "resume: () => void",
+      "description": ""
+    },
+    {
+      "name": "step",
+      "signature": "step: (dtMs?: number) => void",
       "description": ""
     },
     {
@@ -452,6 +540,16 @@
     {
       "name": "stage",
       "signature": "stage: (config?: TriodeStageConfig) => TriodeSceneApi",
+      "description": ""
+    },
+    {
+      "name": "errorPolicy",
+      "signature": "errorPolicy: TriodeRuntimeErrorPolicy",
+      "description": ""
+    },
+    {
+      "name": "argPolicy",
+      "signature": "argPolicy: TriodeArgPolicy",
       "description": ""
     },
     {
@@ -682,6 +780,11 @@
       "description": ""
     },
     {
+      "name": "layerAdd",
+      "signature": "layerAdd(id: number, options?: Record<string, unknown>): TriodeSceneApi",
+      "description": ""
+    },
+    {
       "name": "lookAt",
       "signature": "lookAt(target: unknown, options?: Record<string, unknown>): TriodeSceneApi",
       "description": ""
@@ -708,12 +811,12 @@
     },
     {
       "name": "at",
-      "signature": "at(index?: number): unknown",
+      "signature": "at(index?: number, options?: { touch?: boolean }): unknown",
       "description": ""
     },
     {
       "name": "obj",
-      "signature": "obj(index?: number): unknown",
+      "signature": "obj(index?: number, options?: { touch?: boolean }): unknown",
       "description": ""
     },
     {
@@ -727,8 +830,13 @@
       "description": ""
     },
     {
+      "name": "instancedAdd",
+      "signature": "instancedAdd(geometry: unknown, material: unknown, count: number, options?: TriodeObjectOptions): TriodeSceneApi",
+      "description": ""
+    },
+    {
       "name": "find",
-      "signature": "find(filter?: Record<string, unknown>): unknown[]",
+      "signature": "find(filter?: Record<string, unknown>, options?: { touch?: boolean }): unknown[]",
       "description": ""
     },
     {
@@ -956,10 +1064,10 @@
     ]
   },
   "counts": {
-    "constructorOptions": 18,
-    "triodeRendererMembers": 14,
-    "triodeSynthMembers": 56,
-    "sceneMembers": 30,
+    "constructorOptions": 24,
+    "triodeRendererMembers": 18,
+    "triodeSynthMembers": 62,
+    "sceneMembers": 32,
     "transformChainMembers": 12,
     "modules": 10,
     "transforms": 69
