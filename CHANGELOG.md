@@ -17,7 +17,7 @@
   - `npm run format:check`
 
 ### Changed
-- Distribution docs now define this fork's release channel as Git tags + GitHub artifacts.
+- Distribution docs now define triode's release channel as Git tags + GitHub artifacts.
 - Quickstart install snippets are pinned to release tag `v1.0.0` instead of floating branch refs.
 - Runtime docs now explicitly define browser-only package execution and non-global mode usage.
 
@@ -61,7 +61,7 @@
 
 ## [1.4] - 2025-09-24
 
-Legacy upstream reference: this fork is based on hydra-synth 1.4.
+Legacy hydra-synth baseline reference for triode: hydra-synth 1.4.
 
 See original changelog:
 https://github.com/hydra-synth/hydra-synth/blob/main/CHANGELOG.md#14---2025-09-24

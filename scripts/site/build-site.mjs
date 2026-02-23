@@ -69,7 +69,7 @@ const docPages = [
   {
     source: "docs/upstream-differences.md",
     output: "docs/upstream-differences.html",
-    label: "Upstream Differences",
+    label: "Hydra Compatibility",
   },
   {
     source: "docs/production-checklist.md",

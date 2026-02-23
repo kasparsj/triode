@@ -1,9 +1,9 @@
-# triode vs upstream hydra-synth: high-level differences
+# triode and hydra-synth: compatibility + architecture differences
 
 ## Comparison scope
 
-- Upstream scanned: `/Users/kasparsj/Work2/hydra/hydra-synth` (`up-main`, `c3ba80b`)
-- Fork scanned: `/Users/kasparsj/Work2/hydra/triode` (`main`, `256bc90`, plus current working tree changes)
+- hydra-synth scanned: `/Users/kasparsj/Work2/hydra/hydra-synth` (`up-main`, `c3ba80b`)
+- triode scanned: `/Users/kasparsj/Work2/hydra/triode` (`main`, `256bc90`, plus current working tree changes)
 - Scan date: 2026-02-21
 - Method: full file-tree diff (excluding `.git/` and `node_modules/`) plus manual review of runtime, shader/compiler, packaging, CI, docs, and examples.
 
@@ -19,15 +19,15 @@
 ## 1) Core architecture shift: regl pipeline -> three.js runtime
 
 - Rendering backend was replaced:
-  - Upstream: regl-based fullscreen shader ping-pong pipeline.
-  - Fork: three.js renderer + `EffectComposer` pass graph.
+  - hydra-synth: regl-based fullscreen shader ping-pong pipeline.
+  - triode: three.js renderer + `EffectComposer` pass graph.
 - New 3D render abstractions were added:
   - `HydraPass`, `HydraShaderPass`, `HydraMaterialPass`, `HydraRenderPass`, `HydraFadePass`
   - `HydraUniform` registry for shared runtime uniforms (`time`, `resolution`, textures, bpm, mouse)
   - `HydraShader`/`HydraFragmentShader`/`HydraVertexShader` for shader assembly against three.js materials.
 - Output model changed:
-  - Upstream output = regl draw command + framebuffer ping-pong.
-  - Fork output = per-output `EffectComposer` with multi-pass render/material/fx/layer support and render-to-texture helpers.
+  - hydra-synth output = regl draw command + framebuffer ping-pong.
+  - triode output = per-output `EffectComposer` with multi-pass render/material/fx/layer support and render-to-texture helpers.
 
 ## 2) New 3D scene/camera/object API layer
 
@@ -95,8 +95,8 @@
 ## 7) Build, packaging, and module-loading changes
 
 - Toolchain replaced:
-  - Upstream: `browserify` + `budo` + `esmify`.
-  - Fork: Vite (`vite`, `vite-plugin-glslify`) + ESM-first scripts.
+  - hydra-synth: `browserify` + `budo` + `esmify`.
+  - triode: Vite (`vite`, `vite-plugin-glslify`) + ESM-first scripts.
 - Distribution entrypoint changed:
   - `package.json` `main` now points to `dist/hydra-synth.js`.
   - ESM import now routes through `src/package-entry.js`, which explicitly enforces browser runtime and then loads bundle.
@@ -133,7 +133,7 @@
 - Added governance/support docs:
   - `CONTRIBUTING.md`
   - `SECURITY.md`
-- README was rewritten around fork identity, distribution model, browser-only runtime contract, and 3D quickstart.
+- README was rewritten around triode identity, distribution model, browser-only runtime contract, and 3D quickstart.
 - New examples catalog (`examples/`) focused on 3D/scene APIs.
 - Added static docs/examples website generator and checked-in generated output (`site-dist/`).
 
@@ -141,7 +141,7 @@
 
 - Added issue templates for bug/performance/creative regression reports.
 - Added release and site build scripts under `scripts/`.
-- Added tarball artifacts in repo (`hydra-synth-*.tgz`) and release checksum workflow support.
+- Added tarball artifacts in repo (`triode-*.tgz`) and release checksum workflow support.
 
 ## 11) Components removed or replaced from upstream
 

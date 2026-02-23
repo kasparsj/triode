@@ -1,10 +1,12 @@
 ## Getting Started
 
 This guide is optimized for first success in under 10 minutes.
-Official distribution for this fork is via pinned Git tags and artifacts in this repository.
-This repository is intentionally `private: true` in `package.json` to prevent accidental npm registry publish under the upstream package name.
+triode is distributed via pinned Git tags and artifacts in this repository.
+This package is intentionally `private: true` so release distribution stays on GitHub tags and artifacts.
 
 Runtime note: this package targets browser execution. Importing it in pure Node/SSR without a browser-like runtime is unsupported.
+
+Hydra editor/REPL note: triode is compatible as a drop-in runtime replacement by loading triode's `dist/hydra-synth.js` bundle in place of `hydra-synth`.
 
 ### 1. Choose your runtime path
 
@@ -26,10 +28,10 @@ For production, pin to a tag or commit (avoid floating refs).
 npm i github:kasparsj/triode#v1.0.0 three
 ```
 
-Important: `npm i hydra-synth` installs upstream hydra-synth, not this fork.
+Important: `npm i hydra-synth` installs upstream Hydra. For this repository package, import `triode`.
 
 ```js
-import Hydra from "hydra-synth";
+import Hydra from "triode";
 
 const hydra = new Hydra({
   detectAudio: false,
@@ -42,7 +44,7 @@ osc(8, 0.1, 0.8).render();
 For non-global mode:
 
 ```js
-import Hydra from "hydra-synth";
+import Hydra from "triode";
 
 const hydra = new Hydra({
   detectAudio: false,

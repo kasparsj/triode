@@ -1,20 +1,26 @@
 ## triode
 
-three.js-powered fork of [hydra-synth](https://github.com/hydra-synth/hydra-synth) focused on creative coding with 3D scene APIs while keeping Hydra-style live coding workflows.
+triode is a three.js-powered live coding engine for 3D scene APIs while keeping Hydra-style live coding workflows.
 
 ### Project status
 
 - Experimental, actively maintained.
 - API goal: remain compatible with core Hydra patterns and add 3D-specific capabilities.
 
+## Hydra Compatibility
+
+- triode can be used as a drop-in runtime replacement for `hydra-synth` in Hydra editor/REPL-style setups.
+- Replace the loaded runtime bundle with triode's `dist/hydra-synth.js`, keeping the same `Hydra` global entrypoint.
+- This repository includes Hydra-compatible runtime pieces, but the main product direction is 3D live coding through triode's Three.js API.
+
 ## Distribution Model
 
-- Official distribution for this fork is via GitHub tags and release artifacts from this repository.
+- Official distribution is via GitHub tags and release artifacts from this repository.
 - CDN usage should reference a pinned tag in this repository.
-- The npm package name `hydra-synth` is owned upstream; this fork does not rely on upstream npm publishing for releases.
-- `package.json` is marked `private: true` to avoid accidental npm registry publish under the upstream package name.
-- Do not use `npm i hydra-synth` for this fork unless you intentionally want upstream hydra-synth.
-- For this fork, install from this repository tag: `npm i github:kasparsj/triode#v1.0.0 three`.
+- Package name is `triode`.
+- `package.json` remains `private: true` so releases stay on Git tags and GitHub artifacts.
+- Install triode from this repository tag: `npm i github:kasparsj/triode#v1.0.0 three`.
+- Install upstream Hydra separately with `npm i hydra-synth` only if you explicitly want upstream behavior.
 
 ## Runtime Contract
 
@@ -51,6 +57,7 @@ Use jsDelivr from this repository:
 ```
 
 For production, pin to a release tag or commit (do not use floating refs).
+For Hydra editor/REPL embeddings, this bundle is intended as a drop-in runtime replacement for `hydra-synth`.
 
 Success criteria:
 
@@ -63,10 +70,10 @@ Success criteria:
 npm i github:kasparsj/triode#v1.0.0 three
 ```
 
-Do not replace this with `npm i hydra-synth`; that resolves to the upstream package, not this fork.
+If you want upstream Hydra instead, install `npm i hydra-synth`. For this repository, import `triode`.
 
 ```js
-import Hydra from "hydra-synth";
+import Hydra from "triode";
 
 const hydra = new Hydra({
   detectAudio: false,
@@ -79,7 +86,7 @@ osc(8, 0.1, 0.8).render();
 Non-global mode is also supported:
 
 ```js
-import Hydra from "hydra-synth";
+import Hydra from "triode";
 
 const hydra = new Hydra({
   detectAudio: false,
@@ -190,7 +197,7 @@ Use these docs before shipping:
 - Common creative recipes: [`docs/recipes/common-recipes.md`](./docs/recipes/common-recipes.md)
 - Playground guide: [`docs/playground.md`](./docs/playground.md)
 - Advanced performance notes: [`docs/performance/advanced-performance.md`](./docs/performance/advanced-performance.md)
-- Upstream fork differences: [`docs/upstream-differences.md`](./docs/upstream-differences.md)
+- Hydra compatibility + architecture differences: [`docs/upstream-differences.md`](./docs/upstream-differences.md)
 - Production checklist: [`docs/production-checklist.md`](./docs/production-checklist.md)
 - Release process: [`docs/release.md`](./docs/release.md)
 - Security policy: [`SECURITY.md`](./SECURITY.md)

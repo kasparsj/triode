@@ -1,7 +1,7 @@
 ## Release Process
 
 This project should release from `main` only.
-Official release channel for this fork is Git tags + GitHub release artifacts from this repository.
+Official release channel is Git tags + GitHub release artifacts from this repository.
 
 ### Pre-release checks
 
@@ -47,7 +47,7 @@ Pushing a `v*` tag triggers `.github/workflows/release-verify.yml`, which reruns
 
 ### Distribution
 
-Primary distribution paths for this fork:
+Primary distribution paths:
 
 - GitHub tag + release artifacts
 - jsDelivr pinned to this repository's release tag
