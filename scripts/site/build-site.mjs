@@ -624,47 +624,13 @@ const renderLayout = ({
 }) => {
   const navItems = [
     { key: "overview", label: "Home", output: "index.html" },
-    {
-      key: "start",
-      label: "Start",
-      output: "docs/getting-started/index.html",
-    },
-    {
-      key: "concepts",
-      label: "Concepts",
-      output: "docs/concepts/index.html",
-    },
-    { key: "api", label: "API", output: "docs/api/index.html" },
-    {
-      key: "recipes",
-      label: "Cookbook",
-      output: "docs/recipes/index.html",
-    },
-    {
-      key: "workflow",
-      label: "Workflow",
-      output: "docs/workflows/livecoding.html",
-    },
-    {
-      key: "interop",
-      label: "Interop",
-      output: "docs/interop/hydra-in-triode.html",
-    },
-    {
-      key: "reference",
-      label: "Reference",
-      output: "docs/reference/index.html",
-    },
-    { key: "examples", label: "Examples", output: "examples/index.html" },
+    { key: "start", label: "Start", output: "docs/getting-started.html" },
+    { key: "api", label: "API", output: "docs/api.html" },
     { key: "playground", label: "Playground", output: "playground/index.html" },
+    { key: "examples", label: "Examples", output: "examples/index.html" },
   ];
 
   const cssHref = relativeHref(normalize(outputPath), "assets/site.css");
-  const searchHref = relativeHref(normalize(outputPath), "docs/search.html");
-  const versionsHref = relativeHref(
-    normalize(outputPath),
-    "docs/versions.json",
-  );
   const navHtml = navItems
     .map((item) => {
       const href = relativeHref(normalize(outputPath), item.output);
@@ -675,59 +641,6 @@ const renderLayout = ({
 
   const repoLink =
     '<a class="repo" href="https://github.com/kasparsj/triode">GitHub</a>';
-
-  const initScript = `
-      <script>
-        (function () {
-          const picker = document.getElementById("docs-version-picker");
-          const select = document.getElementById("docs-version-select");
-          const searchInputs = document.querySelectorAll('[data-docs-search-input]');
-          const query = new URLSearchParams(window.location.search).get("q") || "";
-          searchInputs.forEach((input) => {
-            if (query && !input.value) {
-              input.value = query;
-            }
-          });
-
-          if (!picker || !select) return;
-
-          const versionsUrl = new URL("${escapeAttr(versionsHref)}", window.location.href);
-          const currentPath = window.location.pathname;
-          const currentMatch = currentPath.match(/\\/docs\\/(latest|v[^/]+)\\//);
-          const currentVersion = currentMatch ? currentMatch[1] : "latest";
-
-          fetch(versionsUrl.toString())
-            .then((response) => {
-              if (!response.ok) throw new Error("versions manifest unavailable");
-              return response.json();
-            })
-            .then((manifest) => {
-              const versions = Array.isArray(manifest.versions) ? manifest.versions : [];
-              if (!versions.length) throw new Error("versions list is empty");
-
-              select.innerHTML = versions
-                .map((version) => '<option value="' + version + '">' + version + "</option>")
-                .join("");
-              select.value = versions.includes(currentVersion)
-                ? currentVersion
-                : versions[0];
-
-              let baseHref = versionsUrl.toString().replace(/docs\\/versions\\.json$/, "");
-              const nestedVersionMatch = baseHref.match(/^(.*\\/docs\\/)(latest|v[^/]+)\\/$/);
-              if (nestedVersionMatch) {
-                baseHref = nestedVersionMatch[1].replace(/docs\\/$/, "");
-              }
-              select.addEventListener("change", function () {
-                const target = new URL("docs/" + select.value + "/index.html", baseHref);
-                window.location.href = target.toString();
-              });
-            })
-            .catch(function () {
-              picker.style.display = "none";
-            });
-        })();
-      </script>
-  `;
 
   return `<!doctype html>
 <html lang="en">
@@ -745,33 +658,15 @@ const renderLayout = ({
             <span class="brand-dot" aria-hidden="true"></span>
             <span>triode</span>
           </a>
-          <div class="topbar-actions">
-            <nav class="nav">
-              ${navHtml}
-              ${repoLink}
-            </nav>
-            <form class="search-form" action="${escapeAttr(searchHref)}" method="get">
-              <input
-                type="search"
-                name="q"
-                data-docs-search-input
-                placeholder="Search docs"
-                aria-label="Search documentation"
-              />
-            </form>
-            <div class="version-picker" id="docs-version-picker">
-              <label for="docs-version-select">Docs Version</label>
-              <select id="docs-version-select" aria-label="Select documentation version">
-                <option value="latest">latest</option>
-              </select>
-            </div>
-          </div>
+          <nav class="nav">
+            ${navHtml}
+            ${repoLink}
+          </nav>
         </div>
       </header>
       ${content}
       <p class="footer-note">Generated from repository docs and examples.</p>
     </div>
-    ${initScript}
     ${scripts}
   </body>
 </html>
@@ -781,19 +676,20 @@ const renderLayout = ({
 const resolveActiveKey = (outputPath) => {
   const normalized = normalize(outputPath);
   if (normalized.includes("/playground")) return "playground";
-  if (normalized.includes("/workflows/")) return "workflow";
-  if (normalized.includes("/concepts/")) return "concepts";
-  if (normalized.includes("/interop/")) return "interop";
-  if (normalized.includes("/api/") || normalized.endsWith("/api.html"))
-    return "api";
-  if (normalized.includes("/support/")) return "reference";
-  if (normalized.includes("/reference/")) return "reference";
-  if (normalized.includes("/recipes/")) return "recipes";
-  if (normalized.includes("/performance/")) return "reference";
   if (normalized.includes("/examples")) return "examples";
-  if (normalized.includes("release")) return "reference";
-  if (normalized.includes("production")) return "reference";
   if (normalized.includes("getting-started")) return "start";
+  if (
+    normalized.includes("/api/") ||
+    normalized.endsWith("/api.html") ||
+    normalized.includes("/reference/") ||
+    normalized.includes("/support/") ||
+    normalized.includes("/performance/") ||
+    normalized.includes("release") ||
+    normalized.includes("production")
+  ) {
+    return "api";
+  }
+  if (normalized.startsWith("docs/")) return "start";
   return "overview";
 };
 
