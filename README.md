@@ -51,7 +51,7 @@ Use jsDelivr from this repository:
 ```html
 <script src="https://cdn.jsdelivr.net/gh/kasparsj/triode@v1.0.0/dist/triode.js"></script>
 <script>
-  const triode = new Triode({ detectAudio: false });
+  const triode = new Triode({ detectAudio: false, makeGlobal: true });
   osc(8, 0.1, 0.8).render();
 </script>
 ```

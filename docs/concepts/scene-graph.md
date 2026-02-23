@@ -8,8 +8,8 @@ triode scene APIs are a chainable layer over a Three.js scene graph.
 const sc = stage({ name: "main", background: 0x101014 });
 ```
 
-- `stage()` creates or reuses a scene handle (`scene()` remains as an alias).
-- named scenes can be looked up/reused by runtime internals.
+- `stage()` creates a scene handle (`scene()` remains as an alias).
+- To reuse a named scene, pass `reuse: true` (or use `key` for explicit live identity semantics).
 - scenes are runtime-scoped, which matters in multi-instance setups.
 
 ## Building structure
