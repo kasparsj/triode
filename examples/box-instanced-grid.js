@@ -11,29 +11,29 @@ const count = 50000; // how many instances
 const drawLines = false; // toggle between lines and solid boxes
 
 // create box geometry and material
-let geom = gm.box(w, h, d);
+let geometry = geom.box(w, h, d);
 
-let mat;
+let material;
 if (drawLines) {
     // convert box to edges
-    geom = gm.edges(geom);
+    geometry = geom.edges(geometry);
     // black line basic material
-    mat = mt.lineBasic({ color: color(0, 0, 0) });
+    material = mat.lineBasic({ color: color(0, 0, 0) });
 }
 else {
     // grey solid color material with lambert shading cached as a texture
-    mat = solid(0.5,0.5,0.5).lambert().texMat(o1);
+    material = solid(0.5,0.5,0.5).lambert().texMat(o1);
 }
 
 // create scene with yellow background and default lighting setup
-const sc = scene({background: color(1,1,0), name: "instanced-grid", key: "instanced-grid"})
+const sc = stage({background: color(1,1,0), name: "instanced-grid", key: "instanced-grid"})
     .lights()
-    .out();
+    .render();
 
 // add instanced box mesh to scene using public API
 sc.mesh(
-    geom,
-    mat,
+    geometry,
+    material,
     {instanced: count, key: "instanced-grid-mesh"}
 );
 const box = sc.at(0);
@@ -47,9 +47,9 @@ if (drawLines) {
 
 const calcHeight = (x, z) => {
     // get simplex noise between -2 and 5, using zoom 1
-    const simplexNoise = nse.get2(x, z, -2, 5, 1);
+    const simplexNoise = noiseUtil.get2(x, z, -2, 5, 1);
     // get yellow fbm noise between 0 and 20, using zoom 0.5
-    const yellowNoise = nse.get2(x, z, 0, 20, 0.5, nse.YELLOW);
+    const yellowNoise = noiseUtil.get2(x, z, 0, 20, 0.5, noiseUtil.YELLOW);
     // this makes the high rises come from lower regions
     return simplexNoise < 0 ? yellowNoise : simplexNoise;
 }

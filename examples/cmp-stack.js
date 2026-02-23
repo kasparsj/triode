@@ -8,15 +8,15 @@ ortho([3,3,3], [0,1,0], {height: 5, controls: true, autoRotate: true})
 const gui = true;
 
 // create scene with default lights config and default world config (ground plane and fog)
-const sc = scene()
+const sc = stage()
     .lights({gui, all: true})
     .world({gui})
-    .out();
+    .render();
 
 // create a group with two meshes
 const group = sc.group();
-group.mesh(gm.box(), mt.meshPhong());
-group.mesh(gm.sphere(), mt.meshPhong());
+group.mesh(geom.box(), mat.meshPhong());
+group.mesh(geom.sphere(), mat.meshPhong());
 
 // layout (position) the meshes of the group in a stack composition
-cmp.stack(group)
+compose.stack(group)

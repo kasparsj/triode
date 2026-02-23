@@ -38,7 +38,7 @@ Published URL:
 
 1. Add an object to `playgroundExamples` in `site/playground/examples.js`.
 2. Define its `params` schema.
-3. Write sketch code using the injected `params` object.
+3. Write sketch code using the injected `params` object (prefer canonical helpers like `stage(...)`, `.render()`, `.clear()`, and friendly namespaces such as `geom`/`mat`/`tex`).
 4. Run `npm run site:build` and verify behavior in the generated site.
 
 ## Recipe deep links

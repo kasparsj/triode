@@ -15,10 +15,10 @@ Playground preset:
 ```js
 perspective([2, 2, 3], [0, 0, 0], { controls: true });
 
-const sc = scene()
+const sc = stage()
   .lights({ all: true })
-  .mesh(gm.box(), osc(8, 0.1, 0.8).rotateDeg(noise(1).mult(45)).phong())
-  .out();
+  .mesh(geom.box(), osc(8, 0.1, 0.8).rotateDeg(noise(1).mult(45)).phong())
+  .render();
 
 update = () => {
   const box = sc.at(0);
@@ -42,10 +42,10 @@ const pos = solid(
 const size = noise(0.5).map(-1, 1, 2, 12);
 const col = cnoise(1000).saturate(6);
 
-scene()
-  .points([300, 300], mt.dots(pos, size, col))
-  .autoClear(0.04)
-  .out();
+stage()
+  .points([300, 300], mat.dots(pos, size, col))
+  .clear(0.04)
+  .render();
 ```
 
 ## 3) Texture bridge: scene to scene
@@ -54,14 +54,14 @@ Playground preset:
 [Scene Texture Bridge](https://kasparsj.github.io/triode/playground/index.html?example=scene-texture-bridge)
 
 ```js
-const mapTex = scene()
-  .points([150, 150], mt.squares(gradient(), 4, cnoise(100)))
+const mapTex = stage()
+  .points([150, 150], mat.squares(gradient(), 4, cnoise(100)))
   .tex(o1);
 
-scene()
+stage()
   .lights({ all: true })
-  .mesh(gm.sphere(0.8, 64, 32), src(mapTex).phong())
-  .out(o0);
+  .mesh(geom.sphere(0.8, 64, 32), src(mapTex).phong())
+  .render(o0);
 ```
 
 ## 4) Ground displacement from procedural height
@@ -75,13 +75,13 @@ ortho([0, 4, 3], [0, 0, 0], { controls: true });
 
 const heightMap = fbm(0.8, [0.2, 0.5, 0.1]).tex(o2);
 
-scene()
+stage()
   .lights({ all: true })
   .mesh(
-    gm.plane(2, 2, 200, 200).rotateX(-Math.PI / 2),
-    mt.meshPhong({ displacementMap: heightMap, displacementScale: 1.5 }),
+    geom.plane(2, 2, 200, 200).rotateX(-Math.PI / 2),
+    mat.meshPhong({ displacementMap: heightMap, displacementScale: 1.5 }),
   )
-  .out();
+  .render();
 ```
 
 ## 5) Non-global host-safe runtime
@@ -94,16 +94,16 @@ const hydra = new Hydra({ makeGlobal: false, detectAudio: false });
 const H = hydra.synth;
 
 H.perspective([2, 1.5, 2.5], [0, 0, 0]);
-H.scene().lights({ all: true }).mesh(H.gm.box(), H.osc(5).phong()).out();
+H.stage().lights({ all: true }).mesh(H.geom.box(), H.osc(5).phong()).render();
 ```
 
 ## 6) Datadriven texture from typed arrays
 
 ```js
 const pixels = arr.random(512, 512, { type: "uint8" });
-const tex = tx.data(pixels, { min: "nearest", mag: "nearest" });
+const dataTex = tex.data(pixels, { min: "nearest", mag: "nearest" });
 
-scene().mesh(gm.plane(2, 2), src(tex).basic()).out();
+stage().mesh(geom.plane(2, 2), src(dataTex).basic()).render();
 ```
 
 ## Recipe tips

@@ -11,24 +11,25 @@ In continuous mode, unnamed objects still depend on eval order. Explicit `key` v
 1. Add a scene key:
 
 ```js
-const sc = scene({ key: "main-scene" }).out();
+const sc = stage({ key: "main-scene" }).render();
 ```
 
 2. Add keys to groups and primitives:
 
 ```js
 const group = sc.group({ name: "orbit-group", key: "orbit-group" });
-group.mesh(gm.box(), mt.meshPhong(), { key: "orbit-box-0" });
+group.mesh(geom.box(), mat.meshPhong(), { key: "orbit-box-0" });
 ```
 
 3. Keep keys deterministic:
+
 - Good: `"orbit-box-" + i` for looped objects.
 - Avoid random keys if you want reuse across reruns.
 
 4. Keep names for readability, keys for identity:
 
 ```js
-sc.mesh(gm.box(), mt.meshPhong(), {
+sc.mesh(geom.box(), mat.meshPhong(), {
   name: "hero",
   key: "hero-mesh",
 });
@@ -43,14 +44,15 @@ npm run migrate:report-live-keys
 ```
 
 This scans `examples/` and `site/playground/` for unkeyed calls to:
-- `scene(...)`
+
+- `stage(...)` / `scene(...)`
 - `.group(...)`
 - `.mesh(...)`
 - `.points(...)`
 - `.lines(...)`
 - `.line(...)`
-- `.lineloop(...)`
-- `.linestrip(...)`
+- `.lineLoop(...)` / `.lineloop(...)`
+- `.lineStrip(...)` / `.linestrip(...)`
 
 Use custom paths:
 
@@ -79,4 +81,4 @@ npm run migrate:check-live-keys:playground
 ## Notes
 
 - The helper reports likely unkeyed call sites; it does not rewrite files automatically.
-- Dynamic option objects (for example, `const opts = { ... }; scene(opts)`) are treated conservatively and may require manual review.
+- Dynamic option objects (for example, `const opts = { ... }; stage(opts)`) are treated conservatively and may require manual review.

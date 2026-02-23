@@ -14,7 +14,7 @@ Runtime note: this package targets browser execution. Importing it in pure Node/
 <script src="https://cdn.jsdelivr.net/gh/kasparsj/triode@v1.0.0/dist/hydra-synth.js"></script>
 <script>
   const hydra = new Hydra({ detectAudio: false, makeGlobal: true });
-  osc(8, 0.1, 0.8).out();
+  osc(8, 0.1, 0.8).render();
 </script>
 ```
 
@@ -36,7 +36,7 @@ const hydra = new Hydra({
   makeGlobal: true,
 });
 
-osc(8, 0.1, 0.8).out();
+osc(8, 0.1, 0.8).render();
 ```
 
 For non-global mode:
@@ -50,7 +50,7 @@ const hydra = new Hydra({
 });
 
 const H = hydra.synth;
-H.osc(8, 0.1, 0.8).out();
+H.osc(8, 0.1, 0.8).render();
 ```
 
 In non-global mode, assign lifecycle hooks through `hydra.synth`:
@@ -72,7 +72,10 @@ You should see:
 
 ```js
 perspective([2, 2, 3], [0, 0, 0], { controls: true });
-const sc = scene().lights().mesh(gm.box(), osc().rotateDeg(30).phong()).out();
+const sc = stage()
+  .lights()
+  .mesh(geom.box(), osc().rotateDeg(30).phong())
+  .render();
 ```
 
 You can also run examples from the GitHub Pages site examples gallery.

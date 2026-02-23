@@ -46,7 +46,7 @@ Use jsDelivr from this repository:
 <script src="https://cdn.jsdelivr.net/gh/kasparsj/triode@v1.0.0/dist/hydra-synth.js"></script>
 <script>
   const hydra = new Hydra({ detectAudio: false });
-  osc(8, 0.1, 0.8).out();
+  osc(8, 0.1, 0.8).render();
 </script>
 ```
 
@@ -73,7 +73,7 @@ const hydra = new Hydra({
   makeGlobal: true,
 });
 
-osc(8, 0.1, 0.8).out();
+osc(8, 0.1, 0.8).render();
 ```
 
 Non-global mode is also supported:
@@ -87,7 +87,7 @@ const hydra = new Hydra({
 });
 
 const H = hydra.synth;
-H.osc(8, 0.1, 0.8).out();
+H.osc(8, 0.1, 0.8).render();
 ```
 
 #### Vite note
@@ -135,14 +135,16 @@ GUI note:
 ```javascript
 // setup perspective camera, enabling camera controls
 // default modifier is "alt"; use modifier:"none" for no-key live coding
-perspective([2, 2, 3], [0, 0, 0], { controls: { enabled: true, modifier: "none" } });
+perspective([2, 2, 3], [0, 0, 0], {
+  controls: { enabled: true, modifier: "none" },
+});
 
 // create geometry and material
-const geom = gm.box();
-const mat = osc().rotateDeg(noise(1).mult(45)).phong();
+const boxGeometry = geom.box();
+const boxMaterial = osc().rotateDeg(noise(1).mult(45)).phong();
 
 // compose scene
-const sc = scene().lights().mesh(geom, mat).out();
+const sc = stage().lights().mesh(boxGeometry, boxMaterial).render();
 
 update = () => {
   const box = sc.at(0);
@@ -162,17 +164,17 @@ More examples: [`examples/README.md`](./examples/README.md)
 
 ### Scene
 
-- `scene()` creates a scene handle and exposes scene composition helpers (`stage()` alias available).
+- `stage()` is the readability-first scene handle entry point (`scene()` remains available as an alias).
 
 ### Geometry
 
-- Geometry functions are exposed under `gm` (alias: `geom`).
-- Example: `gm.box()`.
+- Geometry functions are exposed under `geom` (`gm` remains available for compatibility).
+- Example: `geom.box()`.
 
 ### Material
 
-- Material functions are exposed under `mt` (alias: `mat`).
-- Example: `mt.meshPhong()`.
+- Material functions are exposed under `mat` (`mt` remains available for compatibility).
+- Example: `mat.meshPhong()`.
 
 ## Production guidance
 

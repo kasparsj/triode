@@ -35,9 +35,9 @@
   - Scene creation and reuse, groups, mesh/line/points primitives, instancing, CSS2D/CSS3D objects.
   - Camera mixins: `perspective()`, `ortho()`, coordinate-space helpers (`screenCoords`, `normalizedCoords`, `cartesianCoords`).
   - Built-in camera controls via `HydraOrbitControls`.
-  - World/lights integration (`scene().lights()`, `scene().world()`), helpers (`axesHelper`, lookup/filter helpers).
+  - World/lights integration (`stage().lights()`, `stage().world()`), helpers (`axesHelper`, lookup/filter helpers).
 - New object/resource utility modules were added:
-  - Geometry (`gm`), material (`mt`), texture/FBO (`tx`), composition layout (`cmp`), noise (`nse`), random (`rnd`), math (`math`), typed array/image tools (`arr`), global constructors (`three/globals`), GUI helpers (`gui`), DOM element helpers (`el`).
+  - Geometry (`geom`, alias `gm`), material (`mat`, alias `mt`), texture/FBO (`tex`, alias `tx`), composition layout (`compose`, alias `cmp`), noise (`noiseUtil`, alias `nse`), random (`random`, alias `rnd`), math (`math`), typed array/image tools (`arr`), global constructors (`three/globals`), GUI helpers (`gui`), DOM element helpers (`el`).
 
 ## 3) Public runtime API changes (`HydraRenderer` / `hydra.synth`)
 

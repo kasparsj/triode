@@ -13,7 +13,7 @@ const IGNORE_DIRS = new Set([
   "build",
 ]);
 const CALL_PATTERN =
-  /(?:\bscene|\.(?:group|mesh|points|linestrip|lineloop|lines|line))\s*\(/g;
+  /(?:\b(?:scene|stage)|\.(?:group|mesh|points|lineStrip|lineLoop|linestrip|lineloop|lines|line))\s*\(/g;
 const IGNORED_DOT_CALL_RECEIVERS = new Set([
   "gm",
   "mt",
@@ -21,6 +21,12 @@ const IGNORED_DOT_CALL_RECEIVERS = new Set([
   "cmp",
   "rnd",
   "nse",
+  "tex",
+  "geom",
+  "mat",
+  "compose",
+  "random",
+  "noiseUtil",
   "arr",
   "math",
   "el",
@@ -191,11 +197,14 @@ const hasInlineKey = (argsText) => /\bkey\s*:/.test(argsText);
 
 const isTrackedCall = (name) =>
   name === "scene" ||
+  name === "stage" ||
   name === "group" ||
   name === "mesh" ||
   name === "points" ||
   name === "lines" ||
   name === "line" ||
+  name === "lineLoop" ||
+  name === "lineStrip" ||
   name === "lineloop" ||
   name === "linestrip";
 
@@ -356,7 +365,7 @@ const main = async () => {
       );
     });
     console.log(
-      "\nAdd explicit { key: \"...\" } to scene/group/primitive options when using liveMode: \"continuous\".",
+      '\nAdd explicit { key: "..." } to scene/group/primitive options when using liveMode: "continuous".',
     );
   }
 

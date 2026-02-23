@@ -1,6 +1,6 @@
 // layering
-noise(10).add(shape(3)).add(scene().lines([100])).out()
+noise(10).add(shape(3)).add(stage().lines([100])).render()
 
-// scene().lines([10]).out()
+// stage().lines([10]).render()
 
-// scene().lines().out()
+// stage().lines().render()

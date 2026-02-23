@@ -12,7 +12,7 @@ const mat = osc(8, 0.1, 0.8)
   .color(0.9, 0.7, 0.8)
   .phong();
 
-scene().lights({ all: true }).mesh(gm.box(), mat).out();
+stage().lights({ all: true }).mesh(geom.box(), mat).render();
 ```
 
 Best for procedural looks and shader-driven motion.
@@ -22,10 +22,10 @@ Best for procedural looks and shader-driven motion.
 Build geometry/camera/layout first, then swap materials/signals rapidly.
 
 ```js
-const sc = scene()
+const sc = stage()
   .lights({ all: true })
-  .mesh(gm.sphere(), mt.meshPhong())
-  .out();
+  .mesh(geom.sphere(), mat.meshPhong())
+  .render();
 
 update = () => {
   sc.at(0).rotation.y += 0.01;
@@ -39,8 +39,8 @@ Best for animation blocking and world design.
 Render one chain/scene to texture, reuse it in another scene.
 
 ```js
-const tex = scene().points([200, 200], mt.dots()).tex(o1);
-scene().mesh(gm.plane(2, 2), src(tex).lambert()).out();
+const pointTex = stage().points([200, 200], mat.dots()).tex(o1);
+stage().mesh(geom.plane(2, 2), src(pointTex).lambert()).render();
 ```
 
 Best for layered systems, portals, and feedback experiments.
@@ -52,7 +52,7 @@ Prefer namespaced calls in host applications.
 ```js
 const hydra = new Hydra({ makeGlobal: false, detectAudio: false });
 const H = hydra.synth;
-H.scene().mesh(H.gm.box(), H.osc().phong()).out();
+H.stage().mesh(H.geom.box(), H.osc().phong()).render();
 ```
 
 Best for reliability in multi-instance or app-integrated contexts.
@@ -63,8 +63,8 @@ Build typed-array data, then map it to textures.
 
 ```js
 const noiseData = arr.noise(512, 512, { type: "improved" });
-const tex = tx.data(noiseData, { min: "linear", mag: "linear" });
-scene().mesh(gm.plane(2, 2), src(tex).basic()).out();
+const dataTex = tex.data(noiseData, { min: "linear", mag: "linear" });
+stage().mesh(geom.plane(2, 2), src(dataTex).basic()).render();
 ```
 
 Best for custom simulation and algorithmic image sources.

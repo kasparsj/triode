@@ -33,7 +33,7 @@ Rule of thumb: use `rotateDeg(...)` for degree-based sketches, `rotateRad(...)` 
 `autoClear` can be configured at multiple levels:
 
 - output level: `o0.autoClear(...)`
-- pass/source level: `scene().autoClear(...)`, `osc(...).autoClear(...)`
+- pass/source level: `stage().clear(...)`, `osc(...).clear(...)`
 
 Behavior:
 
@@ -43,9 +43,9 @@ Behavior:
 - `0 < amount < 1` inserts fade accumulation behavior.
 - If both output and pass `autoClear` are set, both effects are applied in sequence.
 
-## Render-target routing in `.out(..., options)`
+## Render-target routing in `.render(..., options)`
 
-When `renderTarget` is passed to `.out(...)`, the runtime assigns it to the terminal pass for the compiled chain:
+When `renderTarget` is passed to `.render(...)` (or `.out(...)`), the runtime assigns it to the terminal pass for the compiled chain:
 
 - no FX chain: render target is applied to the scene/material pass.
 - with FX chain: render target is moved to the final FX pass.
@@ -54,7 +54,7 @@ This preserves intermediate pass wiring while guaranteeing the final output targ
 
 ## Public vs internal scene helpers
 
-- Public instancing path: `scene().mesh(geometry, material, { instanced: count })`
+- Public instancing path: `stage().mesh(geometry, material, { instanced: count })`
 - Underscore-prefixed helpers (for example `_mesh`) are internal and not part of the stable public API.
 
 Use public scene composition methods in docs, recipes, and production sketches.
@@ -67,7 +67,7 @@ Use public scene composition methods in docs, recipes, and production sketches.
 
 ## Global vs non-global runtime semantics
 
-- `makeGlobal: true` installs helpers like `osc`, `scene`, module namespaces, and math helpers into global scope for live-coding ergonomics.
+- `makeGlobal: true` installs helpers like `osc`, `stage`, module namespaces, and math helpers into global scope for live-coding ergonomics.
 - `makeGlobal: false` keeps APIs under `hydra.synth` for host-safe embedding and multi-instance control.
 - Current constructor default is `makeGlobal: false`; opt into globals explicitly with constructor config or `hydra.synth.liveGlobals(true)`.
 

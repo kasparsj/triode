@@ -5,10 +5,10 @@ triode scene APIs are a chainable layer over a Three.js scene graph.
 ## Scene creation
 
 ```js
-const sc = scene({ name: "main", background: 0x101014 });
+const sc = stage({ name: "main", background: 0x101014 });
 ```
 
-- `scene()` creates or reuses a scene handle.
+- `stage()` creates or reuses a scene handle (`scene()` remains as an alias).
 - named scenes can be looked up/reused by runtime internals.
 - scenes are runtime-scoped, which matters in multi-instance setups.
 
@@ -18,18 +18,18 @@ Use chain methods for common object types:
 
 ```js
 sc.lights({ all: true })
-  .mesh(gm.box(), mt.meshPhong())
-  .points([100, 100], mt.dots())
-  .out();
+  .mesh(geom.box(), mat.meshPhong())
+  .points([100, 100], mat.dots())
+  .render();
 ```
 
 Groups are useful for transformations and layout:
 
 ```js
 const g = sc.group({ name: "cluster" });
-g.mesh(gm.sphere(), mt.meshLambert());
-g.mesh(gm.box(), mt.meshPhong());
-cmp.circle(g, 2.0);
+g.mesh(geom.sphere(), mat.meshLambert());
+g.mesh(geom.box(), mat.meshPhong());
+compose.circle(g, 2.0);
 ```
 
 ## Querying objects

@@ -12,7 +12,7 @@ Think in two layers that can feed each other:
 
 2. **Scene layer**
 
-- Three.js scene graph (`scene`, `group`, `mesh`, `lights`, `world`) composes objects and cameras.
+- Three.js scene graph (`stage`/`scene`, `group`, `mesh`, `lights`, `world`) composes objects and cameras.
 
 In triode, these layers connect directly:
 
@@ -21,9 +21,9 @@ In triode, these layers connect directly:
 
 ## Mental mapping from classic Hydra
 
-| Classic Hydra concept       | triode equivalent                                |
+| Classic Hydra concept       | triode equivalent                                     |
 | --------------------------- | ----------------------------------------------------- |
-| `osc().color().out()`       | still valid for texture output                        |
+| `osc().color().render()`    | still valid for texture output                        |
 | source chain as final image | source chain as image **or** material input           |
 | one composition space (UV)  | two spaces: UV + scene graph/object space             |
 | feedback via `src(o0)`      | feedback plus scene-to-texture workflows via `.tex()` |
@@ -41,17 +41,17 @@ perspective([2, 2, 3], [0, 0, 0], { controls: true });
 
 const mat = osc(8, 0.1, 0.8).rotateDeg(noise(1).mult(45)).phong();
 
-scene().lights({ all: true }).mesh(gm.box(), mat).out();
+stage().lights({ all: true }).mesh(geom.box(), mat).render();
 ```
 
 ## Global vs non-global mode mental model
 
 - `makeGlobal: true`
-  - functions like `osc`, `scene`, `gm` are installed on `window`.
+  - functions like `osc`, `stage`, `geom` are installed on `window`.
   - best for fast live coding and sketching.
 
 - `makeGlobal: false`
-  - call through `const H = hydra.synth; H.osc(...); H.scene(...);`
+  - call through `const H = hydra.synth; H.osc(...); H.stage(...);`
   - best for embedding in serious apps, multi-instance hosts, and isolation.
 
 ## Semantics to keep in mind
@@ -59,4 +59,4 @@ scene().lights({ all: true }).mesh(gm.box(), mat).out();
 - `rotateDeg()` uses degrees, `rotateRad()` uses radians, and `rotate()` is a legacy degrees alias.
 - `.tex()` returns a rendered texture from the chain.
 - `.texMat()` returns a Three material with the chain baked as map.
-- `autoClear` controls accumulation/trails and can be applied at multiple levels.
+- `clear` controls accumulation/trails and can be applied at multiple levels (`autoClear` remains as alias).

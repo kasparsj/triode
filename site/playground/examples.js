@@ -52,10 +52,10 @@ const mat = osc(params.frequency, params.sync, params.offset)
   .rotateDeg(noise(params.noiseScale).mult(45))
   .phong();
 
-const sc = scene({ key: "textured-box-scene" })
+const sc = stage({ key: "textured-box-scene" })
   .lights({ all: true })
-  .mesh(gm.box(), mat, { key: "textured-box-mesh" })
-  .out();
+  .mesh(geom.box(), mat, { key: "textured-box-mesh" })
+  .render();
 
 update = () => {
   const box = sc.at(0);
@@ -112,12 +112,12 @@ const position = solid(
 const pointSize = noise(0.6).map(-1, 1, params.sizeMin, params.sizeMax);
 const pointColor = cnoise(1000).saturate(params.colorSat);
 
-scene({ key: "points-trail-scene" })
-  .points([params.grid, params.grid], mt.dots(position, pointSize, pointColor), {
+stage({ key: "points-trail-scene" })
+  .points([params.grid, params.grid], mat.dots(position, pointSize, pointColor), {
     key: "points-trail-points",
   })
-  .autoClear(params.trail)
-  .out();
+  .clear(params.trail)
+  .render();
 `,
   },
   {
@@ -166,19 +166,19 @@ const heightMap = fbm(params.noiseScale, [0.2, 0.5, 0.1]).tex(o2, {
   height: 1024,
 });
 
-scene({ key: "terrain-displacement-scene" })
+stage({ key: "terrain-displacement-scene" })
   .lights({ all: true, sun: true, amb: true })
   .world({ ground: false, fog: true })
   .mesh(
-    gm.plane(2.4, 2.4, params.detail, params.detail).rotateX(-Math.PI / 2),
-    mt.meshPhong({
+    geom.plane(2.4, 2.4, params.detail, params.detail).rotateX(-Math.PI / 2),
+    mat.meshPhong({
       displacementMap: heightMap,
       displacementScale: params.displacement,
       wireframe: !!params.wireframe,
     }),
     { key: "terrain-displacement-mesh" },
   )
-  .out();
+  .render();
 `,
   },
   {
@@ -221,18 +221,18 @@ scene({ key: "terrain-displacement-scene" })
     code: `
 perspective([2, 2, 3], [0, 0, 0], { controls: true });
 
-const mapTex = scene({ name: "scene-texture-map", key: "scene-texture-map" })
+const mapTex = stage({ name: "scene-texture-map", key: "scene-texture-map" })
   .points(
     [Math.floor(params.grid), Math.floor(params.grid)],
-    mt.squares(gradient(), params.tileSize, cnoise(100).saturate(params.sat)),
+    mat.squares(gradient(), params.tileSize, cnoise(100).saturate(params.sat)),
     { key: "scene-texture-points" },
   )
   .tex(o1);
 
-scene({ name: "scene-texture-main", key: "scene-texture-main" })
+stage({ name: "scene-texture-main", key: "scene-texture-main" })
   .lights({ all: true })
-  .mesh(gm.sphere(params.radius, 64, 32), src(mapTex).phong(), { key: "scene-texture-sphere" })
-  .out(o0);
+  .mesh(geom.sphere(params.radius, 64, 32), src(mapTex).phong(), { key: "scene-texture-sphere" })
+  .render(o0);
 `,
   },
   {
@@ -287,14 +287,14 @@ scene({ name: "scene-texture-main", key: "scene-texture-main" })
 const pos = solid(noise(params.xScale).x, noise(params.yScale).y, noise(params.zScale).z)
   .map(-1, 1, 0, 1);
 
-scene({ name: "lineloop-thread", key: "lineloop-thread" })
-  .lineloop(
+stage({ name: "lineloop-thread", key: "lineloop-thread" })
+  .lineLoop(
     [Math.floor(params.segments)],
-    mt.lineloop(pos, solid(params.r, params.g, params.b, 1)),
+    mat.lineloop(pos, solid(params.r, params.g, params.b, 1)),
     { key: "lineloop-thread-shape" },
   )
-  .autoClear(params.trail)
-  .out();
+  .clear(params.trail)
+  .render();
 `,
   },
   {
@@ -349,7 +349,7 @@ osc(params.freq, params.sync, params.offset)
   .kaleid(params.sides)
   .modulate(noise(params.noiseScale), params.amount)
   .layer(src(o0).scale(params.feedbackScale))
-  .out();
+  .render();
 `,
   },
   {
@@ -393,17 +393,17 @@ osc(params.freq, params.sync, params.offset)
     code: `
 perspective([2.5, 2, 3], [0, 0, 0], { controls: true });
 
-const sc = scene({ key: "orbit-cluster-scene" }).lights({ all: true }).out();
+const sc = stage({ key: "orbit-cluster-scene" }).lights({ all: true }).render();
 const group = sc.group({ name: "orbit-group", key: "orbit-group" });
 const count = Math.max(1, Math.floor(params.count));
 
 for (let i = 0; i < count; i++) {
-  group.mesh(gm.sphere(params.radius, 32, 16), mt.meshPhong({ color: rnd.color() }), {
+  group.mesh(geom.sphere(params.radius, 32, 16), mat.meshPhong({ color: random.color() }), {
     key: "orbit-sphere-" + i,
   });
 }
 
-cmp.circle(group, params.orbitRadius);
+compose.circle(group, params.orbitRadius);
 
 update = () => {
   group.rotation.y += params.spin;
@@ -477,12 +477,12 @@ shadowMap();
 ortho([3, 3, 3], [0, 0, 0], { controls: true });
 
 const count = Math.max(1, Math.floor(params.count));
-const geom = gm.box(params.width, 1, params.depth);
-const mat = osc(params.freq, 0.08, 0.5).phong();
-const sc = scene({ background: color(0.98, 0.96, 0.9), name: "terrain-instanced", key: "terrain-instanced" })
+const boxGeometry = geom.box(params.width, 1, params.depth);
+const boxMaterial = osc(params.freq, 0.08, 0.5).phong();
+const sc = stage({ background: color(0.98, 0.96, 0.9), name: "terrain-instanced", key: "terrain-instanced" })
   .lights({ all: true })
-  .out();
-sc.mesh(geom, mat, { instanced: count, key: "terrain-instanced-mesh" });
+  .render();
+sc.mesh(boxGeometry, boxMaterial, { instanced: count, key: "terrain-instanced-mesh" });
 const mesh = sc.at(0);
 
 const grid = Math.ceil(Math.sqrt(count));
@@ -493,7 +493,14 @@ const rotation = quat();
 for (let i = 0; i < count; i++) {
   const x = i % grid;
   const z = Math.floor(i / grid);
-  const height = nse.get2(x, z, params.heightMin, params.heightMax, params.noiseScale, nse.YELLOW);
+  const height = noiseUtil.get2(
+    x,
+    z,
+    params.heightMin,
+    params.heightMax,
+    params.noiseScale,
+    noiseUtil.YELLOW,
+  );
   const pos = vec3((x - grid / 2) * spacing, height / 2, (z - grid / 2) * spacing);
   const scl = vec3(1, height, 1);
   matrix.compose(pos, rotation, scl);
@@ -565,10 +572,10 @@ const pos = solid(
 );
 const col = cnoise(params.colorScale).saturate(params.saturation);
 
-scene({ name: "noise-lines", key: "noise-lines" })
-  .lines([0, Math.floor(params.count)], mt.lines(pos, col), { key: "noise-lines-shape" })
-  .autoClear(params.trail)
-  .out();
+stage({ name: "noise-lines", key: "noise-lines" })
+  .lines([0, Math.floor(params.count)], mat.lines(pos, col), { key: "noise-lines-shape" })
+  .clear(params.trail)
+  .render();
 `,
   },
   {
@@ -613,17 +620,17 @@ scene({ name: "noise-lines", key: "noise-lines" })
     code: `
 ortho([0, 0, 1], [0, 0, 0], { controls: true });
 
-scene({ name: "kaleid-plane", key: "kaleid-plane" })
+stage({ name: "kaleid-plane", key: "kaleid-plane" })
   .lights({ all: true })
   .mesh(
-    gm.plane(2.2, 2.2, params.seg, params.seg),
+    geom.plane(2.2, 2.2, params.seg, params.seg),
     osc(params.freq, params.sync, 0.3)
       .kaleid(params.sides)
       .modulate(noise(params.modNoise), params.modAmt)
       .phong(),
     { key: "kaleid-plane-mesh" },
   )
-  .out();
+  .render();
 `,
   },
   {
@@ -676,10 +683,10 @@ scene({ name: "kaleid-plane", key: "kaleid-plane" })
 shadowMap();
 ortho([3, 3, 3], [0, 0, 0], { controls: true });
 
-const sc = scene({ background: color(0.95, 0.97, 1), name: "world-fog-lattice", key: "world-fog-lattice" })
+const sc = stage({ background: color(0.95, 0.97, 1), name: "world-fog-lattice", key: "world-fog-lattice" })
   .lights({ all: true, intensity: params.light })
   .world({ ground: true, fog: true, far: params.far })
-  .out();
+  .render();
 
 const group = sc.group({ name: "lattice", key: "lattice-group" });
 const grid = Math.max(1, Math.floor(params.grid));
@@ -687,8 +694,8 @@ const grid = Math.max(1, Math.floor(params.grid));
 for (let i = 0; i < grid; i++) {
   for (let j = 0; j < grid; j++) {
     group.mesh(
-      gm.box(params.boxSize, params.boxSize, params.boxSize),
-      mt.meshPhong({ color: color(i / grid, j / grid, 1 - i / grid) }),
+      geom.box(params.boxSize, params.boxSize, params.boxSize),
+      mat.meshPhong({ color: color(i / grid, j / grid, 1 - i / grid) }),
       {
         position: vec3(
           (i - grid / 2) * params.spacing,
@@ -770,11 +777,11 @@ const colorMap = cnoise(params.colorScale).brightness(params.brightness);
 
 solid(0)
   .layer(
-    scene({ name: "dots-storm", key: "dots-storm" })
-      .points([params.grid, params.grid], mt.dots(position, size, colorMap), { key: "dots-storm-points" })
-      .autoClear(params.trail),
+    stage({ name: "dots-storm", key: "dots-storm" })
+      .points([params.grid, params.grid], mat.dots(position, size, colorMap), { key: "dots-storm-points" })
+      .clear(params.trail),
   )
-  .out();
+  .render();
 `,
   },
   {
@@ -825,14 +832,14 @@ solid(0)
     code: `
 perspective([2.6, 1.6, 2.8], [0, 0, 0], { controls: true });
 
-const sc = scene({ name: "torus-pulse", key: "torus-pulse" })
+const sc = stage({ name: "torus-pulse", key: "torus-pulse" })
   .lights({ all: true })
   .mesh(
-    gm.torus(params.ringRadius, params.tubeRadius, 32, 120),
+    geom.torus(params.ringRadius, params.tubeRadius, 32, 120),
     osc(params.freq, 0.1, 0.5).phong(),
     { key: "torus-pulse-mesh" },
   )
-  .out();
+  .render();
 
 update = () => {
   const torus = sc.at(0);
@@ -893,23 +900,23 @@ ortho([0, 0, 1], [0, 0, 0], { controls: true });
 
 const size = Math.max(1, Math.floor(params.texSize));
 const pixels = arr.random(size, size, { type: "uint8" });
-const tex = tx.data(pixels, {
+const dataTex = tex.data(pixels, {
   width: size,
   height: size,
   min: "nearest",
   mag: "nearest",
 });
-const tiled = tx.repeat(tex, Math.floor(params.repeatX), Math.floor(params.repeatY));
+const tiled = tex.repeat(dataTex, Math.floor(params.repeatX), Math.floor(params.repeatY));
 
-scene({ name: "repeat-plane", key: "repeat-plane" })
+stage({ name: "repeat-plane", key: "repeat-plane" })
   .mesh(
-    gm.plane(2.2, 2.2),
+    geom.plane(2.2, 2.2),
     src(tiled)
       .blend(osc(params.freq, 0.08, 0.2), params.mixAmt)
       .basic(),
     { key: "repeat-plane-mesh" },
   )
-  .out();
+  .render();
 `,
   },
 ];

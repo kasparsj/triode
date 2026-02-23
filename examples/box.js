@@ -2,14 +2,14 @@
 perspective([2,2,3], [0,0,0], {controls: true});
 
 // create geometry and material
-const geom = gm.box(); // cube geometry
-const mat = osc().rotateDeg(noise(1).mult(45)).phong(); // use a hydra texture mapped onto a phong material
+const boxGeometry = geom.box(); // cube geometry
+const boxMaterial = osc().rotateDeg(noise(1).mult(45)).phong(); // use a hydra texture mapped onto a phong material
 
 // compose scene
-const sc = scene({ key: "box-scene" })
+const sc = stage({ key: "box-scene" })
     .lights() // default lighting setup
-    .mesh(geom, mat, { key: "box-mesh" }) // add mesh to scene
-    .out();
+    .mesh(boxGeometry, boxMaterial, { key: "box-mesh" }) // add mesh to scene
+    .render();
 
 update = () => {
     const box = sc.at(0);

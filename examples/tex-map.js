@@ -8,8 +8,8 @@ ortho([0,5,3], 0, {controls: true, autoRotate: true})
 const dotsPos = solid(snoise(10), snoise(20)).map(-1,1,0,1);
 const dotsSize = 2;
 const dotsColor = [0,0,1];
-const dotsMat = mt.dots(dotsPos, dotsSize, dotsColor);
-const dotsTex = scene({background: color(1,1,1), key: "tex-map-dots-scene"})
+const dotsMat = mat.dots(dotsPos, dotsSize, dotsColor);
+const dotsTex = stage({background: color(1,1,1), key: "tex-map-dots-scene"})
     .points([500, 500], dotsMat, { key: "tex-map-dots-points" })
     .tex(o1);
 
@@ -22,14 +22,14 @@ const heightMap = fbm(0.7, [0.5,-2]).tex(o2);
 const gui = false;
 
 // create scene with default lighting and world (ground plane and fog)
-const sc = scene({ key: "tex-map-main-scene" })
+const sc = stage({ key: "tex-map-main-scene" })
     .lights({all: true, intensity: 2.5, gui})
     .world({gui})
-    .out();
+    .render();
 
 // create a plane mesh with height map displacement and dots texture
 sc.mesh(
-    gm.plane(2,2,250,250).rotateX(-Math.PI/2), // rotateX -90 deg to make displacementMap work on Y axis
-    mt.meshPhong({displacementMap: heightMap, displacementScale: 2, map: dotsTex}),
+    geom.plane(2,2,250,250).rotateX(-Math.PI/2), // rotateX -90 deg to make displacementMap work on Y axis
+    mat.meshPhong({displacementMap: heightMap, displacementScale: 2, map: dotsTex}),
     { key: "tex-map-main-plane" },
 );
