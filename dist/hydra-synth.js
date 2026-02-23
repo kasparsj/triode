@@ -43790,9 +43790,15 @@ vec4 _mod289(vec4 x)
     return data2;
   };
   const image = (url, callback) => {
-    const txApi = globalThis.tx;
+    let runtime;
+    try {
+      runtime = getRuntime();
+    } catch (_error) {
+      runtime = null;
+    }
+    const txApi = runtime && runtime.modules ? runtime.modules.tx : null;
     if (!txApi || typeof txApi.load !== "function") {
-      throw new Error("arr.image() requires a global tx loader with a load(url, callback) function.");
+      throw new Error("arr.image() requires an active Hydra runtime with tx.load(url, callback). Use hydra.synth.arr.image(...).");
     }
     return new Promise((resolve, reject) => {
       let settled = false;
