@@ -15,8 +15,37 @@ export interface TriodeOptions {
   precision?: "lowp" | "mediump" | "highp";
   onError?: TriodeRuntimeErrorHandler;
   liveMode?: TriodeLiveMode;
+  clock?: TriodeClock;
+  adapters?: Partial<TriodeRuntimeAdapters>;
   legacy?: boolean;
   extendTransforms?: Record<string, unknown> | Array<Record<string, unknown>>;
+}
+
+export interface TriodeClock {
+  now(): number;
+  step(dt?: number, speed?: number): number;
+  reset(nextTime?: number): number;
+}
+
+export interface TriodeRuntimeAdapters {
+  createLoop(tick: (dt: number) => void): { start: () => void; stop?: () => void };
+  createAudio(options: Record<string, unknown>): unknown;
+  createVideoRecorder(stream: unknown): unknown;
+  captureCanvasStream(canvas: HTMLCanvasElement, fps?: number): unknown;
+  createOutput(index: number, runtime: TriodeRenderer): unknown;
+  createSource(options: Record<string, unknown>): unknown;
+  createGeneratorFactory(options: Record<string, unknown>): unknown;
+  createSandbox(
+    synth: TriodeSynthApi,
+    makeGlobal: boolean,
+    userProps: string[],
+  ): unknown;
+  createRenderer(options: Record<string, unknown>): unknown;
+  createComposer(renderer: unknown): unknown;
+  createCss2DRenderer(options: Record<string, unknown>): unknown;
+  createCss3DRenderer(options: Record<string, unknown>): unknown;
+  createShaderMaterial(options: Record<string, unknown>): unknown;
+  createShaderPass(material: unknown): unknown;
 }
 
 export interface TriodeStats {

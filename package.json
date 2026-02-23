@@ -44,6 +44,10 @@
     "lint": "eslint --max-warnings=0 \"src/**/*.js\" \"scripts/**/*.mjs\"",
     "format:check": "prettier --check \"scripts/**/*.mjs\" \"docs/**/*.md\" \"README.md\" \"CONTRIBUTING.md\" \"SECURITY.md\"",
     "typecheck": "tsc --noEmit -p ./tsconfig.typecheck.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ci": "vitest run --coverage --reporter=default",
     "test:smoke:canvas": "node ./scripts/smoke/canvas-smoke.mjs",
     "test:smoke:module": "node ./scripts/smoke/module-load-smoke.mjs",
     "test:smoke:regression": "node ./scripts/smoke/regression-smoke.mjs",
@@ -93,11 +97,14 @@
   },
   "devDependencies": {
     "@types/node": "^25.3.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "eslint": "^10.0.1",
     "glslify": "^7.1.1",
+    "jsdom": "^28.1.0",
     "playwright": "1.56.1",
     "prettier": "^3.5.3",
     "typescript": "^5.7.3",
-    "vite": "^6.4.1"
+    "vite": "^6.4.1",
+    "vitest": "^4.0.18"
   }
 }

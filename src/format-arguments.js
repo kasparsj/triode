@@ -33,6 +33,15 @@ const ensure_decimal_dot = (val) => {
   return val
 }
 
+const resolveInputDefault = (input) =>
+  typeof input.default === 'function' ? input.default() : input.default
+
+const isFiniteNumber = (value) =>
+  typeof value === 'number' && Number.isFinite(value)
+
+const normalizeNumericValue = (value, fallback = 0) =>
+  isFiniteNumber(value) ? value : fallback
+
 
 
 function formatArguments(transform, startIndex) {
@@ -42,7 +51,7 @@ function formatArguments(transform, startIndex) {
   const { src } = generators // depends on synth having src() function
   return defaultArgs.map((input, index) => {
     const typedArg = {
-      value: typeof input.default === 'function' ? input.default() : input.default,
+      value: resolveInputDefault(input),
       type: input.type,
       isUniform: !!input.isUniform,
       name: input.name,
@@ -65,10 +74,16 @@ function formatArguments(transform, startIndex) {
       if (typeof typedArg.value === 'function') {
         typedArg.value = getFunctionValue(typedArg.value, input);
         typedArg.isUniform = true
-      } else if (typedArg.value.constructor === Array) { // todo: maybe check for undefined
+      } else if (Array.isArray(typedArg.value)) { // todo: maybe check for undefined
         typedArg.value = getArrayValue(typedArg.value, input, typedArg.vecLen)
         typedArg.isUniform = true
         // }
+      }
+      if (
+        typedArg.value == null ||
+        (typeof typedArg.value === 'number' && !Number.isFinite(typedArg.value))
+      ) {
+        typedArg.value = resolveInputDefault(input)
       }
     }
 
@@ -90,16 +105,26 @@ function formatArguments(transform, startIndex) {
 
         typedArg.isUniform = false
       } else if (typedArg.type === 'float' && typeof typedArg.value === 'number') {
-        typedArg.value = ensure_decimal_dot(typedArg.value)
-      } else if (typedArg.type.startsWith('vec') && typeof typedArg.value !== 'function' && !typedArg.value.isTexture && !typedArg.value.isRenderTarget && !(typedArg.value instanceof Output) && !(typedArg.value instanceof Source)) {
+        typedArg.value = ensure_decimal_dot(
+          normalizeNumericValue(typedArg.value, resolveInputDefault(input))
+        )
+      } else if (typedArg.type.startsWith('vec') && typedArg.value != null && typeof typedArg.value !== 'function' && !typedArg.value.isTexture && !typedArg.value.isRenderTarget && !(typedArg.value instanceof Output) && !(typedArg.value instanceof Source)) {
         typedArg.isUniform = false
         if (Array.isArray(typedArg.value) || typedArg.value instanceof Float32Array || typedArg.value instanceof Uint8Array) {
           // todo: accept smaller arrays?
-          typedArg.value = `${typedArg.type}(${typedArg.value.map(ensure_decimal_dot).join(', ')})`
+          const fallback =
+            Array.isArray(input.default) && input.default.length > 0
+              ? input.default[0]
+              : 0
+          typedArg.value = `${typedArg.type}(${typedArg.value.map((value) => ensure_decimal_dot(normalizeNumericValue(value, fallback))).join(', ')})`
         }
         else if (typeof typedArg.value === 'number') {
           const length = parseInt(typedArg.type.substr(-1));
-          const arr = Array(length).fill(typedArg.value);
+          const scalar = normalizeNumericValue(
+            typedArg.value,
+            normalizeNumericValue(resolveInputDefault(input), 0)
+          )
+          const arr = Array(length).fill(scalar);
           typedArg.value = `${typedArg.type}(${arr.map(ensure_decimal_dot).join(', ')})`
         }
         else if (typedArg.value.isVector2 || typedArg.value.isVector3 || typedArg.value.isVector4) {
@@ -145,7 +170,7 @@ function getFunctionValue(value, input) {
   return (context, props, batchId) => {
     try {
       const val = value(props)
-      if(typeof val === 'number') {
+      if(isFiniteNumber(val)) {
         return val
       } else {
         console.warn('function does not return a number', value)
@@ -180,7 +205,7 @@ function getArrayValue(value, input, vecLen = 0) {
           values[i] = arrayUtils.getValue(v)(props)
         }
         else if (typeof v !== 'undefined') {
-          values[i] = v;
+          values[i] = normalizeNumericValue(v, defaultValue);
         }
         else {
           values[i] = defaultValue;

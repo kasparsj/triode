@@ -1,20 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Derived in part from hydra-synth/src/hydra-synth.js (https://github.com/hydra-synth/hydra-synth).
-import Output from './output.js'
-import loop from 'raf-loop'
-import Source from './triode-source.js'
 import MouseTools from './lib/mouse.js'
-import Audio from './lib/audio.js'
-import VidRecorder from './lib/video-recorder.js'
 import ArrayUtils from './lib/array-utils.js'
 import { loadScript as loadExternalScript } from './lib/load-script.js'
 // import strudel from './lib/strudel.js'
-import Sandbox from './eval-sandbox.js'
-import {GeneratorFactory} from './generator-factory.js'
 import * as THREE from "three";
 import {TriodeUniform} from "./three/TriodeUniform.js"
-import {EffectComposer} from "three/examples/jsm/postprocessing/EffectComposer.js";
-import {ShaderPass} from "three/examples/jsm/postprocessing/ShaderPass.js";
 import * as tx from "./three/tx.js";
 import * as gm from "./three/gm.js";
 import * as mt from "./three/mt.js";
@@ -27,14 +18,17 @@ import * as arr from "./three/arr.js";
 import * as gui from "./gui.js";
 import * as el from "./el.js";
 import * as threeGlobals from "./three/globals.js";
+import { coerceClock } from "./lib/clock.js";
+import {
+  defaultRuntimeAdapters,
+  resolveRuntimeAdapters,
+} from "./lib/runtime-adapters.js";
 import {
   bindRuntimeModule,
   clearRuntime,
   setRuntime,
   withRuntime,
 } from "./three/runtime.js";
-import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import { CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { initCanvas } from "./canvas.js";
 
 const Mouse = MouseTools()
@@ -136,6 +130,8 @@ class TriodeRenderer {
     precision,
     onError,
     liveMode,
+    adapters,
+    clock,
     legacy = false,
     extendTransforms = {} // add your own functions on init
   } = {}) {
@@ -164,6 +160,8 @@ class TriodeRenderer {
     this._mathHelpersInstalled = false
     this._deprecationWarnings = new Set()
     this._runtimeErrorHandler = typeof onError === 'function' ? onError : null
+    this.clock = coerceClock(clock)
+    this.adapters = resolveRuntimeAdapters(adapters)
 
     this.canvas = initCanvas(canvas, this);
     this.width = this.canvas.width
@@ -212,6 +210,7 @@ class TriodeRenderer {
       normalizedCoords: () => this.output.normalizedCoords(),
       cartesianCoords: (w, h) => this.output.cartesianCoords(w, h),
     }
+    this.synth.time = this.clock.now()
 
     nse.init();
     this.synth.math = math
@@ -295,9 +294,9 @@ class TriodeRenderer {
 
     if (enableStreamCapture) {
       try {
-        this.captureStream = this.canvas.captureStream(25)
+        this.captureStream = this.adapters.captureCanvasStream(this.canvas, 25)
         // to do: enable capture stream of specific sources and outputs
-        this.synth.vidRecorder = new VidRecorder(this.captureStream)
+        this.synth.vidRecorder = this.adapters.createVideoRecorder(this.captureStream)
       } catch (e) {
         console.warn('[triode warning]\nnew MediaSource() is not currently supported on iOS.')
         console.error(e)
@@ -307,12 +306,12 @@ class TriodeRenderer {
     if(detectAudio) this._initAudio()
 
     if(autoLoop) {
-      this._loop = loop(this.tick.bind(this))
+      this._loop = this.adapters.createLoop(this.tick.bind(this))
       this._loop.start()
     }
 
     // final argument is properties that the user can set, all others are treated as read-only
-    this.sandbox = new Sandbox(this.synth, this.makeGlobal, ['speed', 'update', 'afterUpdate', 'click', 'mousedown', 'mouseup', 'mousemove', 'keydown', 'keyup', 'bpm', 'fps'])
+    this.sandbox = this.adapters.createSandbox(this.synth, this.makeGlobal, ['speed', 'update', 'afterUpdate', 'click', 'mousedown', 'mouseup', 'mousemove', 'keydown', 'keyup', 'bpm', 'fps'])
   }
 
   eval(code) {
@@ -360,8 +359,9 @@ class TriodeRenderer {
       this.hush()
       scene.clearSceneRuntime(this)
     })
-    this.synth.time = 0
-    this.sandbox.set('time', 0)
+    const nextTime = this.clock.reset(0)
+    this.synth.time = nextTime
+    this.sandbox.set('time', nextTime)
     this.timeSinceLastUpdate = 0
     this._time = 0
     if (this.synth.stats && typeof this.synth.stats === 'object') {
@@ -493,8 +493,8 @@ class TriodeRenderer {
   }
 
   _initAudio () {
-    const that = this
-    this.synth.a = new Audio({
+    const adapters = this.adapters || defaultRuntimeAdapters
+    this.synth.a = adapters.createAudio({
       numBins: 4,
       parentEl: this.canvas.parentNode
       // changeListener: ({audio}) => {
@@ -513,6 +513,7 @@ class TriodeRenderer {
   }
 
   _initThree (webgl, css2DElement, css3DElement) {
+    const adapters = this.adapters || defaultRuntimeAdapters
     this.synth.THREE = THREE;
     Object.assign(this.synth, threeGlobals);
 
@@ -522,13 +523,13 @@ class TriodeRenderer {
       alpha: true,
     };
 
-    this.renderer = webgl === 1 ? new THREE.WebGL1Renderer( options ) : new THREE.WebGLRenderer(options);
+    this.renderer = adapters.createRenderer({ webgl, options });
     this.renderer.clear();
     this.renderer.autoClear = false;
     this.synth.renderer = this.renderer;
-    this.composer = new EffectComposer(this.renderer);
+    this.composer = adapters.createComposer(this.renderer);
 
-    this.css2DRenderer = new CSS2DRenderer({element:css2DElement});
+    this.css2DRenderer = adapters.createCss2DRenderer({element:css2DElement});
     this.css2DRenderer.setSize(this.width, this.height);
     this.css2DRenderer.domElement.style.position = 'absolute';
     this.css2DRenderer.domElement.style.top = '0px';
@@ -536,7 +537,7 @@ class TriodeRenderer {
     document.body.appendChild( this.css2DRenderer.domElement );
     this.synth.css2DRenderer = this.css2DRenderer;
 
-    this.css3DRenderer = new CSS3DRenderer({element:css3DElement});
+    this.css3DRenderer = adapters.createCss3DRenderer({element:css3DElement});
     this.css3DRenderer.setSize(this.width, this.height);
     this.css3DRenderer.domElement.style.position = 'absolute';
     this.css3DRenderer.domElement.style.top = '0px';
@@ -554,7 +555,7 @@ class TriodeRenderer {
     new TriodeUniform('mouse', this.synth.mouse, () => this.synth.mouse, 'triode');
     new TriodeUniform('bpm', this.synth.bpm, () => this.synth.bpm, 'triode');
 
-    this.renderAll = new ShaderPass(new THREE.ShaderMaterial({
+    this.renderAll = adapters.createShaderPass(adapters.createShaderMaterial({
       vertexShader: `
       varying vec2 vUv;
       
@@ -600,7 +601,7 @@ class TriodeRenderer {
       depthTest: false
     }));
 
-    this.renderFbo = new ShaderPass(new THREE.ShaderMaterial({
+    this.renderFbo = adapters.createShaderPass(adapters.createShaderMaterial({
       vertexShader: `
       varying vec2 vUv;
       
@@ -631,9 +632,10 @@ class TriodeRenderer {
   }
 
   _initOutputs (numOutputs) {
+    const adapters = this.adapters || defaultRuntimeAdapters
     const self = this
     this.o = (Array(numOutputs)).fill().map((el, index) => {
-      var o = new Output(index, this)
+      var o = adapters.createOutput(index, this)
       self.synth['o'+index] = o
       return o
     })
@@ -650,15 +652,17 @@ class TriodeRenderer {
   }
 
   createSource (i) {
-    let s = new Source({regl: this.regl, pb: this.pb, width: this.width, height: this.height, label: `s${i}`})
+    const adapters = this.adapters || defaultRuntimeAdapters
+    let s = adapters.createSource({regl: this.regl, pb: this.pb, width: this.width, height: this.height, label: `s${i}`})
     this.synth['s' + this.s.length] = s
     this.s.push(s)
     return s
   }
 
   _generateGlslTransforms () {
+    const adapters = this.adapters || defaultRuntimeAdapters
     var self = this
-    this.generator = new GeneratorFactory({
+    this.generator = adapters.createGeneratorFactory({
       defaultOutput: this.o[0],
       defaultUniforms: this.o[0].uniforms,
       extendTransforms: this.extendTransforms,
@@ -694,7 +698,8 @@ class TriodeRenderer {
     this.sandbox.tick()
     if(this.detectAudio === true) this.synth.a.tick()
   //  let updateInterval = 1000/this.synth.fps // ms
-    this.sandbox.set('time', this.synth.time += dt * 0.001 * this.synth.speed)
+    const nextTime = this.clock.step(dt, this.synth.speed)
+    this.sandbox.set('time', this.synth.time = nextTime)
     this.timeSinceLastUpdate += dt
     if(!this.synth.fps || this.timeSinceLastUpdate >= 1000/this.synth.fps) {
     //  console.log(1000/this.timeSinceLastUpdate)
@@ -1059,12 +1064,14 @@ class TriodeRenderer {
 
   _applyStageClear(stageScene, clearConfig) {
     if (typeof clearConfig === 'number') {
-      stageScene.clear(clearConfig)
+      stageScene.clear(Number.isFinite(clearConfig) ? clearConfig : 1)
       return
     }
     if (isPlainObject(clearConfig)) {
       const amount =
-        typeof clearConfig.amount === 'number' ? clearConfig.amount : 1
+        typeof clearConfig.amount === 'number' && Number.isFinite(clearConfig.amount)
+          ? clearConfig.amount
+          : 1
       const color =
         clearConfig.color !== undefined ? clearConfig.color : 0
       stageScene.clear(amount, color, clearConfig)

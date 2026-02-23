@@ -161,6 +161,49 @@ npm run test:smoke:browser
 npm run site:build
 ```
 
+## Testing
+
+Run the unit and integration-lite test suite:
+
+```bash
+npm test
+```
+
+Watch mode for local development:
+
+```bash
+npm run test:watch
+```
+
+Run with coverage:
+
+```bash
+npm run test:coverage
+```
+
+CI-focused run (coverage + concise reporter):
+
+```bash
+npm run test:ci
+```
+
+Coverage reports:
+
+- Terminal summary is printed on every coverage run.
+- HTML report is generated at `coverage/index.html`.
+- LCOV output is generated at `coverage/lcov.info`.
+
+Test conventions:
+
+- Place tests under `tests/` mirroring `src/` paths where practical.
+- Prefer pure unit tests for deterministic logic and state transitions.
+- Use jsdom only for browser/event wiring behavior.
+- Avoid real GPU/WebGL in unit tests; test adapter interactions instead.
+- Lock public API behavior explicitly (exports, method surface, chain semantics).
+- Prefer injecting `clock` and `adapters` options in `Triode` tests for deterministic runtime coverage.
+
+Coverage map and ramp plan: [`docs/testing-plan.md`](./docs/testing-plan.md).
+
 GUI note:
 
 - `gui.init()` now tries local vendored `dat.gui` first (`/vendor/dat.gui.min.js`, `vendor/dat.gui.min.js`), then CDN fallback.
