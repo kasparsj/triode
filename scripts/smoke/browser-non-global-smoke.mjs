@@ -50,6 +50,7 @@ const smokeHtml = `<!doctype html>
       window.__smoke = {
         ready: false,
         error: null,
+        defaultMakeGlobalDisabled: null,
         hasGlobalOsc: null,
         hasLoadScript: null,
         hasGetCode: null,
@@ -107,8 +108,9 @@ const smokeHtml = `<!doctype html>
         canvasCount: 0
       };
       try {
-        const hydra = new Hydra({ detectAudio: false, makeGlobal: false });
+        const hydra = new Hydra({ detectAudio: false });
         const H = hydra.synth;
+        window.__smoke.defaultMakeGlobalDisabled = hydra.makeGlobal === false;
         window.__smoke.friendlyAliasTexMatches = H.tex === H.tx;
         window.__smoke.friendlyAliasGeomMatches = H.geom === H.gm;
         window.__smoke.friendlyAliasMatMatches = H.mat === H.mt;
@@ -678,6 +680,11 @@ try {
   assert.ok(
     diagnostics.canvasCount > 0,
     `Expected canvasCount > 0, got ${diagnostics.canvasCount}`,
+  );
+  assert.equal(
+    diagnostics.defaultMakeGlobalDisabled,
+    true,
+    "Expected constructor default to set makeGlobal:false",
   );
   assert.equal(
     diagnostics.hasGlobalOsc,

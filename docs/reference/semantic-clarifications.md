@@ -63,5 +63,6 @@ Use public scene composition methods in docs, recipes, and production sketches.
 
 - `makeGlobal: true` installs helpers like `osc`, `scene`, module namespaces, and math helpers into global scope for live-coding ergonomics.
 - `makeGlobal: false` keeps APIs under `hydra.synth` for host-safe embedding and multi-instance control.
+- Current constructor default is `makeGlobal: false`; opt into globals explicitly with constructor config or `hydra.synth.liveGlobals(true)`.
 
 Prefer non-global mode for application integration, editor embedding, and test harnesses.

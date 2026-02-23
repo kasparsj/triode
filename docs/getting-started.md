@@ -13,7 +13,7 @@ Runtime note: this package targets browser execution. Importing it in pure Node/
 ```html
 <script src="https://cdn.jsdelivr.net/gh/kasparsj/hydra-three@v1.0.0/dist/hydra-synth.js"></script>
 <script>
-  const hydra = new Hydra({ detectAudio: false });
+  const hydra = new Hydra({ detectAudio: false, makeGlobal: true });
   osc(8, 0.1, 0.8).out();
 </script>
 ```

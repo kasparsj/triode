@@ -124,7 +124,7 @@ class HydraRenderer {
     height = 720,
     numSources = 4,
     numOutputs = 4,
-    makeGlobal = true,
+    makeGlobal = false,
     autoLoop = true,
     detectAudio = true,
     enableStreamCapture = true,

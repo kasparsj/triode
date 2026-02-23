@@ -11,7 +11,7 @@ For behavior-level edge cases (units, precedence, and internal/public boundaries
 | `width`               | `number`                         | `1280`             | Initial canvas width.                                                  |
 | `height`              | `number`                         | `720`              | Initial canvas height.                                                 |
 | `canvas`              | `HTMLCanvasElement`              | auto-created       | Provide your own canvas for embedding.                                 |
-| `makeGlobal`          | `boolean`                        | `true`             | Installs globals like `osc`, `scene`, etc.                             |
+| `makeGlobal`          | `boolean`                        | `false`            | Installs globals like `osc`, `scene`, etc. Use `liveGlobals(true)` to opt in at runtime. |
 | `autoLoop`            | `boolean`                        | `true`             | Starts internal RAF loop automatically.                                |
 | `detectAudio`         | `boolean`                        | `true`             | Initializes audio analyzer (`a` bins).                                 |
 | `numSources`          | `number`                         | `4`                | Number of source slots `s0..sN`.                                       |

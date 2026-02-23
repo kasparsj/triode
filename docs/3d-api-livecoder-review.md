@@ -303,7 +303,7 @@ Phase 2 (additive vNext surface)
 
 Phase 3 (breaking cleanup, major version)
 
-1. Flip default from global to non-global.
+1. Implemented: flip default from global to non-global.
 2. Make canonical method names primary (`lineLoop`, `lineStrip`), keep old aliases behind compat layer.
 3. Make scene/object reuse opt-in (`reuse: true`) for named resources.
 
@@ -391,6 +391,8 @@ Stale-object deletion, resource disposal, unkeyed hinting, and restart input reb
 
 Update (2026-02-23): runtime now exposes `stage(config)` presets, `onFrame((dt, time) => ...)`, and `liveGlobals(enable?)` toggles for clearer live-coding ergonomics with explicit global opt-in. Implementation and coverage are in `src/hydra-synth.js:159`, `src/hydra-synth.js:188`, `src/hydra-synth.js:833`, `src/index.d.ts:71`, `src/index.d.ts:239`, and `scripts/smoke/browser-non-global-smoke.mjs:114`.
 
+Update (2026-02-23): constructor default now uses `makeGlobal: false` for host-safe behavior, with explicit global opt-in preserved via `makeGlobal: true` and `liveGlobals(true)`. Implementation and coverage are in `src/hydra-synth.js:127`, `scripts/smoke/browser-non-global-smoke.mjs:53`, `scripts/smoke/browser-non-global-smoke.mjs:111`, and `docs/reference/parameter-reference.md:14`.
+
 Update (2026-02-23): `arr.image()` now resolves texture loading through the active runtime (`runtime.modules.tx`) instead of `globalThis.tx`, removing hidden global coupling in non-global and multi-instance usage. Implementation and coverage are in `src/three/arr.js:191`, `scripts/smoke/module-load-smoke.mjs:154`, and `scripts/smoke/regression-smoke.mjs:204`.
 
 Update (2026-02-23): remaining flagged playground presets now include explicit `key` usage for scene/primitive calls, and the live-key audit tool gained receiver filtering (`mt.*`, `gm.*`, etc.) to cut false positives. Verification passes via `npm run migrate:check-live-keys:playground` with zero findings. Implementation is in `site/playground/examples.js:224`, `scripts/migrate/find-unkeyed-live-calls.mjs:17`, and `package.json:40`.
@@ -425,7 +427,7 @@ Update (2026-02-22): explicit `key` usage now covers the first-touch and mid-tie
 
 | Rank | Issue                                                       | Impact evidence (`file:line`)                                                           | Frequency evidence (`file:line`)                                                         | Score (I x F) |
 | ---- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------- |
-| 1    | Globals still default-on in runtime and playground          | `src/hydra-synth.js:123`; `src/hydra-synth.js:350`; `site/playground/playground.js:344` | `examples/box.js:2`; `site/playground/examples.js:55`                                    | 4 x 4 = 16    |
+| 1    | Global mode still default in playground (runtime default now non-global) | `site/playground/playground.js:344`; `src/hydra-synth.js:127`; `scripts/smoke/browser-non-global-smoke.mjs:682` | `site/playground/examples.js:55`; `site/playground/examples.js:116`                                    | 2 x 3 = 6    |
 | 2    | Orbit controls default to `Alt` (mitigated by `controls.modifier`)                 | `src/three/HydraOrbitControls.js:837`; `src/three/HydraOrbitControls.js:1038`; `src/lib/mixins.js:12`           | `examples/box.js:1`; `site/playground/examples.js:49`; `site/playground/examples.js:812` | 2 x 3 = 6    |
 | 3    | Rotation unit mismatch (mitigated by `rotateDeg`/`rotateRad`) | `src/glsl/glsl-functions.js:384`; `src/glsl/glsl-functions.js:408`; `docs/reference/semantic-clarifications.md:7`             | `site/playground/examples.js:52`; `examples/box.js:6`                                    | 2 x 3 = 6    |
 | 4    | Hidden runtime fallback context in helper modules           | `src/three/runtime.js:25`; `src/three/mt.js:151`; `src/three/tx.js:264`                 | `site/playground/examples.js:57`; `site/playground/examples.js:116`                      | 4 x 2 = 8     |
