@@ -11,7 +11,7 @@ Runtime note: this package targets browser execution. Importing it in pure Node/
 #### Script tag (fastest)
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/kasparsj/hydra-three@v1.0.0/dist/hydra-synth.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/kasparsj/triode@v1.0.0/dist/hydra-synth.js"></script>
 <script>
   const hydra = new Hydra({ detectAudio: false, makeGlobal: true });
   osc(8, 0.1, 0.8).out();
@@ -23,7 +23,7 @@ For production, pin to a tag or commit (avoid floating refs).
 #### npm + bundler
 
 ```bash
-npm i github:kasparsj/hydra-three#v1.0.0 three
+npm i github:kasparsj/triode#v1.0.0 three
 ```
 
 Important: `npm i hydra-synth` installs upstream hydra-synth, not this fork.
@@ -77,7 +77,7 @@ const sc = scene().lights().mesh(gm.box(), osc().rotateDeg(30).phong()).out();
 
 You can also run examples from the GitHub Pages site examples gallery.
 For parameter-editable sketches, use the interactive playground at
-`https://kasparsj.github.io/hydra-three/playground/index.html`.
+`https://kasparsj.github.io/triode/playground/index.html`.
 
 ### 4. Local project setup
 

@@ -1,15 +1,15 @@
-# hydra-three vs upstream hydra-synth: high-level differences
+# triode vs upstream hydra-synth: high-level differences
 
 ## Comparison scope
 
 - Upstream scanned: `/Users/kasparsj/Work2/hydra/hydra-synth` (`up-main`, `c3ba80b`)
-- Fork scanned: `/Users/kasparsj/Work2/hydra/hydra-three` (`main`, `256bc90`, plus current working tree changes)
+- Fork scanned: `/Users/kasparsj/Work2/hydra/triode` (`main`, `256bc90`, plus current working tree changes)
 - Scan date: 2026-02-21
 - Method: full file-tree diff (excluding `.git/` and `node_modules/`) plus manual review of runtime, shader/compiler, packaging, CI, docs, and examples.
 
 ## Diff size at a glance
 
-- Files added in `hydra-three`: 121
+- Files added in `triode`: 121
 - Files removed from upstream: 6
 - Files modified from upstream: 22
 - Source tree growth:
@@ -31,7 +31,7 @@
 
 ## 2) New 3D scene/camera/object API layer
 
-- `hydra-three` adds a full 3D scene API (`src/three/scene.js`) on top of Hydra sources:
+- `triode` adds a full 3D scene API (`src/three/scene.js`) on top of Hydra sources:
   - Scene creation and reuse, groups, mesh/line/points primitives, instancing, CSS2D/CSS3D objects.
   - Camera mixins: `perspective()`, `ortho()`, coordinate-space helpers (`screenCoords`, `normalizedCoords`, `cartesianCoords`).
   - Built-in camera controls via `HydraOrbitControls`.
@@ -101,8 +101,8 @@
   - `package.json` `main` now points to `dist/hydra-synth.js`.
   - ESM import now routes through `src/package-entry.js`, which explicitly enforces browser runtime and then loads bundle.
 - Package metadata changed:
-  - Version line reset to `1.0.0` for hydra-three.
-  - Repo/homepage/issues changed to `kasparsj/hydra-three`.
+  - Version line reset to `1.0.0` for triode.
+  - Repo/homepage/issues changed to `kasparsj/triode`.
   - `files` allowlist added for pack contents.
 - Dependency set changed:
   - Removed runtime dependency on `regl`.

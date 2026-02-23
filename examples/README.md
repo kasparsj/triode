@@ -3,31 +3,31 @@
 These scripts are grouped by visual primitive or workflow.
 
 ### General
-- `box.js` - [Run](https://kasparsj.github.io/hydra-three/examples/box.html)
-- `box-tex.js` - [Run](https://kasparsj.github.io/hydra-three/examples/box-tex.html)
-- `box-instanced-grid.js` - [Run](https://kasparsj.github.io/hydra-three/examples/box-instanced-grid.html)
-- `tex-map.js` - [Run](https://kasparsj.github.io/hydra-three/examples/tex-map.html)
-- `cmp-noise.js` - [Run](https://kasparsj.github.io/hydra-three/examples/cmp-noise.html)
-- `cmp-stack.js` - [Run](https://kasparsj.github.io/hydra-three/examples/cmp-stack.html)
+- `box.js` - [Run](https://kasparsj.github.io/triode/examples/box.html)
+- `box-tex.js` - [Run](https://kasparsj.github.io/triode/examples/box-tex.html)
+- `box-instanced-grid.js` - [Run](https://kasparsj.github.io/triode/examples/box-instanced-grid.html)
+- `tex-map.js` - [Run](https://kasparsj.github.io/triode/examples/tex-map.html)
+- `cmp-noise.js` - [Run](https://kasparsj.github.io/triode/examples/cmp-noise.html)
+- `cmp-stack.js` - [Run](https://kasparsj.github.io/triode/examples/cmp-stack.html)
 
 ### Line loop
-- `lineloop/lineloop.js` - [Run](https://kasparsj.github.io/hydra-three/examples/lineloop/lineloop.html)
-- `lineloop/sphere.js` - [Run](https://kasparsj.github.io/hydra-three/examples/lineloop/sphere.html)
-- `lineloop/thread.js` - [Run](https://kasparsj.github.io/hydra-three/examples/lineloop/thread.html)
+- `lineloop/lineloop.js` - [Run](https://kasparsj.github.io/triode/examples/lineloop/lineloop.html)
+- `lineloop/sphere.js` - [Run](https://kasparsj.github.io/triode/examples/lineloop/sphere.html)
+- `lineloop/thread.js` - [Run](https://kasparsj.github.io/triode/examples/lineloop/thread.html)
 
 ### Lines
-- `lines/lines.js` - [Run](https://kasparsj.github.io/hydra-three/examples/lines/lines.html)
-- `lines/noise.js` - [Run](https://kasparsj.github.io/hydra-three/examples/lines/noise.html)
+- `lines/lines.js` - [Run](https://kasparsj.github.io/triode/examples/lines/lines.html)
+- `lines/noise.js` - [Run](https://kasparsj.github.io/triode/examples/lines/noise.html)
 
 ### Line strip
-- `linestrip/thread.js` - [Run](https://kasparsj.github.io/hydra-three/examples/linestrip/thread.html)
+- `linestrip/thread.js` - [Run](https://kasparsj.github.io/triode/examples/linestrip/thread.html)
 
 ### Points
-- `points/dots.js` - [Run](https://kasparsj.github.io/hydra-three/examples/points/dots.html)
-- `points/grid.js` - [Run](https://kasparsj.github.io/hydra-three/examples/points/grid.html)
-- `points/noise.js` - [Run](https://kasparsj.github.io/hydra-three/examples/points/noise.html)
-- `points/noise-flow.js` - [Run](https://kasparsj.github.io/hydra-three/examples/points/noise-flow.html)
-- `points/squares.js` - [Run](https://kasparsj.github.io/hydra-three/examples/points/squares.html)
+- `points/dots.js` - [Run](https://kasparsj.github.io/triode/examples/points/dots.html)
+- `points/grid.js` - [Run](https://kasparsj.github.io/triode/examples/points/grid.html)
+- `points/noise.js` - [Run](https://kasparsj.github.io/triode/examples/points/noise.html)
+- `points/noise-flow.js` - [Run](https://kasparsj.github.io/triode/examples/points/noise-flow.html)
+- `points/squares.js` - [Run](https://kasparsj.github.io/triode/examples/points/squares.html)
 
 ## Running examples locally
 

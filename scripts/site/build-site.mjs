@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, "..", "..");
 const outDir = path.resolve(rootDir, process.env.SITE_OUT_DIR || "site-dist");
-const githubRepoUrl = "https://github.com/kasparsj/hydra-three";
+const githubRepoUrl = "https://github.com/kasparsj/triode";
 
 const docPages = [
   { source: "README.md", output: "index.html", label: "Overview" },
@@ -392,7 +392,7 @@ const renderLayout = ({ title, outputPath, activeKey, content }) => {
     .join("\n");
 
   const repoLink =
-    '<a class="repo" href="https://github.com/kasparsj/hydra-three">GitHub</a>';
+    '<a class="repo" href="https://github.com/kasparsj/triode">GitHub</a>';
 
   const versionScript = `
       <script>
@@ -440,7 +440,7 @@ const renderLayout = ({ title, outputPath, activeKey, content }) => {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>${escapeHtml(title)} | hydra-three</title>
+    <title>${escapeHtml(title)} | triode</title>
     <link rel="stylesheet" href="${escapeAttr(cssHref)}" />
   </head>
   <body>
@@ -449,7 +449,7 @@ const renderLayout = ({ title, outputPath, activeKey, content }) => {
         <div class="topbar-inner">
           <a class="brand" href="${escapeAttr(relativeHref(normalize(outputPath), "index.html"))}">
             <span class="brand-dot" aria-hidden="true"></span>
-            <span>hydra-three</span>
+            <span>triode</span>
           </a>
           <div class="topbar-actions">
             <nav class="nav">

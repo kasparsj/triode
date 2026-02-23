@@ -49,7 +49,7 @@
 - Quickstart static example: `examples/quickstart.html`.
 
 ### Changed
-- Versioning reset to `1.0.0` to establish an independent release line for hydra-three.
+- Versioning reset to `1.0.0` to establish an independent release line for triode.
 
 ### Fixed
 - Constructor canvas initialization now uses the created canvas safely when no canvas is supplied.

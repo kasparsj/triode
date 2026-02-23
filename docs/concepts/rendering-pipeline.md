@@ -1,6 +1,6 @@
 # Rendering Pipeline Guide
 
-This guide explains how hydra-three turns chains and scenes into pixels.
+This guide explains how triode turns chains and scenes into pixels.
 
 ## Pipeline overview
 

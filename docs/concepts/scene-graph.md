@@ -1,6 +1,6 @@
 # Scene Graph Guide
 
-hydra-three scene APIs are a chainable layer over a Three.js scene graph.
+triode scene APIs are a chainable layer over a Three.js scene graph.
 
 ## Scene creation
 

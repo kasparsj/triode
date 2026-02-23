@@ -20,7 +20,7 @@ const LIVE_AUTO_ID_KEY = "__hydraLiveAutoId";
 const LIVE_AUTO_ID_ATTR = "__liveAutoId";
 const LIVE_AUTO_PREFIX = "__hydraLiveAuto";
 const LIVE_KEY_HINT =
-    "[hydra-three] Continuous live mode auto-generated identity slots for unkeyed objects. Add { key: \"...\" } for stable identity across reruns.";
+    "[triode] Continuous live mode auto-generated identity slots for unkeyed objects. Add { key: \"...\" } for stable identity across reruns.";
 
 const createStore = () => ({
     scenes: Object.create(null),

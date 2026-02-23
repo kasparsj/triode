@@ -98,7 +98,7 @@ const ensureDat = async () => {
     if (!window.dat) {
         window.dat = createFallbackDatApi();
         console.warn(
-            "[hydra-three] dat.gui script unavailable; using fallback no-op GUI.",
+            "[triode] dat.gui script unavailable; using fallback no-op GUI.",
         );
     }
     return window.dat;
@@ -109,7 +109,7 @@ const init = async () => {
     patchDat(datApi);
 }
 
-const create = async (name = "hydra-three") => {
+const create = async (name = "triode") => {
     if (!guis[name]) {
         const datApi = window.dat || (await ensureDat());
         patchDat(datApi);

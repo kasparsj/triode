@@ -9,7 +9,7 @@ The interactive playground provides:
 
 Published URL:
 
-- `https://kasparsj.github.io/hydra-three/playground/index.html`
+- `https://kasparsj.github.io/triode/playground/index.html`
 
 ## How it works
 

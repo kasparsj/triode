@@ -1,16 +1,16 @@
 # Common Creative Recipes
 
-These recipes are short, practical starting points for creative coding workflows in hydra-three.
+These recipes are short, practical starting points for creative coding workflows in triode.
 
 Use the interactive playground to edit these patterns live:
 
 - [`playground/index.html`](../../site/playground/index.html) (local source)
-- `https://kasparsj.github.io/hydra-three/playground/index.html` (published site)
+- `https://kasparsj.github.io/triode/playground/index.html` (published site)
 
 ## 1) Animated textured box
 
 Playground preset:
-[Textured Box](https://kasparsj.github.io/hydra-three/playground/index.html?example=textured-box)
+[Textured Box](https://kasparsj.github.io/triode/playground/index.html?example=textured-box)
 
 ```js
 perspective([2, 2, 3], [0, 0, 0], { controls: true });
@@ -30,7 +30,7 @@ update = () => {
 ## 2) Particle field with trail fade
 
 Playground preset:
-[Points Trail](https://kasparsj.github.io/hydra-three/playground/index.html?example=points-trail)
+[Points Trail](https://kasparsj.github.io/triode/playground/index.html?example=points-trail)
 
 ```js
 ortho([0, 0, 1], [0, 0, 0]);
@@ -51,7 +51,7 @@ scene()
 ## 3) Texture bridge: scene to scene
 
 Playground preset:
-[Scene Texture Bridge](https://kasparsj.github.io/hydra-three/playground/index.html?example=scene-texture-bridge)
+[Scene Texture Bridge](https://kasparsj.github.io/triode/playground/index.html?example=scene-texture-bridge)
 
 ```js
 const mapTex = scene()
@@ -67,7 +67,7 @@ scene()
 ## 4) Ground displacement from procedural height
 
 Playground preset:
-[Terrain Displacement](https://kasparsj.github.io/hydra-three/playground/index.html?example=terrain-displacement)
+[Terrain Displacement](https://kasparsj.github.io/triode/playground/index.html?example=terrain-displacement)
 
 ```js
 shadowMap();

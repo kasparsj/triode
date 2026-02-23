@@ -1,6 +1,6 @@
 # Hydra to 3D Mental Model
 
-hydra-three keeps Hydra's live coding flow, but expands it from image-space composition into a scene-space + image-space workflow.
+triode keeps Hydra's live coding flow, but expands it from image-space composition into a scene-space + image-space workflow.
 
 ## Core idea
 
@@ -14,14 +14,14 @@ Think in two layers that can feed each other:
 
 - Three.js scene graph (`scene`, `group`, `mesh`, `lights`, `world`) composes objects and cameras.
 
-In hydra-three, these layers connect directly:
+In triode, these layers connect directly:
 
 - A Hydra chain can become a Three material (`osc().phong()`).
 - A scene can render to an output or texture and get reused by another chain.
 
 ## Mental mapping from classic Hydra
 
-| Classic Hydra concept       | hydra-three equivalent                                |
+| Classic Hydra concept       | triode equivalent                                |
 | --------------------------- | ----------------------------------------------------- |
 | `osc().color().out()`       | still valid for texture output                        |
 | source chain as final image | source chain as image **or** material input           |

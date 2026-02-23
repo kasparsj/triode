@@ -1,6 +1,6 @@
 # Chaining and Composition Patterns
 
-hydra-three supports multiple composition styles. These patterns help keep sketches readable and reusable.
+triode supports multiple composition styles. These patterns help keep sketches readable and reusable.
 
 ## Pattern 1: Texture-first material flow
 

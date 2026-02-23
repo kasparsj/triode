@@ -1,6 +1,6 @@
 ## Production Checklist
 
-Use this checklist before deploying hydra-three in a production creative-coding environment.
+Use this checklist before deploying triode in a production creative-coding environment.
 
 ### Versioning and supply chain
 

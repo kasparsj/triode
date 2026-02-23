@@ -1,4 +1,4 @@
-## hydra-three
+## triode
 
 three.js-powered fork of [hydra-synth](https://github.com/hydra-synth/hydra-synth) focused on creative coding with 3D scene APIs while keeping Hydra-style live coding workflows.
 
@@ -14,7 +14,7 @@ three.js-powered fork of [hydra-synth](https://github.com/hydra-synth/hydra-synt
 - The npm package name `hydra-synth` is owned upstream; this fork does not rely on upstream npm publishing for releases.
 - `package.json` is marked `private: true` to avoid accidental npm registry publish under the upstream package name.
 - Do not use `npm i hydra-synth` for this fork unless you intentionally want upstream hydra-synth.
-- For this fork, install from this repository tag: `npm i github:kasparsj/hydra-three#v1.0.0 three`.
+- For this fork, install from this repository tag: `npm i github:kasparsj/triode#v1.0.0 three`.
 
 ## Runtime Contract
 
@@ -25,7 +25,7 @@ three.js-powered fork of [hydra-synth](https://github.com/hydra-synth/hydra-synt
 ## Project Site
 
 - GitHub Pages publishes docs and runnable examples from this repository.
-- Interactive playground: `https://kasparsj.github.io/hydra-three/playground/index.html`
+- Interactive playground: `https://kasparsj.github.io/triode/playground/index.html`
 - Versioned docs are published under `/docs/latest/` and `/docs/vX.Y.Z/`.
 - Local site build output: `site-dist/`
 - Build locally:
@@ -43,7 +43,7 @@ npm run site:build:versioned
 Use jsDelivr from this repository:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/kasparsj/hydra-three@v1.0.0/dist/hydra-synth.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/kasparsj/triode@v1.0.0/dist/hydra-synth.js"></script>
 <script>
   const hydra = new Hydra({ detectAudio: false });
   osc(8, 0.1, 0.8).out();
@@ -60,7 +60,7 @@ Success criteria:
 ### Option B: npm + bundler
 
 ```bash
-npm i github:kasparsj/hydra-three#v1.0.0 three
+npm i github:kasparsj/triode#v1.0.0 three
 ```
 
 Do not replace this with `npm i hydra-synth`; that resolves to the upstream package, not this fork.
