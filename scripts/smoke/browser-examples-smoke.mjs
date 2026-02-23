@@ -207,9 +207,9 @@ const runPlaygroundPresetChecks = async (browser, baseUrl, presetIds) => {
       await page.waitForFunction(
         () => {
           const status = document.getElementById("status");
+          const statusText = status ? status.textContent : "";
           return (
-            status &&
-            (status.textContent === "Live" || status.textContent === "Error")
+            status && (statusText.startsWith("Live") || statusText === "Error")
           );
         },
         { timeout: PAGE_TIMEOUT_MS, polling: 100 },
@@ -230,9 +230,8 @@ const runPlaygroundPresetChecks = async (browser, baseUrl, presetIds) => {
         };
       });
 
-      assert.equal(
-        diagnostics.status,
-        "Live",
+      assert.ok(
+        diagnostics.status.startsWith("Live"),
         `playground status is not Live (${diagnostics.status})`,
       );
       assert.ok(
