@@ -1,14 +1,14 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
-import { hydraGlslifyPlugin } from "./scripts/build/vite-glslify-plugin.mjs";
+import { triodeGlslifyPlugin } from "./scripts/build/vite-glslify-plugin.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const buildSourcemap = process.env.BUILD_SOURCEMAP === "true";
 
 export default defineConfig({
-  plugins: [hydraGlslifyPlugin()],
+  plugins: [triodeGlslifyPlugin()],
   define: {
     global: "globalThis",
   },
@@ -26,8 +26,8 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: path.resolve(__dirname, "src/hydra-synth.js"),
-      name: "Hydra",
+      entry: path.resolve(__dirname, "src/triode-synth.js"),
+      name: "Triode",
       formats: ["umd"],
       fileName: () => "triode.js",
     },

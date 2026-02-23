@@ -1,6 +1,6 @@
 # Core Concepts
 
-triode extends Hydra from image-space composition into scene-space composition.
+triode extends Hydra-style image-space composition into scene-space composition.
 
 ## Read in this order
 

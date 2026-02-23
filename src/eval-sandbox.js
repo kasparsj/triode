@@ -3,7 +3,7 @@
 import Sandbox from './lib/sandbox.js'
 import ArrayUtils from './lib/array-utils.js'
 
-const MISSING_GLOBAL = Symbol('hydra-missing-global')
+const MISSING_GLOBAL = Symbol('triode-missing-global')
 const globalBindings = new Map()
 
 const setWindowGlobal = (name, value) => {

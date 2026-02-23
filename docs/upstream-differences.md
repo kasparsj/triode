@@ -22,28 +22,28 @@
   - hydra-synth: regl-based fullscreen shader ping-pong pipeline.
   - triode: three.js renderer + `EffectComposer` pass graph.
 - New 3D render abstractions were added:
-  - `HydraPass`, `HydraShaderPass`, `HydraMaterialPass`, `HydraRenderPass`, `HydraFadePass`
-  - `HydraUniform` registry for shared runtime uniforms (`time`, `resolution`, textures, bpm, mouse)
-  - `HydraShader`/`HydraFragmentShader`/`HydraVertexShader` for shader assembly against three.js materials.
+  - `TriodePass`, `TriodeShaderPass`, `TriodeMaterialPass`, `TriodeRenderPass`, `TriodeFadePass`
+  - `TriodeUniform` registry for shared runtime uniforms (`time`, `resolution`, textures, bpm, mouse)
+  - `TriodeShader`/`TriodeFragmentShader`/`TriodeVertexShader` for shader assembly against three.js materials.
 - Output model changed:
   - hydra-synth output = regl draw command + framebuffer ping-pong.
   - triode output = per-output `EffectComposer` with multi-pass render/material/fx/layer support and render-to-texture helpers.
 
 ## 2) New 3D scene/camera/object API layer
 
-- `triode` adds a full 3D scene API (`src/three/scene.js`) on top of Hydra sources:
+- `triode` adds a full 3D scene API (`src/three/scene.js`) on top of shader/source chains:
   - Scene creation and reuse, groups, mesh/line/points primitives, instancing, CSS2D/CSS3D objects.
   - Camera mixins: `perspective()`, `ortho()`, coordinate-space helpers (`screenCoords`, `normalizedCoords`, `cartesianCoords`).
-  - Built-in camera controls via `HydraOrbitControls`.
+  - Built-in camera controls via `TriodeOrbitControls`.
   - World/lights integration (`stage().lights()`, `stage().world()`), helpers (`axesHelper`, lookup/filter helpers).
 - New object/resource utility modules were added:
   - Geometry (`geom`, alias `gm`), material (`mat`, alias `mt`), texture/FBO (`tex`, alias `tx`), composition layout (`compose`, alias `cmp`), noise (`noiseUtil`, alias `nse`), random (`random`, alias `rnd`), math (`math`), typed array/image tools (`arr`), global constructors (`three/globals`), GUI helpers (`gui`), DOM element helpers (`el`).
 
-## 3) Public runtime API changes (`HydraRenderer` / `hydra.synth`)
+## 3) Public runtime API changes (`TriodeRenderer` / `triode.synth`)
 
 - Constructor options expanded:
   - Added `webgl`, `css2DElement`, `css3DElement`.
-- `hydra.synth` now exposes substantially more runtime surface:
+- `triode.synth` now exposes substantially more runtime surface:
   - Added `canvas`, `scene`, `shadowMap`, camera helpers, module namespaces (`tx`, `gm`, `mt`, `cmp`, `rnd`, `nse`, `gui`, `arr`, `el`).
 - Event hooks were added to synth state:
   - `click`, `mousedown`, `mouseup`, `mousemove`, `keydown`, `keyup`.
@@ -82,7 +82,7 @@
 
 ## 6) Source/media/texture pipeline changes
 
-- `HydraSource` texture implementation switched from regl textures to three.js textures:
+- `TriodeSource` texture implementation switched from regl textures to three.js textures:
   - `CanvasTexture`, `VideoTexture`, `TextureLoader`.
   - Stream/camera/video/screen init paths adapted accordingly.
 - Source cleanup semantics changed:

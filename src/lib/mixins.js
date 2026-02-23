@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import {HydraOrbitControls} from "../three/HydraOrbitControls.js";
+import {TriodeOrbitControls} from "../three/TriodeOrbitControls.js";
 
 const PERSPECTIVE = 'perspective';
 const ORTHO = 'ortho';
@@ -126,7 +126,7 @@ const cameraMixin = {
             if (this._camera.userData.controls) {
                 this._camera.userData.controls.dispose();
             }
-            this._camera.userData.controls = new HydraOrbitControls(this._camera, controlsOptions.domElement);
+            this._camera.userData.controls = new TriodeOrbitControls(this._camera, controlsOptions.domElement);
             for (let attr in controlsOptions) {
                 if (this._camera.userData.controls.hasOwnProperty(attr)) {
                     this._camera.userData.controls[attr] = controlsOptions[attr];

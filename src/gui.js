@@ -68,6 +68,7 @@ const createFallbackDatApi = () => {
                 },
             },
         },
+        __triodeFallback: true,
         __hydraFallback: true,
     };
 };
@@ -201,12 +202,13 @@ const updateWorld = (scene, settings) => {
 }
 
 function patchDat(datApi = window.dat) {
-    if (!datApi || datApi.__hydraPatched) return;
+    if (!datApi || datApi.__triodePatched || datApi.__hydraPatched) return;
     const updateDisplay = datApi.controllers.NumberControllerBox.prototype.updateDisplay;
     datApi.controllers.NumberControllerBox.prototype.updateDisplay = function() {
         if (datApi.dom.dom.isActive(this.__input)) return this;
         return updateDisplay.call(this);
     }
+    datApi.__triodePatched = true;
     datApi.__hydraPatched = true;
 }
 

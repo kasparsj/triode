@@ -19,7 +19,7 @@
     "legacy",
     "extendTransforms"
   ],
-  "hydraRendererMembers": [
+  "triodeRendererMembers": [
     "constructor",
     "eval",
     "getScreenImage",
@@ -35,7 +35,7 @@
     "liveGlobals",
     "dispose"
   ],
-  "hydraSynthMembers": [
+  "triodeSynthMembers": [
     "time",
     "bpm",
     "canvas",
@@ -212,12 +212,12 @@
     },
     {
       "name": "onError",
-      "signature": "onError?: HydraRuntimeErrorHandler",
+      "signature": "onError?: TriodeRuntimeErrorHandler",
       "description": ""
     },
     {
       "name": "liveMode",
-      "signature": "liveMode?: HydraLiveMode",
+      "signature": "liveMode?: TriodeLiveMode",
       "description": ""
     },
     {
@@ -231,10 +231,10 @@
       "description": ""
     }
   ],
-  "hydraRendererEntries": [
+  "triodeRendererEntries": [
     {
       "name": "constructor",
-      "signature": "constructor(options?: HydraOptions)",
+      "signature": "constructor(options?: TriodeOptions)",
       "description": ""
     },
     {
@@ -279,12 +279,12 @@
     },
     {
       "name": "scene",
-      "signature": "scene(attributes?: HydraSceneAttributes): HydraSceneApi",
+      "signature": "scene(attributes?: TriodeSceneAttributes): TriodeSceneApi",
       "description": ""
     },
     {
       "name": "stage",
-      "signature": "stage(config?: HydraStageConfig): HydraSceneApi",
+      "signature": "stage(config?: TriodeStageConfig): TriodeSceneApi",
       "description": ""
     },
     {
@@ -303,7 +303,7 @@
       "description": ""
     }
   ],
-  "hydraSynthEntries": [
+  "triodeSynthEntries": [
     {
       "name": "time",
       "signature": "time: number",
@@ -336,7 +336,7 @@
     },
     {
       "name": "stats",
-      "signature": "stats: HydraStats",
+      "signature": "stats: TriodeStats",
       "description": ""
     },
     {
@@ -396,12 +396,12 @@
     },
     {
       "name": "onError",
-      "signature": "onError?: HydraRuntimeErrorHandler",
+      "signature": "onError?: TriodeRuntimeErrorHandler",
       "description": ""
     },
     {
       "name": "liveMode",
-      "signature": "liveMode: HydraLiveMode",
+      "signature": "liveMode: TriodeLiveMode",
       "description": ""
     },
     {
@@ -446,22 +446,22 @@
     },
     {
       "name": "scene",
-      "signature": "scene: (attributes?: HydraSceneAttributes) => HydraSceneApi",
+      "signature": "scene: (attributes?: TriodeSceneAttributes) => TriodeSceneApi",
       "description": ""
     },
     {
       "name": "stage",
-      "signature": "stage: (config?: HydraStageConfig) => HydraSceneApi",
+      "signature": "stage: (config?: TriodeStageConfig) => TriodeSceneApi",
       "description": ""
     },
     {
       "name": "ortho",
-      "signature": "ortho: (eye?: HydraNumericTuple, target?: HydraNumericTuple, options?: HydraCameraOptions) => unknown",
+      "signature": "ortho: (eye?: TriodeNumericTuple, target?: TriodeNumericTuple, options?: TriodeCameraOptions) => unknown",
       "description": ""
     },
     {
       "name": "perspective",
-      "signature": "perspective: (eye?: HydraNumericTuple, target?: HydraNumericTuple, options?: HydraCameraOptions) => unknown",
+      "signature": "perspective: (eye?: TriodeNumericTuple, target?: TriodeNumericTuple, options?: TriodeCameraOptions) => unknown",
       "description": ""
     },
     {
@@ -481,102 +481,102 @@
     },
     {
       "name": "setFunction",
-      "signature": "setFunction: (definition: HydraTransformDefinition) => void",
+      "signature": "setFunction: (definition: TriodeTransformDefinition) => void",
       "description": ""
     },
     {
       "name": "osc",
-      "signature": "osc: HydraTransformFactory",
+      "signature": "osc: TriodeTransformFactory",
       "description": ""
     },
     {
       "name": "noise",
-      "signature": "noise: HydraTransformFactory",
+      "signature": "noise: TriodeTransformFactory",
       "description": ""
     },
     {
       "name": "solid",
-      "signature": "solid: HydraTransformFactory",
+      "signature": "solid: TriodeTransformFactory",
       "description": ""
     },
     {
       "name": "src",
-      "signature": "src: HydraTransformFactory",
+      "signature": "src: TriodeTransformFactory",
       "description": ""
     },
     {
       "name": "tx",
-      "signature": "tx: HydraTextureApi",
+      "signature": "tx: TriodeTextureApi",
       "description": ""
     },
     {
       "name": "gm",
-      "signature": "gm: HydraGeometryApi",
+      "signature": "gm: TriodeGeometryApi",
       "description": ""
     },
     {
       "name": "mt",
-      "signature": "mt: HydraModuleApi",
+      "signature": "mt: TriodeModuleApi",
       "description": ""
     },
     {
       "name": "cmp",
-      "signature": "cmp: HydraModuleApi",
+      "signature": "cmp: TriodeModuleApi",
       "description": ""
     },
     {
       "name": "rnd",
-      "signature": "rnd: HydraModuleApi",
+      "signature": "rnd: TriodeModuleApi",
       "description": ""
     },
     {
       "name": "nse",
-      "signature": "nse: HydraModuleApi",
+      "signature": "nse: TriodeModuleApi",
       "description": ""
     },
     {
       "name": "tex",
-      "signature": "tex: HydraTextureApi",
+      "signature": "tex: TriodeTextureApi",
       "description": ""
     },
     {
       "name": "geom",
-      "signature": "geom: HydraGeometryApi",
+      "signature": "geom: TriodeGeometryApi",
       "description": ""
     },
     {
       "name": "mat",
-      "signature": "mat: HydraModuleApi",
+      "signature": "mat: TriodeModuleApi",
       "description": ""
     },
     {
       "name": "compose",
-      "signature": "compose: HydraModuleApi",
+      "signature": "compose: TriodeModuleApi",
       "description": ""
     },
     {
       "name": "random",
-      "signature": "random: HydraModuleApi",
+      "signature": "random: TriodeModuleApi",
       "description": ""
     },
     {
       "name": "noiseUtil",
-      "signature": "noiseUtil: HydraModuleApi",
+      "signature": "noiseUtil: TriodeModuleApi",
       "description": ""
     },
     {
       "name": "gui",
-      "signature": "gui: HydraGuiApi",
+      "signature": "gui: TriodeGuiApi",
       "description": ""
     },
     {
       "name": "arr",
-      "signature": "arr: HydraModuleApi",
+      "signature": "arr: TriodeModuleApi",
       "description": ""
     },
     {
       "name": "el",
-      "signature": "el: HydraModuleApi",
+      "signature": "el: TriodeModuleApi",
       "description": ""
     },
     {
@@ -588,92 +588,92 @@
   "sceneEntries": [
     {
       "name": "add",
-      "signature": "add(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "signature": "add(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi",
       "description": ""
     },
     {
       "name": "mesh",
-      "signature": "mesh(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "signature": "mesh(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi",
       "description": ""
     },
     {
       "name": "box",
-      "signature": "box(material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "signature": "box(material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi",
       "description": ""
     },
     {
       "name": "sphere",
-      "signature": "sphere(material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "signature": "sphere(material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi",
       "description": ""
     },
     {
       "name": "quad",
-      "signature": "quad(material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "signature": "quad(material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi",
       "description": ""
     },
     {
       "name": "points",
-      "signature": "points(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "signature": "points(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi",
       "description": ""
     },
     {
       "name": "lines",
-      "signature": "lines(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "signature": "lines(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi",
       "description": ""
     },
     {
       "name": "lineStrip",
-      "signature": "lineStrip(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "signature": "lineStrip(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi",
       "description": ""
     },
     {
       "name": "lineLoop",
-      "signature": "lineLoop(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "signature": "lineLoop(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi",
       "description": ""
     },
     {
       "name": "linestrip",
-      "signature": "linestrip(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "signature": "linestrip(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi",
       "description": "@deprecated Use lineStrip(...) instead."
     },
     {
       "name": "lineloop",
-      "signature": "lineloop(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "signature": "lineloop(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi",
       "description": "@deprecated Use lineLoop(...) instead."
     },
     {
       "name": "line",
-      "signature": "line(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "signature": "line(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi",
       "description": ""
     },
     {
       "name": "circle",
-      "signature": "circle(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "signature": "circle(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi",
       "description": ""
     },
     {
       "name": "ellipse",
-      "signature": "ellipse(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "signature": "ellipse(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi",
       "description": ""
     },
     {
       "name": "triangle",
-      "signature": "triangle(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "signature": "triangle(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi",
       "description": ""
     },
     {
       "name": "lights",
-      "signature": "lights(options?: Record<string, unknown>): HydraSceneApi",
+      "signature": "lights(options?: Record<string, unknown>): TriodeSceneApi",
       "description": ""
     },
     {
       "name": "world",
-      "signature": "world(options?: Record<string, unknown>): HydraSceneApi",
+      "signature": "world(options?: Record<string, unknown>): TriodeSceneApi",
       "description": ""
     },
     {
       "name": "group",
-      "signature": "group(attributes?: HydraSceneAttributes): HydraSceneApi",
+      "signature": "group(attributes?: TriodeSceneAttributes): TriodeSceneApi",
       "description": ""
     },
     {
@@ -683,27 +683,27 @@
     },
     {
       "name": "lookAt",
-      "signature": "lookAt(target: unknown, options?: Record<string, unknown>): HydraSceneApi",
+      "signature": "lookAt(target: unknown, options?: Record<string, unknown>): TriodeSceneApi",
       "description": ""
     },
     {
       "name": "out",
-      "signature": "out(output?: unknown | HydraRenderCallOptions, options?: HydraTransformRenderOptions): HydraSceneApi",
+      "signature": "out(output?: unknown | TriodeRenderCallOptions, options?: TriodeTransformRenderOptions): TriodeSceneApi",
       "description": ""
     },
     {
       "name": "render",
-      "signature": "render(output?: unknown | HydraRenderCallOptions, options?: HydraTransformRenderOptions): HydraSceneApi",
+      "signature": "render(output?: unknown | TriodeRenderCallOptions, options?: TriodeTransformRenderOptions): TriodeSceneApi",
       "description": ""
     },
     {
       "name": "autoClear",
-      "signature": "autoClear(amount?: number, color?: number, options?: Record<string, unknown>): HydraSceneApi",
+      "signature": "autoClear(amount?: number, color?: number, options?: Record<string, unknown>): TriodeSceneApi",
       "description": ""
     },
     {
       "name": "clear",
-      "signature": "clear(amount?: number, color?: number, options?: Record<string, unknown>): HydraSceneApi",
+      "signature": "clear(amount?: number, color?: number, options?: Record<string, unknown>): TriodeSceneApi",
       "description": ""
     },
     {
@@ -718,12 +718,12 @@
     },
     {
       "name": "texture",
-      "signature": "texture(output?: unknown | HydraRenderCallOptions, options?: Record<string, unknown>): unknown",
+      "signature": "texture(output?: unknown | TriodeRenderCallOptions, options?: Record<string, unknown>): unknown",
       "description": ""
     },
     {
       "name": "instanced",
-      "signature": "instanced(geometry: unknown, material: unknown, count: number, options?: HydraObjectOptions): unknown",
+      "signature": "instanced(geometry: unknown, material: unknown, count: number, options?: TriodeObjectOptions): unknown",
       "description": ""
     },
     {
@@ -740,57 +740,57 @@
   "transformChainEntries": [
     {
       "name": "out",
-      "signature": "out( output?: unknown | HydraRenderCallOptions, options?: HydraTransformRenderOptions, ): HydraTransformChain",
+      "signature": "out( output?: unknown | TriodeRenderCallOptions, options?: TriodeTransformRenderOptions, ): TriodeTransformChain",
       "description": ""
     },
     {
       "name": "render",
-      "signature": "render( output?: unknown | HydraRenderCallOptions, options?: HydraTransformRenderOptions, ): HydraTransformChain",
+      "signature": "render( output?: unknown | TriodeRenderCallOptions, options?: TriodeTransformRenderOptions, ): TriodeTransformChain",
       "description": ""
     },
     {
       "name": "autoClear",
-      "signature": "autoClear(amount?: number, color?: number, options?: Record<string, unknown>): HydraTransformChain",
+      "signature": "autoClear(amount?: number, color?: number, options?: Record<string, unknown>): TriodeTransformChain",
       "description": ""
     },
     {
       "name": "clear",
-      "signature": "clear(amount?: number, color?: number, options?: Record<string, unknown>): HydraTransformChain",
+      "signature": "clear(amount?: number, color?: number, options?: Record<string, unknown>): TriodeTransformChain",
       "description": ""
     },
     {
       "name": "basic",
-      "signature": "basic(options?: Record<string, unknown>): HydraTransformChain",
+      "signature": "basic(options?: Record<string, unknown>): TriodeTransformChain",
       "description": ""
     },
     {
       "name": "phong",
-      "signature": "phong(options?: Record<string, unknown>): HydraTransformChain",
+      "signature": "phong(options?: Record<string, unknown>): TriodeTransformChain",
       "description": ""
     },
     {
       "name": "lambert",
-      "signature": "lambert(options?: Record<string, unknown>): HydraTransformChain",
+      "signature": "lambert(options?: Record<string, unknown>): TriodeTransformChain",
       "description": ""
     },
     {
       "name": "material",
-      "signature": "material( typeOrOptions?: \"basic\" | \"lambert\" | \"phong\" | Record<string, unknown>, options?: Record<string, unknown>, ): HydraTransformChain",
+      "signature": "material( typeOrOptions?: \"basic\" | \"lambert\" | \"phong\" | Record<string, unknown>, options?: Record<string, unknown>, ): TriodeTransformChain",
       "description": ""
     },
     {
       "name": "st",
-      "signature": "st(source: HydraTransformChain): HydraTransformChain",
+      "signature": "st(source: TriodeTransformChain): TriodeTransformChain",
       "description": ""
     },
     {
       "name": "tex",
-      "signature": "tex(output?: unknown | HydraRenderCallOptions, options?: Record<string, unknown>): unknown",
+      "signature": "tex(output?: unknown | TriodeRenderCallOptions, options?: Record<string, unknown>): unknown",
       "description": ""
     },
     {
       "name": "texture",
-      "signature": "texture(output?: unknown | HydraRenderCallOptions, options?: Record<string, unknown>): unknown",
+      "signature": "texture(output?: unknown | TriodeRenderCallOptions, options?: Record<string, unknown>): unknown",
       "description": ""
     },
     {
@@ -845,6 +845,7 @@
       "lineBasic",
       "points",
       "worldPosGradientY",
+      "triode",
       "hydra",
       "dots",
       "squares",
@@ -956,8 +957,8 @@
   },
   "counts": {
     "constructorOptions": 18,
-    "hydraRendererMembers": 14,
-    "hydraSynthMembers": 56,
+    "triodeRendererMembers": 14,
+    "triodeSynthMembers": 56,
     "sceneMembers": 30,
     "transformChainMembers": 12,
     "modules": 10,

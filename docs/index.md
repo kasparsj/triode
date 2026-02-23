@@ -1,6 +1,6 @@
 # triode Documentation
 
-triode keeps Hydra's live-coding workflow while extending it with a Three.js scene API.
+triode keeps a Hydra-style live-coding workflow while extending it with a Three.js scene API.
 
 ## Start here
 
@@ -25,6 +25,6 @@ triode keeps Hydra's live-coding workflow while extending it with a Three.js sce
 
 ## What changed in this docs pass
 
-- Added a Hydra-to-triode translation layer for common workflows.
+- Added a Hydra-to-Triode translation layer for common workflows.
 - Added task-oriented indexes for API and examples.
 - Added navigation improvements: grouped sidebar, search, and next/previous links.

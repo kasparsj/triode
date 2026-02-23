@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { ClearPass } from "three/examples/jsm/postprocessing/ClearPass.js";
-import {HydraUniform} from "./three/HydraUniform.js";
-import { HydraMaterialPass, HydraRenderPass, HydraFadePass } from "./three/HydraPass.js";
+import {TriodeUniform} from "./three/TriodeUniform.js";
+import { TriodeMaterialPass, TriodeRenderPass, TriodeFadePass } from "./three/TriodePass.js";
 import {cameraMixin, autoClearMixin} from "./lib/mixins.js";
 import * as fx from "./three/fx.js";
 import * as layers from "./three/layers.js";
@@ -38,8 +38,8 @@ Output.prototype.init = function () {
   this.composer.renderToScreen = false;
 
   this.uniforms = {
-    time: HydraUniform.get('time', 'hydra'),
-    resolution: HydraUniform.get('resolution', 'hydra'),
+    time: TriodeUniform.get('time', 'triode'),
+    resolution: TriodeUniform.get('resolution', 'triode'),
   }
 
   this.initTempFbos(this.composer.renderTarget2);
@@ -138,7 +138,7 @@ Output.prototype._set = function (passes, {cssRenderer = false}) {
         this.composer.addPass(new ClearPass());
       }
       else {
-        this.composer.addPass(new HydraFadePass(this._autoClear, this.uniforms));
+        this.composer.addPass(new TriodeFadePass(this._autoClear, this.uniforms));
       }
     }
     for (let i=0; i<passes.length; i++) {
@@ -155,7 +155,7 @@ Output.prototype._set = function (passes, {cssRenderer = false}) {
         }
         fxScene = options.scene;
         fxCamera = options.camera;
-        pass = new HydraRenderPass(fxScene, fxCamera, options);
+        pass = new TriodeRenderPass(fxScene, fxCamera, options);
         if (options.layers && options.layers.length) {
           options.layers.forEach((layer, layerIndex) => {
             layer.compile(this.synth.renderer, fxCamera);
@@ -166,14 +166,14 @@ Output.prototype._set = function (passes, {cssRenderer = false}) {
         }
       }
       else {
-        pass = new HydraMaterialPass(options);
+        pass = new TriodeMaterialPass(options);
       }
       if (options.autoClear && options.autoClear.amount > 0) {
         if (options.autoClear.amount >= 1) {
           pass.clear = true;
         }
         else {
-          this.composer.addPass(new HydraFadePass(options.autoClear, this.uniforms));
+          this.composer.addPass(new TriodeFadePass(options.autoClear, this.uniforms));
         }
       }
       this.composer.addPass(pass);

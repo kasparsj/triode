@@ -90,8 +90,8 @@ Playground note:
 this recipe targets host-app integration (`makeGlobal: false`), so use local examples instead of the playground runtime shell.
 
 ```js
-const hydra = new Hydra({ makeGlobal: false, detectAudio: false });
-const H = hydra.synth;
+const triode = new Triode({ makeGlobal: false, detectAudio: false });
+const H = triode.synth;
 
 H.perspective([2, 1.5, 2.5], [0, 0, 0]);
 H.stage().lights({ all: true }).mesh(H.geom.box(), H.osc(5).phong()).render();

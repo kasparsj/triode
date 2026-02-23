@@ -5,7 +5,7 @@ This is the shortest path to a visible 3D triode sketch.
 ## 1. Create a runtime
 
 ```js
-const hydra = new Hydra({
+const triode = new Triode({
   detectAudio: false,
   makeGlobal: true,
 });

@@ -1,0 +1,1086 @@
+
+import Output from './output.js'
+import loop from 'raf-loop'
+import Source from './triode-source.js'
+import MouseTools from './lib/mouse.js'
+import Audio from './lib/audio.js'
+import VidRecorder from './lib/video-recorder.js'
+import ArrayUtils from './lib/array-utils.js'
+import { loadScript as loadExternalScript } from './lib/load-script.js'
+// import strudel from './lib/strudel.js'
+import Sandbox from './eval-sandbox.js'
+import {GeneratorFactory} from './generator-factory.js'
+import * as THREE from "three";
+import {TriodeUniform} from "./three/TriodeUniform.js"
+import {EffectComposer} from "three/examples/jsm/postprocessing/EffectComposer.js";
+import {ShaderPass} from "three/examples/jsm/postprocessing/ShaderPass.js";
+import * as tx from "./three/tx.js";
+import * as gm from "./three/gm.js";
+import * as mt from "./three/mt.js";
+import * as scene from "./three/scene.js";
+import * as cmp from "./three/cmp.js";
+import * as rnd from "./three/rnd.js";
+import * as nse from "./three/noise.js";
+import * as math from "./three/math.js";
+import * as arr from "./three/arr.js";
+import * as gui from "./gui.js";
+import * as el from "./el.js";
+import * as threeGlobals from "./three/globals.js";
+import {
+  bindRuntimeModule,
+  clearRuntime,
+  setRuntime,
+  withRuntime,
+} from "./three/runtime.js";
+import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
+import { CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
+import { initCanvas } from "./canvas.js";
+
+const Mouse = MouseTools()
+const MISSING_HELPER_GLOBAL = Symbol('triode-missing-helper-global')
+const helperGlobalBindings = new Map()
+const MISSING_MATH_HELPER = Symbol('triode-missing-math-helper')
+const mathHelperBindings = new Map()
+const isPlainObject = (value) =>
+  value !== null &&
+  typeof value === 'object' &&
+  !Array.isArray(value)
+
+const installHelperGlobal = (key, owner, value) => {
+  if (typeof window === 'undefined') {
+    return
+  }
+  let state = helperGlobalBindings.get(key)
+  if (!state) {
+    const hasOwn = Object.prototype.hasOwnProperty.call(window, key)
+    state = {
+      base: hasOwn ? window[key] : MISSING_HELPER_GLOBAL,
+      owners: [],
+    }
+    helperGlobalBindings.set(key, state)
+  }
+  state.owners.push({ owner, value })
+  window[key] = value
+}
+
+const restoreHelperGlobal = (key, owner) => {
+  if (typeof window === 'undefined') {
+    return
+  }
+  const state = helperGlobalBindings.get(key)
+  if (!state) {
+    return
+  }
+  state.owners = state.owners.filter((entry) => entry.owner !== owner)
+  if (state.owners.length > 0) {
+    window[key] = state.owners[state.owners.length - 1].value
+    return
+  }
+  if (state.base === MISSING_HELPER_GLOBAL) {
+    delete window[key]
+  } else {
+    window[key] = state.base
+  }
+  helperGlobalBindings.delete(key)
+}
+
+const installMathHelper = (key, owner, value) => {
+  let state = mathHelperBindings.get(key)
+  if (!state) {
+    const hasOwn = Object.prototype.hasOwnProperty.call(Math, key)
+    state = {
+      base: hasOwn ? Math[key] : MISSING_MATH_HELPER,
+      owners: [],
+    }
+    mathHelperBindings.set(key, state)
+  }
+  state.owners.push({ owner, value })
+  Math[key] = value
+}
+
+const restoreMathHelper = (key, owner) => {
+  const state = mathHelperBindings.get(key)
+  if (!state) {
+    return
+  }
+  state.owners = state.owners.filter((entry) => entry.owner !== owner)
+  if (state.owners.length > 0) {
+    Math[key] = state.owners[state.owners.length - 1].value
+    return
+  }
+  if (state.base === MISSING_MATH_HELPER) {
+    delete Math[key]
+  } else {
+    Math[key] = state.base
+  }
+  mathHelperBindings.delete(key)
+}
+// to do: add ability to pass in certain uniforms and transforms
+class TriodeRenderer {
+
+  constructor ({
+    pb = null,
+    width = 1280,
+    height = 720,
+    numSources = 4,
+    numOutputs = 4,
+    makeGlobal,
+    autoLoop = true,
+    detectAudio = true,
+    enableStreamCapture = true,
+    webgl = 2,
+    canvas,
+    css2DElement,
+    css3DElement,
+    precision,
+    onError,
+    liveMode,
+    legacy = false,
+    extendTransforms = {} // add your own functions on init
+  } = {}) {
+
+    ArrayUtils.init()
+
+    this.pb = pb
+
+    this.width = width
+    this.height = height
+    this.renderAll = false
+    this.detectAudio = detectAudio
+    this.legacy = legacy === true
+    this.makeGlobal =
+      typeof makeGlobal === 'boolean' ? makeGlobal : this.legacy
+    const resolvedLiveMode =
+      typeof liveMode === 'string'
+        ? liveMode
+        : this.legacy
+          ? 'restart'
+          : 'continuous'
+    this.liveMode = resolvedLiveMode === 'continuous' ? 'continuous' : 'restart'
+    this._disposed = false
+    this._loop = null
+    this._globalHelpersInstalled = false
+    this._mathHelpersInstalled = false
+    this._deprecationWarnings = new Set()
+    this._runtimeErrorHandler = typeof onError === 'function' ? onError : null
+
+    this.canvas = initCanvas(canvas, this);
+    this.width = this.canvas.width
+    this.height = this.canvas.height
+
+    //global.window.test = 'hi'
+    // object that contains all properties that will be made available on the global context and during local evaluation
+    const sceneApi = this.scene.bind(this)
+    const stageApi = this.stage.bind(this)
+    this.synth = {
+      time: 0,
+      bpm: 30,
+      canvas: this.canvas,
+      width: this.width,
+      height: this.height,
+      fps: undefined,
+      stats: {
+        fps: 0
+      },
+      speed: 1,
+      mouse: Mouse,
+      render: this._render.bind(this),
+      setResolution: this.setResolution.bind(this),
+      update: (dt) => {},// user defined update function
+      onFrame: this.onFrame.bind(this),
+      click: (event) => {},
+      mousedown: (event) => {},
+      mouseup: (event) => {},
+      mousemove: (event) => {},
+      keydown: (event) => {},
+      keyup: (event) => {},
+      afterUpdate: (dt) => {},// user defined function run after update
+      onError: this._runtimeErrorHandler,
+      liveMode: this.liveMode,
+      legacy: this.legacy,
+      hush: this.hush.bind(this),
+      resetRuntime: this.resetRuntime.bind(this),
+      tick: this.tick.bind(this),
+      shadowMap: this.shadowMap.bind(this),
+      scene: sceneApi,
+      stage: stageApi,
+      liveGlobals: this.liveGlobals.bind(this),
+      ortho: (...args) => this.output.ortho.apply(this.output, args),
+      perspective: (...args) => this.output.perspective.apply(this.output, args),
+      screenCoords: (w, h) => this.output.screenCoords(w, h),
+      normalizedCoords: () => this.output.normalizedCoords(),
+      cartesianCoords: (w, h) => this.output.cartesianCoords(w, h),
+    }
+
+    nse.init();
+    this.synth.math = math
+
+    this.modules = {
+      tx: bindRuntimeModule(tx, this),
+      gm: bindRuntimeModule(gm, this),
+      mt: bindRuntimeModule(mt, this),
+      cmp: bindRuntimeModule(cmp, this),
+      rnd: bindRuntimeModule(rnd, this),
+      nse: bindRuntimeModule(nse, this),
+      gui: bindRuntimeModule(gui, this),
+      arr: bindRuntimeModule(arr, this),
+      el: bindRuntimeModule(el, this),
+    }
+    this.synth.tx = this.modules.tx
+    this.synth.gm = this.modules.gm
+    this.synth.mt = this.modules.mt
+    this.synth.cmp = this.modules.cmp
+    this.synth.rnd = this.modules.rnd
+    this.synth.nse = this.modules.nse
+    this.synth.gui = this.modules.gui
+    this.synth.arr = this.modules.arr
+    this.synth.el = this.modules.el
+
+    // Friendly long-form aliases for discoverability.
+    this.synth.tex = this.modules.tx
+    this.synth.geom = this.modules.gm
+    this.synth.mat = this.modules.mt
+    this.synth.compose = this.modules.cmp
+    this.synth.random = this.modules.rnd
+    // `noise` remains the shader generator function; expose module utilities under noiseUtil.
+    this.synth.noiseUtil = this.modules.nse
+
+    if (this.makeGlobal) {
+      this._installGlobalHelpers()
+      this._installMathHelpers()
+    }
+
+
+    this.timeSinceLastUpdate = 0
+    this._time = 0 // for internal use, only to use for deciding when to render frames
+
+    // only allow valid precision options
+    let precisionOptions = ['lowp','mediump','highp']
+    if(precision && precisionOptions.includes(precision.toLowerCase())) {
+      this.precision = precision.toLowerCase()
+      //
+      // if(!precisionValid){
+      //   console.warn('[triode warning]\nConstructor was provided an invalid floating point precision value of "' + precision + '". Using default value of "mediump" instead.')
+      // }
+    } else {
+      let isIOS =
+    (/iPad|iPhone|iPod/.test(navigator.platform) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) &&
+    !window.MSStream;
+      this.precision = isIOS ? 'highp' : 'mediump'
+    }
+
+
+
+    this.extendTransforms = extendTransforms
+
+    // boolean to store when to save screenshot
+    this.saveFrame = false
+
+    // if stream capture is enabled, this object contains the capture stream
+    this.captureStream = null
+
+    this.generator = undefined
+
+    this._initThree(webgl, css2DElement, css3DElement);
+    this._initOutputs(numOutputs)
+    this._initSources(numSources)
+    this._generateGlslTransforms()
+    setRuntime(this, { active: true })
+
+    this.synth.screencap = () => {
+      this.saveFrame = true
+    }
+
+    if (enableStreamCapture) {
+      try {
+        this.captureStream = this.canvas.captureStream(25)
+        // to do: enable capture stream of specific sources and outputs
+        this.synth.vidRecorder = new VidRecorder(this.captureStream)
+      } catch (e) {
+        console.warn('[triode warning]\nnew MediaSource() is not currently supported on iOS.')
+        console.error(e)
+      }
+    }
+
+    if(detectAudio) this._initAudio()
+
+    if(autoLoop) {
+      this._loop = loop(this.tick.bind(this))
+      this._loop.start()
+    }
+
+    // final argument is properties that the user can set, all others are treated as read-only
+    this.sandbox = new Sandbox(this.synth, this.makeGlobal, ['speed', 'update', 'afterUpdate', 'click', 'mousedown', 'mouseup', 'mousemove', 'keydown', 'keyup', 'bpm', 'fps'])
+  }
+
+  eval(code) {
+    const continuousEval = this.liveMode === 'continuous'
+    if (continuousEval) {
+      scene.beginSceneEval(this, code)
+    }
+    try {
+      this.sandbox.eval(code)
+    } finally {
+      if (continuousEval) {
+        scene.endSceneEval(this)
+      }
+    }
+  }
+
+  getScreenImage(callback) {
+    this.imageCallback = callback
+    this.saveFrame = true
+  }
+
+  hush() {
+    this.s.forEach((source) => {
+      source.clear()
+    })
+    this.o.forEach((output) => {
+      this.synth.solid(0, 0, 0, 0).out(output)
+    })
+    this.synth.render(this.o[0])
+    this.sandbox.set('update', (dt) => {})
+    this.sandbox.set('click', (event) => {})
+    this.sandbox.set('mousedown', (event) => {})
+    this.sandbox.set('mouseup', (event) => {})
+    this.sandbox.set('mousemove', (event) => {})
+    this.sandbox.set('keydown', (event) => {})
+    this.sandbox.set('keyup', (event) => {})
+    this.sandbox.set('afterUpdate', (dt) => {})
+  }
+
+  resetRuntime() {
+    if (this._disposed) {
+      return
+    }
+    withRuntime(this, () => {
+      this.hush()
+      scene.clearSceneRuntime(this)
+    })
+    this.synth.time = 0
+    this.sandbox.set('time', 0)
+    this.timeSinceLastUpdate = 0
+    this._time = 0
+    if (this.synth.stats && typeof this.synth.stats === 'object') {
+      this.synth.stats.fps = 0
+    }
+  }
+
+  loadScript(url = "", once = true) {
+   const browserWindow = typeof window !== 'undefined' ? window : null
+   const scope = this && browserWindow && this !== browserWindow ? this : browserWindow
+   return loadExternalScript(url, once, scope).then(() => {
+     console.log(`loaded script ${url}`)
+   })
+ }
+
+  _installGlobalHelpers() {
+    if (this._globalHelpersInstalled || typeof window === 'undefined') {
+      return
+    }
+    const loadScriptHelper = (url = "", once = true) =>
+      loadExternalScript(url, once, window).then(() => {
+        console.log(`loaded script ${url}`)
+      })
+    const getCodeHelper = () => {
+      const urlParams = new URLSearchParams(window.location.search)
+      console.log(decodeURIComponent(urlParams.get('code')))
+    }
+    installHelperGlobal('loadScript', this, loadScriptHelper)
+    installHelperGlobal('getCode', this, getCodeHelper)
+    installHelperGlobal('GridGeometry', this, gm.GridGeometry)
+    this._globalHelpersInstalled = true
+  }
+
+  _restoreGlobalHelpers() {
+    if (!this._globalHelpersInstalled || typeof window === 'undefined') {
+      return
+    }
+    restoreHelperGlobal('loadScript', this)
+    restoreHelperGlobal('getCode', this)
+    restoreHelperGlobal('GridGeometry', this)
+    this._globalHelpersInstalled = false
+  }
+
+  _installMathHelpers() {
+    if (this._mathHelpersInstalled) {
+      return
+    }
+    Object.keys(math).forEach((key) => {
+      installMathHelper(key, this, math[key])
+    })
+    this._mathHelpersInstalled = true
+  }
+
+  _restoreMathHelpers() {
+    if (!this._mathHelpersInstalled) {
+      return
+    }
+    Object.keys(math).forEach((key) => {
+      restoreMathHelper(key, this)
+    })
+    this._mathHelpersInstalled = false
+  }
+
+  _getRuntimeErrorHandler() {
+    if (this.synth && typeof this.synth.onError === 'function') {
+      return this.synth.onError
+    }
+    if (typeof this._runtimeErrorHandler === 'function') {
+      return this._runtimeErrorHandler
+    }
+    return null
+  }
+
+  _handleRuntimeError(error, context = 'tick') {
+    const handler = this._getRuntimeErrorHandler()
+    if (handler) {
+      try {
+        handler(error, {
+          context,
+          time: this.synth ? this.synth.time : 0,
+        })
+      } catch (handlerError) {
+        console.warn('Error in onError handler:', handlerError)
+      }
+    }
+    console.warn(`Error during ${context}():`, error)
+  }
+
+  setResolution(width, height) {
+    console.log("setResolution", width, height)
+    this.canvas.width = width
+    this.canvas.height = height
+    this.width = width // is this necessary?
+    this.height = height // ?
+    this.sandbox.set('width', width)
+    this.sandbox.set('height', height)
+    this.o.forEach((output) => {
+      output.resize(width, height)
+    })
+    this.s.forEach((source) => {
+      source.resize(width, height)
+    })
+    this.css2DRenderer.setSize(width, height)
+    this.css3DRenderer.setSize(width, height)
+  }
+
+  canvasToImage (callback) {
+    const a = document.createElement('a')
+    a.style.display = 'none'
+
+    let d = new Date()
+    a.download = `triode-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}-${d.getHours()}.${d.getMinutes()}.${d.getSeconds()}.png`
+    document.body.appendChild(a)
+    var self = this
+    this.canvas.toBlob( (blob) => {
+        if(self.imageCallback){
+          self.imageCallback(blob)
+          delete self.imageCallback
+        } else {
+          a.href = URL.createObjectURL(blob)
+          console.log(a.href)
+          a.click()
+        }
+    }, 'image/png')
+    setTimeout(() => {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(a.href);
+    }, 300);
+  }
+
+  _initAudio () {
+    const that = this
+    this.synth.a = new Audio({
+      numBins: 4,
+      parentEl: this.canvas.parentNode
+      // changeListener: ({audio}) => {
+      //   that.a = audio.bins.map((_, index) =>
+      //     (scale = 1, offset = 0) => () => (audio.fft[index] * scale + offset)
+      //   )
+      //
+      //   if (that.makeGlobal) {
+      //     that.a.forEach((a, index) => {
+      //       const aname = `a${index}`
+      //       window[aname] = a
+      //     })
+      //   }
+      // }
+    })
+  }
+
+  _initThree (webgl, css2DElement, css3DElement) {
+    this.synth.THREE = THREE;
+    Object.assign(this.synth, threeGlobals);
+
+    const options = {
+      canvas: this.canvas,
+      antialias: true,
+      alpha: true,
+    };
+
+    this.renderer = webgl === 1 ? new THREE.WebGL1Renderer( options ) : new THREE.WebGLRenderer(options);
+    this.renderer.clear();
+    this.renderer.autoClear = false;
+    this.synth.renderer = this.renderer;
+    this.composer = new EffectComposer(this.renderer);
+
+    this.css2DRenderer = new CSS2DRenderer({element:css2DElement});
+    this.css2DRenderer.setSize(this.width, this.height);
+    this.css2DRenderer.domElement.style.position = 'absolute';
+    this.css2DRenderer.domElement.style.top = '0px';
+    this.css2DRenderer.domElement.style.pointerEvents = 'none';
+    document.body.appendChild( this.css2DRenderer.domElement );
+    this.synth.css2DRenderer = this.css2DRenderer;
+
+    this.css3DRenderer = new CSS3DRenderer({element:css3DElement});
+    this.css3DRenderer.setSize(this.width, this.height);
+    this.css3DRenderer.domElement.style.position = 'absolute';
+    this.css3DRenderer.domElement.style.top = '0px';
+    this.css3DRenderer.domElement.style.pointerEvents = 'none';
+    document.body.appendChild( this.css3DRenderer.domElement );
+    this.synth.css3DRenderer = this.css3DRenderer;
+
+    new TriodeUniform('tex', null, () => this.output.getTexture(), 'triode');
+    new TriodeUniform('tex0', null, () => this.o[0].getTexture(), 'triode');
+    new TriodeUniform('tex1', null, () => this.o[1].getTexture(), 'triode');
+    new TriodeUniform('tex2', null, () => this.o[2].getTexture(), 'triode');
+    new TriodeUniform('tex3', null, () => this.o[3].getTexture(), 'triode');
+    new TriodeUniform('resolution', null, () => [this.canvas.width, this.canvas.height], 'triode');
+    new TriodeUniform('time', this.synth.time, () => this.synth.time, 'triode');
+    new TriodeUniform('mouse', this.synth.mouse, () => this.synth.mouse, 'triode');
+    new TriodeUniform('bpm', this.synth.bpm, () => this.synth.bpm, 'triode');
+
+    this.renderAll = new ShaderPass(new THREE.ShaderMaterial({
+      vertexShader: `
+      varying vec2 vUv;
+      
+      void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+      }
+      `,
+      fragmentShader: `
+      uniform sampler2D tex0;
+      uniform sampler2D tex1;
+      uniform sampler2D tex2;
+      uniform sampler2D tex3;
+      
+      varying vec2 vUv;
+
+      void main () {
+        vec2 st = vUv;
+        st*= vec2(2);
+        vec2 q = floor(st).xy*(vec2(2.0, 1.0));
+        int quad = int(q.x) + int(q.y);
+        st.x += step(1., mod(st.y,2.0));
+        st.y += step(1., mod(st.x,2.0));
+        st = fract(st);
+        if(quad==0){
+          gl_FragColor = texture2D(tex0, st);
+        } else if(quad==1){
+          gl_FragColor = texture2D(tex1, st);
+        } else if (quad==2){
+          gl_FragColor = texture2D(tex2, st);
+        } else {
+          gl_FragColor = texture2D(tex3, st);
+        }
+
+      }
+      `,
+      uniforms: {
+        tex0: TriodeUniform.get('tex0', 'triode'),
+        tex1: TriodeUniform.get('tex1', 'triode'),
+        tex2: TriodeUniform.get('tex2', 'triode'),
+        tex3: TriodeUniform.get('tex3', 'triode')
+      },
+      depthTest: false
+    }));
+
+    this.renderFbo = new ShaderPass(new THREE.ShaderMaterial({
+      vertexShader: `
+      varying vec2 vUv;
+      
+      void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+      }
+      `,
+      fragmentShader: `
+      uniform vec2 resolution;
+      uniform sampler2D tex0;
+      
+      varying vec2 vUv;
+
+      void main () {
+          gl_FragColor = texture2D(tex0, vUv);
+      }
+      `,
+      uniforms: {
+        tex0: TriodeUniform.get('tex', 'triode'),
+        resolution: TriodeUniform.get('resolution', 'triode'),
+      },
+      depthTest: false
+    }));
+
+    this.composer.addPass(this.renderAll);
+    this.composer.addPass(this.renderFbo);
+  }
+
+  _initOutputs (numOutputs) {
+    const self = this
+    this.o = (Array(numOutputs)).fill().map((el, index) => {
+      var o = new Output(index, this)
+      self.synth['o'+index] = o
+      return o
+    })
+
+    // set default output
+    this.output = this.o[0]
+  }
+
+  _initSources (numSources) {
+    this.s = []
+    for(var i = 0; i < numSources; i++) {
+      this.createSource(i)
+    }
+  }
+
+  createSource (i) {
+    let s = new Source({regl: this.regl, pb: this.pb, width: this.width, height: this.height, label: `s${i}`})
+    this.synth['s' + this.s.length] = s
+    this.s.push(s)
+    return s
+  }
+
+  _generateGlslTransforms () {
+    var self = this
+    this.generator = new GeneratorFactory({
+      defaultOutput: this.o[0],
+      defaultUniforms: this.o[0].uniforms,
+      extendTransforms: this.extendTransforms,
+      changeListener: ({type, method, synth}) => {
+          if (type === 'add') {
+            self.synth[method] = synth.generators[method]
+            if(self.sandbox) self.sandbox.add(method)
+          } else if (type === 'remove') {
+            // what to do here? dangerously deleting window methods
+            //delete window[method]
+          }
+      //  }
+      }
+    })
+    this.synth.setFunction = this.generator.setFunction.bind(this.generator)
+  }
+
+  _render (output) {
+    if (output) {
+      this.output = output
+      this.isRenderingAll = false
+    } else {
+      this.isRenderingAll = true
+    }
+  }
+
+  // dt in ms
+  tick (dt, uniforms) {
+    if (this._disposed) {
+      return
+    }
+    try {
+    this.sandbox.tick()
+    if(this.detectAudio === true) this.synth.a.tick()
+  //  let updateInterval = 1000/this.synth.fps // ms
+    this.sandbox.set('time', this.synth.time += dt * 0.001 * this.synth.speed)
+    this.timeSinceLastUpdate += dt
+    if(!this.synth.fps || this.timeSinceLastUpdate >= 1000/this.synth.fps) {
+    //  console.log(1000/this.timeSinceLastUpdate)
+      this.synth.stats.fps = Math.ceil(1000/this.timeSinceLastUpdate)
+      if(this.synth.update) {
+        try { this.synth.update(this.timeSinceLastUpdate) } catch (e) { this._handleRuntimeError(e, 'update') }
+      }
+      for (let i = 0; i < this.s.length; i++) {
+        this.s[i].tick(this.synth.time)
+      }
+      for (let i = 0; i < this.o.length; i++) {
+        this.o[i].tick()
+      }
+      if (this.isRenderingAll) {
+        this.renderAll.enabled = true;
+        this.renderFbo.enabled = false;
+      } else {
+        this.renderFbo.enabled = true;
+        this.renderAll.enabled = false;
+      }
+      this.composer.render();
+      if(this.synth.afterUpdate) {
+        try { this.synth.afterUpdate(this.timeSinceLastUpdate) } catch (e) { this._handleRuntimeError(e, 'afterUpdate') }
+      }
+      this.timeSinceLastUpdate = 0
+    }
+    if(this.saveFrame === true) {
+      this.canvasToImage()
+      this.saveFrame = false
+    }
+  } catch(e) {
+    this._handleRuntimeError(e, 'tick')
+  //  this.regl.poll()
+  }
+  }
+
+  dispose() {
+    if (this._disposed) {
+      return
+    }
+    this._disposed = true
+
+    if (this._loop && typeof this._loop.stop === 'function') {
+      this._loop.stop()
+      this._loop = null
+    }
+
+    if (this.synth && this.synth.vidRecorder && this.synth.vidRecorder.mediaRecorder) {
+      const recorder = this.synth.vidRecorder.mediaRecorder
+      if (recorder.state && recorder.state !== 'inactive') {
+        try {
+          recorder.stop()
+        } catch (_error) {}
+      }
+    }
+
+    if (this.captureStream && typeof this.captureStream.getTracks === 'function') {
+      this.captureStream.getTracks().forEach((track) => {
+        if (track && typeof track.stop === 'function') {
+          track.stop()
+        }
+      })
+    }
+
+    if (this.s) {
+      this.s.forEach((source) => {
+        if (source && typeof source.clear === 'function') {
+          source.clear()
+        }
+      })
+    }
+
+    if (this.o) {
+      this.o.forEach((output) => {
+        if (output && typeof output.dispose === 'function') {
+          output.dispose()
+        } else if (output && typeof output.stop === 'function') {
+          output.stop()
+        }
+      })
+    }
+
+    if (this.composer && typeof this.composer.dispose === 'function') {
+      this.composer.dispose()
+    }
+
+    if (this.renderer && typeof this.renderer.dispose === 'function') {
+      this.renderer.dispose()
+    }
+
+    if (
+      this.css2DRenderer &&
+      this.css2DRenderer.domElement &&
+      this.css2DRenderer.domElement.parentNode
+    ) {
+      this.css2DRenderer.domElement.parentNode.removeChild(
+        this.css2DRenderer.domElement
+      )
+    }
+
+    if (
+      this.css3DRenderer &&
+      this.css3DRenderer.domElement &&
+      this.css3DRenderer.domElement.parentNode
+    ) {
+      this.css3DRenderer.domElement.parentNode.removeChild(
+        this.css3DRenderer.domElement
+      )
+    }
+
+    if (this.sandbox && typeof this.sandbox.destroy === 'function') {
+      this.sandbox.destroy()
+    }
+
+    this._restoreGlobalHelpers()
+    this._restoreMathHelpers()
+    scene.clearSceneRuntime(this)
+    if (
+      this.canvas &&
+      (this.canvas._triodeInputRuntime === this ||
+        this.canvas._hydraInputRuntime === this)
+    ) {
+      this.canvas._triodeInputRuntime = null
+      this.canvas._hydraInputRuntime = null
+    }
+    clearRuntime(this)
+  }
+
+  shadowMap(options) {
+    options = options || {
+      enabled: true,
+      type: THREE.PCFSoftShadowMap,
+    };
+    Object.keys(options).forEach((prop) => {
+      this.renderer.shadowMap[prop] = options[prop];
+    })
+  }
+
+  // todo: scene2d and scene3d
+  scene(attributes) {
+    return withRuntime(this, () =>
+      scene.getOrCreateScene(
+        {
+          runtime: this,
+          defaultOutput: this.generator.defaultOutput,
+          defaultUniforms: this.generator.defaultUniforms,
+          utils: this.generator.utils,
+        },
+        attributes
+      )
+    )
+  }
+
+  stage(config = {}) {
+    const stageConfig = isPlainObject(config) ? config : {}
+    const {
+      camera,
+      lights,
+      world,
+      clear,
+      autoClear,
+      output,
+      render,
+      out,
+      cssRenderer,
+      renderTarget,
+      fx,
+      layers,
+      ...sceneAttributes
+    } = stageConfig
+
+    const stageScene = this.scene(sceneAttributes)
+
+    if (camera !== undefined && camera !== false) {
+      this._applyStageCamera(camera)
+    }
+
+    if (lights !== undefined && lights !== false) {
+      this._applyStageLights(stageScene, lights)
+    }
+
+    if (world !== undefined && world !== false) {
+      this._applyStageWorld(stageScene, world)
+    }
+
+    const clearValue = clear !== undefined ? clear : autoClear
+    if (clearValue !== undefined) {
+      this._applyStageClear(stageScene, clearValue)
+    }
+
+    const renderConfig =
+      (isPlainObject(render) && render) ||
+      (isPlainObject(out) && out) ||
+      null
+
+    const shouldRender =
+      render === true ||
+      out === true ||
+      !!renderConfig ||
+      output !== undefined ||
+      cssRenderer !== undefined ||
+      renderTarget !== undefined ||
+      fx !== undefined ||
+      layers !== undefined
+
+    if (shouldRender) {
+      const renderOptions = {}
+      let renderOutput = output
+
+      if (renderConfig) {
+        const {
+          to,
+          output: configuredOutput,
+          target,
+          renderTarget: configuredRenderTarget,
+          css,
+          cssRenderer: configuredCssRenderer,
+          ...configuredOptions
+        } = renderConfig
+        renderOutput =
+          to !== undefined
+            ? to
+            : configuredOutput !== undefined
+              ? configuredOutput
+              : output
+        Object.assign(renderOptions, configuredOptions)
+        if (configuredCssRenderer !== undefined) {
+          renderOptions.cssRenderer = configuredCssRenderer
+        } else if (css !== undefined) {
+          renderOptions.cssRenderer = css
+        }
+        if (configuredRenderTarget !== undefined) {
+          renderOptions.renderTarget = configuredRenderTarget
+        } else if (target !== undefined) {
+          renderOptions.renderTarget = target
+        }
+      }
+
+      if (cssRenderer !== undefined && renderOptions.cssRenderer === undefined) {
+        renderOptions.cssRenderer = cssRenderer
+      }
+      if (renderTarget !== undefined && renderOptions.renderTarget === undefined) {
+        renderOptions.renderTarget = renderTarget
+      }
+      if (fx !== undefined && renderOptions.fx === undefined) {
+        renderOptions.fx = fx
+      }
+      if (layers !== undefined && renderOptions.layers === undefined) {
+        renderOptions.layers = layers
+      }
+
+      stageScene.render(renderOutput, renderOptions)
+    }
+
+    return stageScene
+  }
+
+  onFrame(callback) {
+    if (typeof callback !== 'function') {
+      return
+    }
+    const updateFn = (dt) => {
+      callback(dt, this.synth.time)
+    }
+    this.synth.update = updateFn
+    if (this.sandbox && typeof this.sandbox.set === 'function') {
+      this.sandbox.set('update', updateFn)
+    }
+  }
+
+  liveGlobals(enable = true) {
+    const nextState = !!enable
+    if (this.makeGlobal === nextState) {
+      return this.makeGlobal
+    }
+    if (!this.sandbox) {
+      this.makeGlobal = nextState
+      return this.makeGlobal
+    }
+    if (nextState) {
+      this.makeGlobal = true
+      this.sandbox.makeGlobal = true
+      Object.keys(this.synth).forEach((property) => {
+        this.sandbox.add(property)
+      })
+      this._installGlobalHelpers()
+      this._installMathHelpers()
+    } else {
+      this.makeGlobal = false
+      this.sandbox.destroy()
+      this.sandbox.makeGlobal = false
+      this._restoreGlobalHelpers()
+      this._restoreMathHelpers()
+    }
+    return this.makeGlobal
+  }
+
+  _applyStageCamera(cameraConfig) {
+    if (cameraConfig === true) {
+      this.output.perspective()
+      return
+    }
+    if (typeof cameraConfig === 'string') {
+      switch (cameraConfig.toLowerCase()) {
+        case 'perspective':
+          this.output.perspective()
+          break
+        case 'orthographic':
+        case 'ortho':
+        default:
+          this.output.ortho()
+          break
+      }
+      return
+    }
+    if (!isPlainObject(cameraConfig)) {
+      return
+    }
+    const cameraType =
+      typeof cameraConfig.type === 'string'
+        ? cameraConfig.type.toLowerCase()
+        : (this.output._camera instanceof THREE.PerspectiveCamera ? 'perspective' : 'ortho')
+    const { eye, target, type, ...cameraOptions } = cameraConfig
+    if (cameraType === 'perspective') {
+      this.output.perspective(eye, target, cameraOptions)
+    } else {
+      this.output.ortho(eye, target, cameraOptions)
+    }
+  }
+
+  _applyStageLights(stageScene, lightsConfig) {
+    if (lightsConfig === true || lightsConfig === 'basic') {
+      stageScene.lights()
+      return
+    }
+    if (lightsConfig === 'studio') {
+      stageScene.lights({ all: true })
+      return
+    }
+    if (isPlainObject(lightsConfig)) {
+      stageScene.lights(lightsConfig)
+      return
+    }
+    stageScene.lights()
+  }
+
+  _applyStageWorld(stageScene, worldConfig) {
+    if (worldConfig === true || worldConfig === 'ground') {
+      stageScene.world({ ground: true })
+      return
+    }
+    if (worldConfig === 'atmosphere') {
+      stageScene.world({ ground: true, fog: true })
+      return
+    }
+    if (isPlainObject(worldConfig)) {
+      stageScene.world(worldConfig)
+      return
+    }
+    stageScene.world()
+  }
+
+  _applyStageClear(stageScene, clearConfig) {
+    if (typeof clearConfig === 'number') {
+      stageScene.clear(clearConfig)
+      return
+    }
+    if (isPlainObject(clearConfig)) {
+      const amount =
+        typeof clearConfig.amount === 'number' ? clearConfig.amount : 1
+      const color =
+        clearConfig.color !== undefined ? clearConfig.color : 0
+      stageScene.clear(amount, color, clearConfig)
+      return
+    }
+    stageScene.clear()
+  }
+
+}
+
+if (typeof globalThis !== "undefined") {
+  if (typeof globalThis.Triode === "undefined") {
+    globalThis.Triode = TriodeRenderer
+  }
+  if (typeof globalThis.Hydra === "undefined") {
+    globalThis.Hydra = TriodeRenderer
+  }
+}
+
+export default TriodeRenderer

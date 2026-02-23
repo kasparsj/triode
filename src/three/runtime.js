@@ -27,7 +27,7 @@ const getRuntime = (fallbackRuntime) => {
   const runtime = fallbackRuntime || (runtimeScopeDepth > 0 ? activeRuntime : null)
   if (!runtime) {
     throw new Error(
-      'Hydra runtime is not initialized. Create a Hydra instance before using 3D helpers.'
+      "Triode runtime is not initialized. Create a Triode instance before using 3D helpers."
     )
   }
   return runtime

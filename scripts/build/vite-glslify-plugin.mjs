@@ -3,8 +3,8 @@ import glslify from "glslify";
 
 const SHADER_FILE_RE = /\.(frag|vert|glsl)$/;
 
-const hydraGlslifyPlugin = () => ({
-  name: "hydra-glslify",
+const triodeGlslifyPlugin = () => ({
+  name: "triode-glslify",
   enforce: "pre",
   transform(source, id) {
     const cleanId = id.split("?")[0];
@@ -30,4 +30,6 @@ const hydraGlslifyPlugin = () => ({
   },
 });
 
-export { hydraGlslifyPlugin };
+const hydraGlslifyPlugin = (...args) => triodeGlslifyPlugin(...args);
+
+export { triodeGlslifyPlugin, hydraGlslifyPlugin };

@@ -50,7 +50,7 @@ Published URL:
 
 ## Runtime note
 
-The playground runtime is initialized with `makeGlobal: false` and evaluates snippets against `hydra.synth` scope (`with (H) { ... }`) so helper globals are not installed on `window`.
+The playground runtime is initialized with `makeGlobal: false` and evaluates snippets against `triode.synth` scope (`with (H) { ... }`) so helper globals are not installed on `window`.
 
 - `Mode: Continuous` keeps a persistent runtime and evaluates into it.
 - `Mode: Restart` disposes/recreates runtime on every run.

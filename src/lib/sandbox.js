@@ -1,4 +1,4 @@
-// attempt custom evaluation sandbox for hydra functions
+// attempt custom evaluation sandbox for triode functions
 // for now, just avoids polluting the global namespace
 // should probably be replaced with an abstract syntax tree
 

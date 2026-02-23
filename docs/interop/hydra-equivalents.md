@@ -27,18 +27,18 @@ perspective([2, 2, 3], [0, 0, 0]);
 stage().lights({ all: true }).mesh(geom.box(), osc(10).phong()).render(o0);
 ```
 
-Hydra global workflow:
+Hydra-style global workflow in triode:
 
 ```js
-const hydra = new Hydra({ makeGlobal: true });
+const triode = new Triode({ makeGlobal: true });
 osc().render();
 ```
 
 triode host-safe workflow:
 
 ```js
-const hydra = new Hydra({ makeGlobal: false });
-const H = hydra.synth;
+const triode = new Triode({ makeGlobal: false });
+const H = triode.synth;
 H.osc().render();
 ```
 

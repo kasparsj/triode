@@ -151,7 +151,7 @@ try {
   );
   assert.throws(
     () => arr.image("mock://image.png"),
-    /requires an active Hydra runtime/,
+    /requires an active Triode runtime/,
   );
 } finally {
   restoreGlobal("window", originalDescriptors.window);

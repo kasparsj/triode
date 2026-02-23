@@ -66,7 +66,7 @@ Useful for labels, debugging overlays, and hybrid UI/art pieces.
 
 ## Lifecycle and cleanup
 
-A `Hydra` instance owns the runtime graph state.
+A `Triode` instance owns the runtime graph state.
 
-- `hydra.dispose()` cleans outputs, sources, renderer state, and scene runtime stores.
+- `triode.dispose()` cleans outputs, sources, renderer state, and scene runtime stores.
 - for production embedding, always dispose old runtimes before replacing instances.

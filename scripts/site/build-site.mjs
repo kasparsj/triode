@@ -1216,11 +1216,12 @@ const renderExamplePages = async (exampleSources, outputBySource) => {
           const code = ${exampleCode};
 
           try {
-            window.hydraSynth = new Hydra({
+            window.triodeSynth = new Triode({
               canvas: canvas,
               detectAudio: false,
               makeGlobal: true
             });
+            window.hydraSynth = window.triodeSynth;
             if (typeof canvas.setAutoResize === 'function') {
               canvas.setAutoResize(true);
             }

@@ -198,7 +198,9 @@ const image = (url, callback) => {
     }
     const txApi = runtime && runtime.modules ? runtime.modules.tx : null;
     if (!txApi || typeof txApi.load !== 'function') {
-        throw new Error('arr.image() requires an active Hydra runtime with tx.load(url, callback). Use hydra.synth.arr.image(...).');
+        throw new Error(
+            "arr.image() requires an active Triode runtime with tx.load(url, callback). Use triode.synth.arr.image(...).",
+        );
     }
     return new Promise((resolve, reject) => {
         let settled = false;

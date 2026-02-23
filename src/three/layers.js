@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import {EffectComposer} from "three/examples/jsm/postprocessing/EffectComposer.js";
 import * as fx from "./fx.js";
-import {HydraUniform} from "./HydraUniform.js";
-import {HydraShaderPass, HydraRenderPass} from "./HydraPass.js";
+import {TriodeUniform} from "./TriodeUniform.js";
+import {TriodeShaderPass, TriodeRenderPass} from "./TriodePass.js";
 
 const darkMaterial = new THREE.MeshBasicMaterial( { color: 'black' } );
 const materials = {};
@@ -31,7 +31,7 @@ class Layer {
     compile(renderer, camera) {
         this.composer = new EffectComposer(renderer);
         this.composer.renderToScreen = false;
-        this.composer.addPass(new HydraRenderPass(this.scene, camera));
+        this.composer.addPass(new TriodeRenderPass(this.scene, camera));
         this.composer.passes[0].clear = true;
         fx.add(Object.assign(this.effects, {
             composer: this.composer,
@@ -60,7 +60,7 @@ class Layer {
         const mixMat = new THREE.ShaderMaterial({
             uniforms: {
                 prevBuffer: { value: null },
-                layerTexture: new HydraUniform('layerMixPassTex' + this.id, null, () => this.getTexture(), 'hydra-layer'),
+                layerTexture: new TriodeUniform('layerMixPassTex' + this.id, null, () => this.getTexture(), 'triode-layer'),
             },
             vertexShader: `
                 varying vec2 vUv;
@@ -79,7 +79,7 @@ class Layer {
             transparent: true,
             depthTest: false,
         });
-        const mixPass = new HydraShaderPass(mixMat, options);
+        const mixPass = new TriodeShaderPass(mixMat, options);
         mixPass.needsSwap = true;
         mixPass.clear = true;
         return mixPass;

@@ -1,8 +1,8 @@
 import generateGlsl from './generate-glsl.js'
 import utilityGlsl from './glsl/utility-functions.js'
 import {replaceGenType} from "./types.js"
-import {HydraFragmentShader, HydraVertexShader} from "./lib/HydraShader.js";
-import {HydraUniform} from "./three/HydraUniform.js";
+import {TriodeFragmentShader, TriodeVertexShader} from "./lib/TriodeShader.js";
+import {TriodeUniform} from "./three/TriodeUniform.js";
 import {cameraMixin, autoClearMixin, sourceMixin} from "./lib/mixins.js";
 import * as mt from "./three/mt.js";
 
@@ -34,12 +34,12 @@ GlslSource.prototype.createPass = function(shaderInfo, options = {}) {
   }
   options.uniforms = Object.assign({}, {
     prevBuffer: { value: null },
-  }, HydraUniform.wrapUniforms(options.uniforms));
+  }, TriodeUniform.wrapUniforms(options.uniforms));
   const transform = this.transforms[0];
   if (shaderInfo.combine) {
     if (transform) {
       Object.assign(options, {
-        frag: new HydraFragmentShader(Object.assign({}, transform.transform, {
+        frag: new TriodeFragmentShader(Object.assign({}, transform.transform, {
           // todo: quickfix
           useUV: true,
         }), shaderInfo, this.utils),
@@ -49,7 +49,7 @@ GlslSource.prototype.createPass = function(shaderInfo, options = {}) {
     // todo: quickfix
     delete options.renderTarget;
     return Object.assign({
-      vert: new HydraVertexShader({
+      vert: new TriodeVertexShader({
         glslName: 'combine',
       }, shaderInfo, [], { useCamera: false }),
       viewport: this._viewport,
@@ -59,8 +59,8 @@ GlslSource.prototype.createPass = function(shaderInfo, options = {}) {
 
   if (transform) {
     Object.assign(options, {
-      frag: new HydraFragmentShader(transform.transform, shaderInfo, this.utils),
-      vert: new HydraVertexShader(transform.transform, shaderInfo, this.utils, { useCamera: true }),
+      frag: new TriodeFragmentShader(transform.transform, shaderInfo, this.utils),
+      vert: new TriodeVertexShader(transform.transform, shaderInfo, this.utils, { useCamera: true }),
       primitive: transform.transform.primitive,
       userArgs: transform.userArgs,
     });

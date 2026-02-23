@@ -3,7 +3,7 @@ import snoiseFrag from "../shaders/snoise.frag";
 import fbmFrag from "../shaders/fbm.frag";
 
 /*
-Format for adding functions to hydra. For each entry in this file, hydra automatically generates a glsl function and javascript function with the same name. You can also ass functions dynamically using setFunction(object).
+Format for adding functions to triode. For each entry in this file, triode automatically generates a glsl function and javascript function with the same name. You can also add functions dynamically using setFunction(object).
 
 {
   name: 'osc', // name that will be used to access function in js as well as in glsl
@@ -44,7 +44,7 @@ Format for adding functions to hydra. For each entry in this file, hydra automat
 }`
 
 
-Types and default arguments for hydra functions.
+Types and default arguments for triode functions.
 The value in the 'type' field lets the parser know which type the function will be returned as well as default arguments.
 
 const types = {

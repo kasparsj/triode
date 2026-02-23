@@ -1,4 +1,4 @@
-export interface HydraOptions {
+export interface TriodeOptions {
   pb?: unknown;
   width?: number;
   height?: number;
@@ -13,59 +13,59 @@ export interface HydraOptions {
   css2DElement?: HTMLElement;
   css3DElement?: HTMLElement;
   precision?: "lowp" | "mediump" | "highp";
-  onError?: HydraRuntimeErrorHandler;
-  liveMode?: HydraLiveMode;
+  onError?: TriodeRuntimeErrorHandler;
+  liveMode?: TriodeLiveMode;
   legacy?: boolean;
   extendTransforms?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
-export interface HydraStats {
+export interface TriodeStats {
   fps: number;
 }
 
-export interface HydraRuntimeErrorContext {
+export interface TriodeRuntimeErrorContext {
   context: "update" | "afterUpdate" | "tick" | string;
   time: number;
 }
 
-export type HydraRuntimeErrorHandler = (
+export type TriodeRuntimeErrorHandler = (
   error: unknown,
-  context: HydraRuntimeErrorContext,
+  context: TriodeRuntimeErrorContext,
 ) => void;
-export type HydraLiveMode = "restart" | "continuous";
+export type TriodeLiveMode = "restart" | "continuous";
 
-export type HydraModuleMethod = (...args: unknown[]) => unknown;
-export type HydraNumericTuple = [number, number] | [number, number, number];
-export type HydraControlModifier = "none" | "alt" | "shift" | "meta";
+export type TriodeModuleMethod = (...args: unknown[]) => unknown;
+export type TriodeNumericTuple = [number, number] | [number, number, number];
+export type TriodeControlModifier = "none" | "alt" | "shift" | "meta";
 
-export interface HydraCameraControlsOptions {
+export interface TriodeCameraControlsOptions {
   enabled?: boolean;
-  modifier?: HydraControlModifier;
+  modifier?: TriodeControlModifier;
   domElement?: HTMLElement;
   target?: unknown;
   [key: string]: unknown;
 }
 
-export interface HydraCameraOptions {
+export interface TriodeCameraOptions {
   type?: "perspective" | "ortho" | "orthographic";
-  controls?: boolean | HydraCameraControlsOptions;
+  controls?: boolean | TriodeCameraControlsOptions;
   domElement?: HTMLElement;
-  modifier?: HydraControlModifier;
+  modifier?: TriodeControlModifier;
   enableZoom?: boolean;
   target?: unknown;
   [key: string]: unknown;
 }
 
-export type HydraStageCameraPreset = "perspective" | "ortho" | "orthographic";
+export type TriodeStageCameraPreset = "perspective" | "ortho" | "orthographic";
 
-export interface HydraStageCameraConfig extends HydraCameraOptions {
-  type?: HydraStageCameraPreset;
-  eye?: HydraNumericTuple;
-  target?: HydraNumericTuple;
+export interface TriodeStageCameraConfig extends TriodeCameraOptions {
+  type?: TriodeStageCameraPreset;
+  eye?: TriodeNumericTuple;
+  target?: TriodeNumericTuple;
 }
 
-export interface HydraStageConfig extends HydraSceneAttributes {
-  camera?: boolean | HydraStageCameraPreset | HydraStageCameraConfig;
+export interface TriodeStageConfig extends TriodeSceneAttributes {
+  camera?: boolean | TriodeStageCameraPreset | TriodeStageCameraConfig;
   lights?: boolean | "basic" | "studio" | Record<string, unknown>;
   world?: boolean | "ground" | "atmosphere" | Record<string, unknown>;
   clear?:
@@ -83,19 +83,19 @@ export interface HydraStageConfig extends HydraSceneAttributes {
         [key: string]: unknown;
       };
   output?: unknown;
-  render?: boolean | HydraRenderCallOptions;
-  out?: boolean | HydraRenderCallOptions;
-  cssRenderer?: HydraTransformRenderOptions["cssRenderer"];
+  render?: boolean | TriodeRenderCallOptions;
+  out?: boolean | TriodeRenderCallOptions;
+  cssRenderer?: TriodeTransformRenderOptions["cssRenderer"];
   renderTarget?: unknown;
   fx?: Record<string, unknown>;
   layers?: unknown;
 }
 
-export interface HydraModuleApi {
-  [key: string]: HydraModuleMethod;
+export interface TriodeModuleApi {
+  [key: string]: TriodeModuleMethod;
 }
 
-export interface HydraTransformRenderOptions {
+export interface TriodeTransformRenderOptions {
   cssRenderer?: "2d" | "3d" | "css2drenderer" | "css3drenderer" | false;
   renderTarget?: unknown;
   autoClear?: number | Record<string, unknown>;
@@ -103,14 +103,14 @@ export interface HydraTransformRenderOptions {
   [key: string]: unknown;
 }
 
-export interface HydraRenderCallOptions extends HydraTransformRenderOptions {
+export interface TriodeRenderCallOptions extends TriodeTransformRenderOptions {
   to?: unknown;
   output?: unknown;
   target?: unknown;
-  css?: HydraTransformRenderOptions["cssRenderer"];
+  css?: TriodeTransformRenderOptions["cssRenderer"];
 }
 
-export interface HydraSceneAttributes {
+export interface TriodeSceneAttributes {
   name?: string;
   key?: string;
   reuse?: boolean;
@@ -118,7 +118,7 @@ export interface HydraSceneAttributes {
   [key: string]: unknown;
 }
 
-export interface HydraObjectOptions {
+export interface TriodeObjectOptions {
   name?: string;
   key?: string;
   reuse?: boolean;
@@ -131,7 +131,7 @@ export interface HydraObjectOptions {
   [key: string]: unknown;
 }
 
-export interface HydraTransformDefinition {
+export interface TriodeTransformDefinition {
   name: string;
   type: string;
   inputs?: Array<{
@@ -147,76 +147,76 @@ export interface HydraTransformDefinition {
   [key: string]: unknown;
 }
 
-export interface HydraTransformChain {
+export interface TriodeTransformChain {
   out(
-    output?: unknown | HydraRenderCallOptions,
-    options?: HydraTransformRenderOptions,
-  ): HydraTransformChain;
+    output?: unknown | TriodeRenderCallOptions,
+    options?: TriodeTransformRenderOptions,
+  ): TriodeTransformChain;
   render(
-    output?: unknown | HydraRenderCallOptions,
-    options?: HydraTransformRenderOptions,
-  ): HydraTransformChain;
-  autoClear(amount?: number, color?: number, options?: Record<string, unknown>): HydraTransformChain;
-  clear(amount?: number, color?: number, options?: Record<string, unknown>): HydraTransformChain;
-  basic(options?: Record<string, unknown>): HydraTransformChain;
-  phong(options?: Record<string, unknown>): HydraTransformChain;
-  lambert(options?: Record<string, unknown>): HydraTransformChain;
+    output?: unknown | TriodeRenderCallOptions,
+    options?: TriodeTransformRenderOptions,
+  ): TriodeTransformChain;
+  autoClear(amount?: number, color?: number, options?: Record<string, unknown>): TriodeTransformChain;
+  clear(amount?: number, color?: number, options?: Record<string, unknown>): TriodeTransformChain;
+  basic(options?: Record<string, unknown>): TriodeTransformChain;
+  phong(options?: Record<string, unknown>): TriodeTransformChain;
+  lambert(options?: Record<string, unknown>): TriodeTransformChain;
   material(
     typeOrOptions?: "basic" | "lambert" | "phong" | Record<string, unknown>,
     options?: Record<string, unknown>,
-  ): HydraTransformChain;
-  st(source: HydraTransformChain): HydraTransformChain;
-  tex(output?: unknown | HydraRenderCallOptions, options?: Record<string, unknown>): unknown;
-  texture(output?: unknown | HydraRenderCallOptions, options?: Record<string, unknown>): unknown;
+  ): TriodeTransformChain;
+  st(source: TriodeTransformChain): TriodeTransformChain;
+  tex(output?: unknown | TriodeRenderCallOptions, options?: Record<string, unknown>): unknown;
+  texture(output?: unknown | TriodeRenderCallOptions, options?: Record<string, unknown>): unknown;
   texMat(output?: unknown, options?: Record<string, unknown>): unknown;
   [method: string]: unknown;
 }
 
-export type HydraTransformFactory = (...args: unknown[]) => HydraTransformChain;
+export type TriodeTransformFactory = (...args: unknown[]) => TriodeTransformChain;
 
-export interface HydraSceneApi {
-  add(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
-  mesh(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
-  box(material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
-  sphere(material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
-  quad(material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
-  points(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
-  lines(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
-  lineStrip(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
-  lineLoop(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
+export interface TriodeSceneApi {
+  add(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi;
+  mesh(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi;
+  box(material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi;
+  sphere(material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi;
+  quad(material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi;
+  points(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi;
+  lines(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi;
+  lineStrip(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi;
+  lineLoop(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi;
   /** @deprecated Use lineStrip(...) instead. */
-  linestrip(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
+  linestrip(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi;
   /** @deprecated Use lineLoop(...) instead. */
-  lineloop(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
-  line(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
-  circle(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
-  ellipse(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
-  triangle(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
-  lights(options?: Record<string, unknown>): HydraSceneApi;
-  world(options?: Record<string, unknown>): HydraSceneApi;
-  group(attributes?: HydraSceneAttributes): HydraSceneApi;
+  lineloop(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi;
+  line(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi;
+  circle(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi;
+  ellipse(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi;
+  triangle(geometry?: unknown, material?: unknown, options?: TriodeObjectOptions): TriodeSceneApi;
+  lights(options?: Record<string, unknown>): TriodeSceneApi;
+  world(options?: Record<string, unknown>): TriodeSceneApi;
+  group(attributes?: TriodeSceneAttributes): TriodeSceneApi;
   layer(id: number, options?: Record<string, unknown>): unknown;
-  lookAt(target: unknown, options?: Record<string, unknown>): HydraSceneApi;
-  out(output?: unknown | HydraRenderCallOptions, options?: HydraTransformRenderOptions): HydraSceneApi;
-  render(output?: unknown | HydraRenderCallOptions, options?: HydraTransformRenderOptions): HydraSceneApi;
-  autoClear(amount?: number, color?: number, options?: Record<string, unknown>): HydraSceneApi;
-  clear(amount?: number, color?: number, options?: Record<string, unknown>): HydraSceneApi;
+  lookAt(target: unknown, options?: Record<string, unknown>): TriodeSceneApi;
+  out(output?: unknown | TriodeRenderCallOptions, options?: TriodeTransformRenderOptions): TriodeSceneApi;
+  render(output?: unknown | TriodeRenderCallOptions, options?: TriodeTransformRenderOptions): TriodeSceneApi;
+  autoClear(amount?: number, color?: number, options?: Record<string, unknown>): TriodeSceneApi;
+  clear(amount?: number, color?: number, options?: Record<string, unknown>): TriodeSceneApi;
   at(index?: number): unknown;
   obj(index?: number): unknown;
-  texture(output?: unknown | HydraRenderCallOptions, options?: Record<string, unknown>): unknown;
-  instanced(geometry: unknown, material: unknown, count: number, options?: HydraObjectOptions): unknown;
+  texture(output?: unknown | TriodeRenderCallOptions, options?: Record<string, unknown>): unknown;
+  instanced(geometry: unknown, material: unknown, count: number, options?: TriodeObjectOptions): unknown;
   find(filter?: Record<string, unknown>): unknown[];
   empty(): boolean;
   [key: string]: unknown;
 }
 
-export interface HydraTextureApi extends HydraModuleApi {
+export interface TriodeTextureApi extends TriodeModuleApi {
   fbo(options?: Record<string, unknown>): unknown;
   data(data: ArrayLike<number> | number[], options?: Record<string, unknown>): unknown;
   load(url: string, onLoad?: (texture: unknown) => void, onError?: (error: unknown) => void): unknown;
 }
 
-export interface HydraGeometryApi extends HydraModuleApi {
+export interface TriodeGeometryApi extends TriodeModuleApi {
   box(...args: number[]): unknown;
   sphere(...args: number[]): unknown;
   plane(...args: number[]): unknown;
@@ -227,7 +227,7 @@ export interface HydraGeometryApi extends HydraModuleApi {
   posFromEleAzi(elevation: number, azimuth: number, radius?: number): { x: number; y: number; z: number };
 }
 
-export interface HydraGuiApi extends HydraModuleApi {
+export interface TriodeGuiApi extends TriodeModuleApi {
   init(): Promise<void>;
   create(name?: string): Promise<unknown>;
   addFolder(
@@ -236,18 +236,18 @@ export interface HydraGuiApi extends HydraModuleApi {
     setupFn?: (folder: unknown, settings: Record<string, unknown>) => void,
     gui?: unknown,
   ): Promise<Record<string, unknown>>;
-  lights(scene: HydraSceneApi, camera: unknown, defaults?: Record<string, unknown>): Record<string, unknown>;
-  world(scene: HydraSceneApi, defaults?: Record<string, unknown>): Record<string, unknown>;
+  lights(scene: TriodeSceneApi, camera: unknown, defaults?: Record<string, unknown>): Record<string, unknown>;
+  world(scene: TriodeSceneApi, defaults?: Record<string, unknown>): Record<string, unknown>;
 }
 
-export interface HydraSynthApi {
+export interface TriodeSynthApi {
   time: number;
   bpm: number;
   canvas: HTMLCanvasElement;
   width: number;
   height: number;
   fps?: number;
-  stats: HydraStats;
+  stats: TriodeStats;
   speed: number;
   mouse: unknown;
   update: (dt: number) => void;
@@ -259,8 +259,8 @@ export interface HydraSynthApi {
   mousemove: (event: Event) => void;
   keydown: (event: KeyboardEvent) => void;
   keyup: (event: KeyboardEvent) => void;
-  onError?: HydraRuntimeErrorHandler;
-  liveMode: HydraLiveMode;
+  onError?: TriodeRuntimeErrorHandler;
+  liveMode: TriodeLiveMode;
   legacy: boolean;
   render: (output?: unknown) => void;
   liveGlobals: (enable?: boolean) => boolean;
@@ -269,41 +269,41 @@ export interface HydraSynthApi {
   resetRuntime: () => void;
   tick: (dt: number, uniforms?: unknown) => void;
   shadowMap: (options?: Record<string, unknown>) => void;
-  scene: (attributes?: HydraSceneAttributes) => HydraSceneApi;
-  stage: (config?: HydraStageConfig) => HydraSceneApi;
-  ortho: (eye?: HydraNumericTuple, target?: HydraNumericTuple, options?: HydraCameraOptions) => unknown;
-  perspective: (eye?: HydraNumericTuple, target?: HydraNumericTuple, options?: HydraCameraOptions) => unknown;
+  scene: (attributes?: TriodeSceneAttributes) => TriodeSceneApi;
+  stage: (config?: TriodeStageConfig) => TriodeSceneApi;
+  ortho: (eye?: TriodeNumericTuple, target?: TriodeNumericTuple, options?: TriodeCameraOptions) => unknown;
+  perspective: (eye?: TriodeNumericTuple, target?: TriodeNumericTuple, options?: TriodeCameraOptions) => unknown;
   screenCoords: (width?: number, height?: number) => unknown;
   normalizedCoords: () => unknown;
   cartesianCoords: (width?: number, height?: number) => unknown;
-  setFunction: (definition: HydraTransformDefinition) => void;
-  osc: HydraTransformFactory;
-  noise: HydraTransformFactory;
-  solid: HydraTransformFactory;
-  src: HydraTransformFactory;
-  tx: HydraTextureApi;
-  gm: HydraGeometryApi;
-  mt: HydraModuleApi;
-  cmp: HydraModuleApi;
-  rnd: HydraModuleApi;
-  nse: HydraModuleApi;
-  tex: HydraTextureApi;
-  geom: HydraGeometryApi;
-  mat: HydraModuleApi;
-  compose: HydraModuleApi;
-  random: HydraModuleApi;
-  noiseUtil: HydraModuleApi;
-  gui: HydraGuiApi;
-  arr: HydraModuleApi;
-  el: HydraModuleApi;
+  setFunction: (definition: TriodeTransformDefinition) => void;
+  osc: TriodeTransformFactory;
+  noise: TriodeTransformFactory;
+  solid: TriodeTransformFactory;
+  src: TriodeTransformFactory;
+  tx: TriodeTextureApi;
+  gm: TriodeGeometryApi;
+  mt: TriodeModuleApi;
+  cmp: TriodeModuleApi;
+  rnd: TriodeModuleApi;
+  nse: TriodeModuleApi;
+  tex: TriodeTextureApi;
+  geom: TriodeGeometryApi;
+  mat: TriodeModuleApi;
+  compose: TriodeModuleApi;
+  random: TriodeModuleApi;
+  noiseUtil: TriodeModuleApi;
+  gui: TriodeGuiApi;
+  arr: TriodeModuleApi;
+  el: TriodeModuleApi;
   math: Record<string, (value: number, ...args: number[]) => number>;
   [key: string]: unknown;
 }
 
-declare class HydraRenderer {
-  constructor(options?: HydraOptions);
-  readonly synth: HydraSynthApi;
-  readonly liveMode: HydraLiveMode;
+declare class TriodeRenderer {
+  constructor(options?: TriodeOptions);
+  readonly synth: TriodeSynthApi;
+  readonly liveMode: TriodeLiveMode;
   readonly legacy: boolean;
   readonly canvas: HTMLCanvasElement;
   readonly width: number;
@@ -319,19 +319,53 @@ declare class HydraRenderer {
   setResolution(width: number, height: number): void;
   tick(dt: number, uniforms?: unknown): void;
   shadowMap(options?: Record<string, unknown>): void;
-  scene(attributes?: HydraSceneAttributes): HydraSceneApi;
-  stage(config?: HydraStageConfig): HydraSceneApi;
+  scene(attributes?: TriodeSceneAttributes): TriodeSceneApi;
+  stage(config?: TriodeStageConfig): TriodeSceneApi;
   onFrame(callback: (dt: number, time: number) => void): void;
   liveGlobals(enable?: boolean): boolean;
   dispose(): void;
 }
 
-export default HydraRenderer;
+export {
+  TriodeRenderer,
+};
+
+export type HydraOptions = TriodeOptions;
+export type HydraStats = TriodeStats;
+export type HydraRuntimeErrorContext = TriodeRuntimeErrorContext;
+export type HydraRuntimeErrorHandler = TriodeRuntimeErrorHandler;
+export type HydraLiveMode = TriodeLiveMode;
+export type HydraModuleMethod = TriodeModuleMethod;
+export type HydraNumericTuple = TriodeNumericTuple;
+export type HydraControlModifier = TriodeControlModifier;
+export type HydraCameraControlsOptions = TriodeCameraControlsOptions;
+export type HydraCameraOptions = TriodeCameraOptions;
+export type HydraStageCameraPreset = TriodeStageCameraPreset;
+export type HydraStageCameraConfig = TriodeStageCameraConfig;
+export type HydraStageConfig = TriodeStageConfig;
+export type HydraModuleApi = TriodeModuleApi;
+export type HydraTransformRenderOptions = TriodeTransformRenderOptions;
+export type HydraRenderCallOptions = TriodeRenderCallOptions;
+export type HydraSceneAttributes = TriodeSceneAttributes;
+export type HydraObjectOptions = TriodeObjectOptions;
+export type HydraTransformDefinition = TriodeTransformDefinition;
+export type HydraTransformChain = TriodeTransformChain;
+export type HydraTransformFactory = TriodeTransformFactory;
+export type HydraSceneApi = TriodeSceneApi;
+export type HydraTextureApi = TriodeTextureApi;
+export type HydraGeometryApi = TriodeGeometryApi;
+export type HydraGuiApi = TriodeGuiApi;
+export type HydraSynthApi = TriodeSynthApi;
+export type HydraRenderer = TriodeRenderer;
+
+export default TriodeRenderer;
 
 declare global {
   interface Window {
-    Hydra?: typeof HydraRenderer;
-    hydraSynth?: HydraRenderer;
+    Triode?: typeof TriodeRenderer;
+    triodeSynth?: TriodeRenderer;
+    Hydra?: typeof TriodeRenderer;
+    hydraSynth?: TriodeRenderer;
     loadScript?: (url?: string, once?: boolean) => Promise<void>;
     getCode?: () => void;
   }

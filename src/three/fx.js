@@ -16,7 +16,7 @@ import {BleachBypassShader} from "three/examples/jsm/shaders/BleachBypassShader.
 import { SSAARenderPass } from 'three/examples/jsm/postprocessing/SSAARenderPass.js';
 import { SAOPass } from 'three/examples/jsm/postprocessing/SAOPass.js';
 //import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
-import {HydraUniform} from "./HydraUniform.js";
+import {TriodeUniform} from "./TriodeUniform.js";
 import {ShaderMaterial} from "three";
 import uvVert from "../shaders/uv.vert";
 import filmFrag from "../shaders/film.frag";
@@ -70,8 +70,8 @@ const add = (options) => {
 
 const addPass = (type, options) => {
     const { scene, composer, camera } = options;
-    const time = HydraUniform.get('time', 'hydra');
-    const resolution = HydraUniform.get('resolution', 'hydra');
+    const time = TriodeUniform.get('time', 'triode');
+    const resolution = TriodeUniform.get('resolution', 'triode');
     let pass;
     switch (type) {
         case 'hBlur':

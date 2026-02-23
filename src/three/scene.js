@@ -15,12 +15,16 @@ import * as gm from "./gm.js";
 import { getRuntime, withRuntime } from "./runtime.js";
 
 const runtimeStores = new WeakMap();
-const LIVE_CYCLE_KEY = "__hydraLiveCycle";
-const LIVE_IDENTITY_KEY = "__hydraLiveKey";
-const LIVE_AUTO_ID_KEY = "__hydraLiveAutoId";
+const LIVE_CYCLE_KEY = "__triodeLiveCycle";
+const LEGACY_LIVE_CYCLE_KEY = "__hydraLiveCycle";
+const LIVE_IDENTITY_KEY = "__triodeLiveKey";
+const LEGACY_LIVE_IDENTITY_KEY = "__hydraLiveKey";
+const LIVE_AUTO_ID_KEY = "__triodeLiveAutoId";
+const LEGACY_LIVE_AUTO_ID_KEY = "__hydraLiveAutoId";
 const LIVE_AUTO_ID_ATTR = "__liveAutoId";
-const LIVE_AUTO_PREFIX = "__hydraLiveAuto";
-const INTERNAL_CALL_ATTR = "__hydraInternalCall";
+const LIVE_AUTO_PREFIX = "__triodeLiveAuto";
+const INTERNAL_CALL_ATTR = "__triodeInternalCall";
+const LEGACY_INTERNAL_CALL_ATTR = "__hydraInternalCall";
 const LIVE_KEY_HINT =
     "[triode] Continuous live mode assigned source-based identity slots for unkeyed objects. Add { key: \"...\" } for fully stable identity across major refactors.";
 
@@ -252,6 +256,7 @@ const findLiveSourceSignature = (state, type, { normalizeNumbers = false } = {})
         const frame = frames[i];
         if (
             frame.includes("/src/three/scene.js") ||
+            frame.includes("/src/triode-synth.js") ||
             frame.includes("/src/hydra-synth.js") ||
             frame.includes("/src/three/runtime.js")
         ) {
@@ -330,16 +335,22 @@ const shouldReuseNamedObject = (attributes = {}) =>
 const toInternalCallOptions = (options) =>
     Object.assign({}, options || {}, {
         [INTERNAL_CALL_ATTR]: true,
+        [LEGACY_INTERNAL_CALL_ATTR]: true,
     });
 
 const normalizeInternalCall = (options) => {
     const internal =
-        !!(options && Object.prototype.hasOwnProperty.call(options, INTERNAL_CALL_ATTR));
+        !!(
+            options &&
+            (Object.prototype.hasOwnProperty.call(options, INTERNAL_CALL_ATTR) ||
+                Object.prototype.hasOwnProperty.call(options, LEGACY_INTERNAL_CALL_ATTR))
+        );
     if (!internal) {
         return {internal: false, options};
     }
     const normalized = Object.assign({}, options);
     delete normalized[INTERNAL_CALL_ATTR];
+    delete normalized[LEGACY_INTERNAL_CALL_ATTR];
     return {internal: true, options: normalized};
 };
 
@@ -354,7 +365,10 @@ const getLiveKey = (object) => {
     if (!object || !object.userData) {
         return null;
     }
-    return normalizeLiveKey(object.userData[LIVE_IDENTITY_KEY]);
+    return normalizeLiveKey(
+        object.userData[LIVE_IDENTITY_KEY] ||
+            object.userData[LEGACY_LIVE_IDENTITY_KEY],
+    );
 };
 
 const setLiveKey = (object, key) => {
@@ -365,9 +379,11 @@ const setLiveKey = (object, key) => {
     object.userData || (object.userData = {});
     if (!normalized) {
         delete object.userData[LIVE_IDENTITY_KEY];
+        delete object.userData[LEGACY_LIVE_IDENTITY_KEY];
         return null;
     }
     object.userData[LIVE_IDENTITY_KEY] = normalized;
+    object.userData[LEGACY_LIVE_IDENTITY_KEY] = normalized;
     return normalized;
 };
 
@@ -399,7 +415,10 @@ const getLiveAutoId = (object) => {
     if (!object || !object.userData) {
         return null;
     }
-    return normalizeLiveAutoId(object.userData[LIVE_AUTO_ID_KEY]);
+    return normalizeLiveAutoId(
+        object.userData[LIVE_AUTO_ID_KEY] ||
+            object.userData[LEGACY_LIVE_AUTO_ID_KEY],
+    );
 };
 
 const setLiveAutoId = (object, autoId) => {
@@ -410,9 +429,11 @@ const setLiveAutoId = (object, autoId) => {
     object.userData || (object.userData = {});
     if (!normalized) {
         delete object.userData[LIVE_AUTO_ID_KEY];
+        delete object.userData[LEGACY_LIVE_AUTO_ID_KEY];
         return null;
     }
     object.userData[LIVE_AUTO_ID_KEY] = normalized;
+    object.userData[LEGACY_LIVE_AUTO_ID_KEY] = normalized;
     return normalized;
 };
 
@@ -439,6 +460,7 @@ const markLiveTouch = (runtime, object, { scene = false } = {}) => {
     }
     object.userData || (object.userData = {});
     object.userData[LIVE_CYCLE_KEY] = state.cycle;
+    object.userData[LEGACY_LIVE_CYCLE_KEY] = state.cycle;
     state.touched.add(object);
     if (scene) {
         state.touchedScenes.add(object);
@@ -937,7 +959,7 @@ const getOrCreateScene = (options, attributes = {}) => {
         scene = store.autoScenes[autoId];
     }
     if (!scene) { // always recreate default scene?
-        scene = new HydraScene(sceneOptions);
+        scene = new TriodeScene(sceneOptions);
     } else {
         scene._runtime = runtime;
     }
@@ -1262,7 +1284,7 @@ const sceneMixin = {
                 material.color = color;
             }
             else if (material instanceof GlslSource) {
-                material = this._hydraMaterial(geometry, material, options);
+                material = this._triodeMaterial(geometry, material, options);
             }
         }
         material.transparent = type !== 'quad';
@@ -1291,7 +1313,7 @@ const sceneMixin = {
         });
     },
 
-    _hydraMaterial(geometry, material, options) {
+    _triodeMaterial(geometry, material, options) {
         return this._withRuntimeScope(() => {
             const {type} = options || {};
             switch (type) {
@@ -1303,11 +1325,15 @@ const sceneMixin = {
                 case 'lineStrip':
                 case 'linestrip':
                 case 'lines':
-                    return mt.hydra(material, options.material);
+                    return mt.triode(material, options.material);
                 default:
                     return mt.mesh(material, options.material);
             }
         });
+    },
+
+    _hydraMaterial(geometry, material, options) {
+        return this._triodeMaterial(geometry, material, options);
     },
 
     _createMesh(geometry, material, options = {}) {
@@ -1541,7 +1567,7 @@ const sceneMixin = {
         }
         const hasExistingGroup = !!group;
         if (!group) {
-            group = new HydraGroup(this._runtime);
+            group = new TriodeGroup(this._runtime);
         }
         const previousParent = group.parent;
         addChild(this, group);
@@ -1633,7 +1659,7 @@ const sceneMixin = {
     }
 }
 
-class HydraGroup extends THREE.Group {
+class TriodeGroup extends THREE.Group {
     constructor(runtime) {
         super();
 
@@ -1646,9 +1672,9 @@ class HydraGroup extends THREE.Group {
     }
 }
 
-mixClass(HydraGroup, sceneMixin);
+mixClass(TriodeGroup, sceneMixin);
 
-class HydraScene extends THREE.Scene {
+class TriodeScene extends THREE.Scene {
 
     constructor(options) {
         super();
@@ -1730,11 +1756,13 @@ class HydraScene extends THREE.Scene {
     }
 }
 
-mixClass(HydraScene, cameraMixin, autoClearMixin, sourceMixin, sceneMixin);
+mixClass(TriodeScene, cameraMixin, autoClearMixin, sourceMixin, sceneMixin);
 
 export {
-    HydraScene,
-    HydraGroup,
+    TriodeScene,
+    TriodeGroup,
+    TriodeScene as HydraScene,
+    TriodeGroup as HydraGroup,
     getOrCreateScene,
     clearSceneRuntime,
     beginSceneEval,

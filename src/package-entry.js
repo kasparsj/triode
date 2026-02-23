@@ -6,6 +6,10 @@ if (typeof window === 'undefined' || typeof document === 'undefined') {
 
 await import('../dist/triode.js')
 
-const Hydra = globalThis.Hydra || (typeof window !== 'undefined' ? window.Hydra : undefined)
+const Triode =
+  globalThis.Triode ||
+  (typeof window !== "undefined" ? window.Triode : undefined) ||
+  globalThis.Hydra ||
+  (typeof window !== "undefined" ? window.Hydra : undefined);
 
-export default Hydra
+export default Triode

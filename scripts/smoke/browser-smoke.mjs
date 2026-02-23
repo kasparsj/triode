@@ -105,7 +105,7 @@ const collectDiagnostics = async () => {
   try {
     return await page.evaluate(() => ({
       readyState: document.readyState,
-      hydraType: typeof window.Hydra,
+      triodeType: typeof window.Triode,
       oscType: typeof window.osc,
       canvasCount: document.querySelectorAll("canvas").length,
     }));
@@ -144,7 +144,7 @@ const waitForGlobalFunction = async (name) => {
 
 try {
   await page.goto(url, { waitUntil: "load", timeout: PAGE_LOAD_TIMEOUT_MS });
-  await waitForGlobalFunction("Hydra");
+  await waitForGlobalFunction("Triode");
   let fallbackToLoadOnlyAssertions = false;
 
   try {
@@ -191,9 +191,9 @@ try {
   } else {
     const diagnostics = await collectDiagnostics();
     assert.equal(
-      diagnostics.hydraType,
+      diagnostics.triodeType,
       "function",
-      "Expected hydra bundle to define window.Hydra in Firefox CI fallback mode",
+      "Expected triode bundle to define window.Triode in Firefox CI fallback mode",
     );
 
     const nonWebGLErrors = errors.filter(

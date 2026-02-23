@@ -23,8 +23,8 @@ const toUniqueList = (values) => {
 const collectCoverageTokens = (manifest, transformData) => {
   const tokens = [
     ...manifest.constructorOptions,
-    ...manifest.hydraRendererMembers,
-    ...manifest.hydraSynthMembers,
+    ...manifest.triodeRendererMembers,
+    ...manifest.triodeSynthMembers,
     ...manifest.sceneMembers,
     ...manifest.transformChainMembers,
     ...Object.keys(manifest.modules),

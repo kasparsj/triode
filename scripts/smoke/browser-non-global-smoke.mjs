@@ -121,7 +121,7 @@ const smokeHtml = `<!doctype html>
         canvasCount: 0
       };
       try {
-        const hydra = new Hydra({ detectAudio: false });
+        const hydra = new Triode({ detectAudio: false });
         const H = hydra.synth;
         window.__smoke.defaultMakeGlobalDisabled = hydra.makeGlobal === false;
         window.__smoke.friendlyAliasTexMatches = H.tex === H.tx;
@@ -694,7 +694,7 @@ const smokeHtml = `<!doctype html>
         window.__smoke.hasGridGeometryAfterDispose = typeof window.GridGeometry === 'function'
         window.__smoke.hasMathMapAfterDispose = typeof Math.map === 'function'
 
-        const reboundRuntime = new Hydra({
+        const reboundRuntime = new Triode({
           canvas: reusedCanvas,
           detectAudio: false,
           makeGlobal: false,
@@ -724,7 +724,7 @@ const smokeHtml = `<!doctype html>
         const legacyCanvas = document.createElement('canvas')
         legacyCanvas.width = 320
         legacyCanvas.height = 240
-        const legacyRuntime = new Hydra({
+        const legacyRuntime = new Triode({
           canvas: legacyCanvas,
           detectAudio: false,
           autoLoop: false,
@@ -1070,7 +1070,7 @@ try {
   assert.equal(
     diagnostics.orbitModifierNoneSetOnControl,
     true,
-    "Expected controls.modifier option to be applied to HydraOrbitControls instance",
+    "Expected controls.modifier option to be applied to TriodeOrbitControls instance",
   );
   assert.equal(
     diagnostics.fadeNeedsSwap,

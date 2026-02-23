@@ -4,7 +4,7 @@ triode supports multiple composition styles. These patterns help keep sketches r
 
 ## Pattern 1: Texture-first material flow
 
-Use Hydra chains to design texture behavior first, then apply to scene objects.
+Use triode chains to design texture behavior first, then apply to scene objects.
 
 ```js
 const mat = osc(8, 0.1, 0.8)
@@ -50,8 +50,8 @@ Best for layered systems, portals, and feedback experiments.
 Prefer namespaced calls in host applications.
 
 ```js
-const hydra = new Hydra({ makeGlobal: false, detectAudio: false });
-const H = hydra.synth;
+const triode = new Triode({ makeGlobal: false, detectAudio: false });
+const H = triode.synth;
 H.stage().mesh(H.geom.box(), H.osc().phong()).render();
 ```
 

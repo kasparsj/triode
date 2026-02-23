@@ -1,5 +1,5 @@
 (function(global, factory) {
-  typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory() : typeof define === "function" && define.amd ? define(factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Hydra = factory());
+  typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory() : typeof define === "function" && define.amd ? define(factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Triode = factory());
 })(this, (function() {
   "use strict";var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
@@ -60,6 +60,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     },
     get text() {
       return text;
+    },
+    get triode() {
+      return triode;
     },
     get worldPosGradientY() {
       return worldPosGradientY;
@@ -30153,7 +30156,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }).catch((err) => reject(err));
     });
   }
-  class HydraSource {
+  class TriodeSource {
     constructor({ width, height, pb, label = "" }) {
       // cache for the canvases, so we don't create them every time
       __publicField(this, "canvases", {});
@@ -30213,7 +30216,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         });
       }
     }
-    // index only relevant in atom-hydra + desktop apps
+    // index only relevant in atom-triode + desktop apps
     initScreen(index = 0, options2 = {}) {
       const self2 = this;
       Screen().then(function(response) {
@@ -30300,20 +30303,30 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return this.tex;
     }
   }
-  const _HydraUniform = class _HydraUniform {
+  const _TriodeUniform = class _TriodeUniform {
     static get(name, group = "default") {
-      return this.all[group] ? this.all[group][name] : null;
+      const entry = this.all[group] ? this.all[group][name] : null;
+      if (entry) {
+        return entry;
+      }
+      if (group === "triode" && this.all.hydra) {
+        return this.all.hydra[name] || null;
+      }
+      if (group === "hydra" && this.all.triode) {
+        return this.all.triode[name] || null;
+      }
+      return null;
     }
     constructor(name, value, cb, group) {
       this._value = value;
       this.name = name;
       this.cb = cb;
       if (group) {
-        if (typeof _HydraUniform.all[group] === "undefined") _HydraUniform.all[group] = {};
-        if (typeof _HydraUniform.all[group][name] !== "undefined") {
-          delete _HydraUniform.all[group][name];
+        if (typeof _TriodeUniform.all[group] === "undefined") _TriodeUniform.all[group] = {};
+        if (typeof _TriodeUniform.all[group][name] !== "undefined") {
+          delete _TriodeUniform.all[group][name];
         }
-        _HydraUniform.all[group][name] = this;
+        _TriodeUniform.all[group][name] = this;
       }
     }
     get value() {
@@ -30325,25 +30338,25 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     static wrapUniforms(uniforms) {
       const props = () => {
         return {
-          time: _HydraUniform.get("time", "hydra").value,
-          bpm: _HydraUniform.get("bpm", "hydra").value
+          time: _TriodeUniform.get("time", "triode").value,
+          bpm: _TriodeUniform.get("bpm", "triode").value
         };
       };
       return Object.keys(uniforms).reduce((acc, key) => {
         acc[key] = typeof uniforms[key] === "string" ? parseFloat(uniforms[key]) : uniforms[key];
         if (typeof acc[key] === "function") {
           const func = acc[key];
-          acc[key] = new _HydraUniform(key, null, () => func(null, props()));
-        } else if (acc[key] instanceof Output || acc[key] instanceof HydraSource) {
+          acc[key] = new _TriodeUniform(key, null, () => func(null, props()));
+        } else if (acc[key] instanceof Output || acc[key] instanceof TriodeSource) {
           const o = acc[key];
-          acc[key] = new _HydraUniform(key, null, () => o.getTexture());
+          acc[key] = new _TriodeUniform(key, null, () => o.getTexture());
         } else if (typeof acc[key].value === "undefined") acc[key] = { value: acc[key] };
         return acc;
       }, {});
     }
   };
-  __publicField(_HydraUniform, "all", {});
-  let HydraUniform = _HydraUniform;
+  __publicField(_TriodeUniform, "all", {});
+  let TriodeUniform = _TriodeUniform;
   const easing = {
     // no easing, no acceleration
     linear: function(t) {
@@ -30637,7 +30650,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           typedArg.isUniform = false;
         } else if (typedArg.type === "float" && typeof typedArg.value === "number") {
           typedArg.value = ensure_decimal_dot(typedArg.value);
-        } else if (typedArg.type.startsWith("vec") && typeof typedArg.value !== "function" && !typedArg.value.isTexture && !typedArg.value.isRenderTarget && !(typedArg.value instanceof Output) && !(typedArg.value instanceof HydraSource)) {
+        } else if (typedArg.type.startsWith("vec") && typeof typedArg.value !== "function" && !typedArg.value.isTexture && !typedArg.value.isRenderTarget && !(typedArg.value instanceof Output) && !(typedArg.value instanceof TriodeSource)) {
           typedArg.isUniform = false;
           if (Array.isArray(typedArg.value) || typedArg.value instanceof Float32Array || typedArg.value instanceof Uint8Array) {
             typedArg.value = `${typedArg.type}(${typedArg.value.map(ensure_decimal_dot).join(", ")})`;
@@ -30653,7 +30666,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           typedArg.value = x2.isRenderTarget ? x2.texture : x2;
           typedArg.isUniform = true;
         } else {
-          if (typedArg.value instanceof Output || typedArg.value instanceof HydraSource || typedArg.value.isTexture || typedArg.value.isRenderTarget) {
+          if (typedArg.value instanceof Output || typedArg.value instanceof TriodeSource || typedArg.value.isTexture || typedArg.value.isRenderTarget) {
             var x1 = typedArg.value.isRenderTarget ? typedArg.value.texture : typedArg.value;
             if (input.type === "vec4") {
               typedArg.value = src(x1);
@@ -35214,7 +35227,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   const _changeEvent = { type: "change" };
   const _startEvent = { type: "start" };
   const _endEvent = { type: "end" };
-  class HydraOrbitControls extends EventDispatcher$1 {
+  class TriodeOrbitControls extends EventDispatcher$1 {
     constructor(object, domElement) {
       super();
       this.object = object;
@@ -35975,7 +35988,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (this._camera.userData.controls) {
           this._camera.userData.controls.dispose();
         }
-        this._camera.userData.controls = new HydraOrbitControls(this._camera, controlsOptions.domElement);
+        this._camera.userData.controls = new TriodeOrbitControls(this._camera, controlsOptions.domElement);
         for (let attr in controlsOptions) {
           if (this._camera.userData.controls.hasOwnProperty(attr)) {
             this._camera.userData.controls[attr] = controlsOptions[attr];
@@ -38327,8 +38340,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   };
   const addPass = (type, options2) => {
     const { scene, composer, camera: camera2 } = options2;
-    const time = HydraUniform.get("time", "hydra");
-    const resolution = HydraUniform.get("resolution", "hydra");
+    const time = TriodeUniform.get("time", "triode");
+    const resolution = TriodeUniform.get("resolution", "triode");
     let pass;
     switch (type) {
       case "hBlur":
@@ -38451,7 +38464,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     compile(renderer, camera2) {
       this.composer = new EffectComposer(renderer);
       this.composer.renderToScreen = false;
-      this.composer.addPass(new HydraRenderPass(this.scene, camera2));
+      this.composer.addPass(new TriodeRenderPass(this.scene, camera2));
       this.composer.passes[0].clear = true;
       add$1(Object.assign(this.effects, {
         composer: this.composer,
@@ -38475,7 +38488,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const mixMat = new ShaderMaterial({
         uniforms: {
           prevBuffer: { value: null },
-          layerTexture: new HydraUniform("layerMixPassTex" + this.id, null, () => this.getTexture(), "hydra-layer")
+          layerTexture: new TriodeUniform("layerMixPassTex" + this.id, null, () => this.getTexture(), "triode-layer")
         },
         vertexShader: `
                 varying vec2 vUv;
@@ -38494,7 +38507,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         transparent: true,
         depthTest: false
       });
-      const mixPass = new HydraShaderPass(mixMat, options2);
+      const mixPass = new TriodeShaderPass(mixMat, options2);
       mixPass.needsSwap = true;
       mixPass.clear = true;
       return mixPass;
@@ -39761,6 +39774,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         }
       },
+      __triodeFallback: true,
       __hydraFallback: true
     };
   };
@@ -39889,12 +39903,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     update(scene, settings);
   };
   function patchDat(datApi = window.dat) {
-    if (!datApi || datApi.__hydraPatched) return;
+    if (!datApi || datApi.__triodePatched || datApi.__hydraPatched) return;
     const updateDisplay = datApi.controllers.NumberControllerBox.prototype.updateDisplay;
     datApi.controllers.NumberControllerBox.prototype.updateDisplay = function() {
       if (datApi.dom.dom.isActive(this.__input)) return this;
       return updateDisplay.call(this);
     };
+    datApi.__triodePatched = true;
     datApi.__hydraPatched = true;
   }
   const hideSaveRow = (nameOrGui) => {
@@ -39937,7 +39952,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const runtime = fallbackRuntime || (runtimeScopeDepth > 0 ? activeRuntime : null);
     if (!runtime) {
       throw new Error(
-        "Hydra runtime is not initialized. Create a Hydra instance before using 3D helpers."
+        "Triode runtime is not initialized. Create a Triode instance before using 3D helpers."
       );
     }
     return runtime;
@@ -39982,12 +39997,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     return bound;
   };
   const runtimeStores = /* @__PURE__ */ new WeakMap();
-  const LIVE_CYCLE_KEY = "__hydraLiveCycle";
-  const LIVE_IDENTITY_KEY = "__hydraLiveKey";
-  const LIVE_AUTO_ID_KEY = "__hydraLiveAutoId";
+  const LIVE_CYCLE_KEY = "__triodeLiveCycle";
+  const LEGACY_LIVE_CYCLE_KEY = "__hydraLiveCycle";
+  const LIVE_IDENTITY_KEY = "__triodeLiveKey";
+  const LEGACY_LIVE_IDENTITY_KEY = "__hydraLiveKey";
+  const LIVE_AUTO_ID_KEY = "__triodeLiveAutoId";
+  const LEGACY_LIVE_AUTO_ID_KEY = "__hydraLiveAutoId";
   const LIVE_AUTO_ID_ATTR = "__liveAutoId";
-  const LIVE_AUTO_PREFIX = "__hydraLiveAuto";
-  const INTERNAL_CALL_ATTR = "__hydraInternalCall";
+  const LIVE_AUTO_PREFIX = "__triodeLiveAuto";
+  const INTERNAL_CALL_ATTR = "__triodeInternalCall";
+  const LEGACY_INTERNAL_CALL_ATTR = "__hydraInternalCall";
   const LIVE_KEY_HINT = '[triode] Continuous live mode assigned source-based identity slots for unkeyed objects. Add { key: "..." } for fully stable identity across major refactors.';
   const createStore = () => ({
     scenes: /* @__PURE__ */ Object.create(null),
@@ -40188,7 +40207,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const frames = stack2.split("\n").slice(1);
     for (let i = 0; i < frames.length; i += 1) {
       const frame = frames[i];
-      if (frame.includes("/src/three/scene.js") || frame.includes("/src/hydra-synth.js") || frame.includes("/src/three/runtime.js")) {
+      if (frame.includes("/src/three/scene.js") || frame.includes("/src/triode-synth.js") || frame.includes("/src/hydra-synth.js") || frame.includes("/src/three/runtime.js")) {
         continue;
       }
       const location = parseLiveStackLocation(frame);
@@ -40254,15 +40273,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   };
   const shouldReuseNamedObject = (attributes = {}) => !!(attributes && attributes.reuse === true);
   const toInternalCallOptions = (options2) => Object.assign({}, options2 || {}, {
-    [INTERNAL_CALL_ATTR]: true
+    [INTERNAL_CALL_ATTR]: true,
+    [LEGACY_INTERNAL_CALL_ATTR]: true
   });
   const normalizeInternalCall = (options2) => {
-    const internal = !!(options2 && Object.prototype.hasOwnProperty.call(options2, INTERNAL_CALL_ATTR));
+    const internal = !!(options2 && (Object.prototype.hasOwnProperty.call(options2, INTERNAL_CALL_ATTR) || Object.prototype.hasOwnProperty.call(options2, LEGACY_INTERNAL_CALL_ATTR)));
     if (!internal) {
       return { internal: false, options: options2 };
     }
     const normalized = Object.assign({}, options2);
     delete normalized[INTERNAL_CALL_ATTR];
+    delete normalized[LEGACY_INTERNAL_CALL_ATTR];
     return { internal: true, options: normalized };
   };
   const warnInternalSceneMethodUsage = (runtime, methodName, publicMethod) => warnDeprecation(
@@ -40274,7 +40295,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     if (!object || !object.userData) {
       return null;
     }
-    return normalizeLiveKey(object.userData[LIVE_IDENTITY_KEY]);
+    return normalizeLiveKey(
+      object.userData[LIVE_IDENTITY_KEY] || object.userData[LEGACY_LIVE_IDENTITY_KEY]
+    );
   };
   const setLiveKey = (object, key) => {
     if (!object) {
@@ -40284,9 +40307,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     object.userData || (object.userData = {});
     if (!normalized) {
       delete object.userData[LIVE_IDENTITY_KEY];
+      delete object.userData[LEGACY_LIVE_IDENTITY_KEY];
       return null;
     }
     object.userData[LIVE_IDENTITY_KEY] = normalized;
+    object.userData[LEGACY_LIVE_IDENTITY_KEY] = normalized;
     return normalized;
   };
   const bindLiveIdentity = (object, key, keyedStore) => {
@@ -40315,7 +40340,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     if (!object || !object.userData) {
       return null;
     }
-    return normalizeLiveAutoId(object.userData[LIVE_AUTO_ID_KEY]);
+    return normalizeLiveAutoId(
+      object.userData[LIVE_AUTO_ID_KEY] || object.userData[LEGACY_LIVE_AUTO_ID_KEY]
+    );
   };
   const setLiveAutoId = (object, autoId) => {
     if (!object) {
@@ -40325,9 +40352,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     object.userData || (object.userData = {});
     if (!normalized) {
       delete object.userData[LIVE_AUTO_ID_KEY];
+      delete object.userData[LEGACY_LIVE_AUTO_ID_KEY];
       return null;
     }
     object.userData[LIVE_AUTO_ID_KEY] = normalized;
+    object.userData[LEGACY_LIVE_AUTO_ID_KEY] = normalized;
     return normalized;
   };
   const bindLiveAutoIdentity = (object, autoId, autoStore) => {
@@ -40352,6 +40381,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     object.userData || (object.userData = {});
     object.userData[LIVE_CYCLE_KEY] = state.cycle;
+    object.userData[LEGACY_LIVE_CYCLE_KEY] = state.cycle;
     state.touched.add(object);
     if (scene) {
       state.touchedScenes.add(object);
@@ -40809,7 +40839,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       scene = store.autoScenes[autoId];
     }
     if (!scene) {
-      scene = new HydraScene(sceneOptions);
+      scene = new TriodeScene(sceneOptions);
     } else {
       scene._runtime = runtime;
     }
@@ -41106,7 +41136,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           material = this._defaultMaterial(geometry, material, options2);
           material.color = color2;
         } else if (material instanceof GlslSource) {
-          material = this._hydraMaterial(geometry, material, options2);
+          material = this._triodeMaterial(geometry, material, options2);
         }
       }
       material.transparent = type !== "quad";
@@ -41133,7 +41163,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       });
     },
-    _hydraMaterial(geometry, material, options2) {
+    _triodeMaterial(geometry, material, options2) {
       return this._withRuntimeScope(() => {
         const { type } = options2 || {};
         switch (type) {
@@ -41145,11 +41175,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           case "lineStrip":
           case "linestrip":
           case "lines":
-            return hydra(material, options2.material);
+            return triode(material, options2.material);
           default:
             return mesh(material, options2.material);
         }
       });
+    },
+    _hydraMaterial(geometry, material, options2) {
+      return this._triodeMaterial(geometry, material, options2);
     },
     _createMesh(geometry, material, options2 = {}) {
       let mesh2;
@@ -41348,7 +41381,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       const hasExistingGroup = !!group;
       if (!group) {
-        group = new HydraGroup(this._runtime);
+        group = new TriodeGroup(this._runtime);
       }
       const previousParent = group.parent;
       addChild(this, group);
@@ -41432,7 +41465,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return objects;
     }
   };
-  class HydraGroup extends Group {
+  class TriodeGroup extends Group {
     constructor(runtime) {
       super();
       this._matrixStack = [];
@@ -41442,8 +41475,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return super.add(...args);
     }
   }
-  mixClass(HydraGroup, sceneMixin);
-  class HydraScene extends Scene {
+  mixClass(TriodeGroup, sceneMixin);
+  class TriodeScene extends Scene {
     constructor(options2) {
       super();
       this._runtime = options2 && options2.runtime ? options2.runtime : null;
@@ -41513,7 +41546,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return this.add(new AxesHelper(size2 || window.innerHeight / 2));
     }
   }
-  mixClass(HydraScene, cameraMixin, autoClearMixin, sourceMixin, sceneMixin);
+  mixClass(TriodeScene, cameraMixin, autoClearMixin, sourceMixin, sceneMixin);
   function generateGlsl(source) {
     return generateParams(createParams(), source, source.transforms);
   }
@@ -41573,8 +41606,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       } else if (transform.transform.type === "color") {
         fragColor = (uv, returnType, alpha) => `${shaderString(`${f0(uv, "vec4")}`, transform, inputs, shaderParams, returnType, alpha)}`;
       } else if (transform.transform.type === "combine") {
-        const sourceVert = source instanceof GlslSource && (source.transforms[0].transform.vert || source.transforms[0].transform.type === "vert") || source instanceof HydraScene;
-        const input0Vert = inputs[0].value instanceof GlslSource && (inputs[0].value.transforms[0].transform.vert || inputs[0].value.transforms[0].transform.type === "vert") || inputs[0].value instanceof HydraScene;
+        const sourceVert = source instanceof GlslSource && (source.transforms[0].transform.vert || source.transforms[0].transform.type === "vert") || source instanceof TriodeScene;
+        const input0Vert = inputs[0].value instanceof GlslSource && (inputs[0].value.transforms[0].transform.vert || inputs[0].value.transforms[0].transform.type === "vert") || inputs[0].value instanceof TriodeScene;
         if (sourceVert || input0Vert) {
           const params = Object.assign({}, shaderParams, {
             fragColor: fragColor("st", "vec4", 1) || "vec4(0)"
@@ -41848,7 +41881,7 @@ vec4 _mod289(vec4 x)
     }`
     }
   };
-  class HydraShader {
+  class TriodeShader {
     constructor(version, header, funcs, main) {
       this.version = version;
       this.header = header;
@@ -41884,10 +41917,10 @@ vec4 _mod289(vec4 x)
       return [head1, head2];
     }
   }
-  class HydraFragmentShader extends HydraShader {
+  class TriodeFragmentShader extends TriodeShader {
     constructor(transform, shaderInfo, utils, options2 = {}) {
       const version = transform.version >= 300 ? GLSL3 : GLSL1;
-      const header = HydraShader.compileHeader(transform, shaderInfo.uniforms, utils, options2);
+      const header = TriodeShader.compileHeader(transform, shaderInfo.uniforms, utils, options2);
       const fn = `
         ${shaderInfo.glslFunctions.map((trans) => {
         return `${trans.transform["glsl" + transform.version] || trans.transform.glsl}`;
@@ -41906,7 +41939,7 @@ vec4 _mod289(vec4 x)
       this.useNormal = typeof transform.useNormal !== "undefined" ? transform.useNormal : !transform.primitive || ["points", "lines", "line strip", "line loop"].indexOf(transform.primitive) === -1;
     }
   }
-  class HydraVertexShader extends HydraShader {
+  class TriodeVertexShader extends TriodeShader {
     constructor(transform, shaderInfo, utils, options2 = {}) {
       const version = transform.version >= 300 ? GLSL3 : GLSL1;
       let header = `
@@ -41932,7 +41965,7 @@ vec4 _mod289(vec4 x)
         ${options2.useCamera ? "#include <project_vertex>" : "gl_Position = vec4(position, 1.0);"}
         `;
       if (transform.vert) {
-        header = HydraShader.compileHeader(transform, shaderInfo.uniforms, utils, Object.assign({ vert: true }, options2));
+        header = TriodeShader.compileHeader(transform, shaderInfo.uniforms, utils, Object.assign({ vert: true }, options2));
         fn = `
             ${shaderInfo.glslFunctions.map((trans) => {
           if (trans.transform.name !== transform.name) {
@@ -41991,12 +42024,12 @@ vec4 _mod289(vec4 x)
     }
     options2.uniforms = Object.assign({}, {
       prevBuffer: { value: null }
-    }, HydraUniform.wrapUniforms(options2.uniforms));
+    }, TriodeUniform.wrapUniforms(options2.uniforms));
     const transform = this.transforms[0];
     if (shaderInfo.combine) {
       if (transform) {
         Object.assign(options2, {
-          frag: new HydraFragmentShader(Object.assign({}, transform.transform, {
+          frag: new TriodeFragmentShader(Object.assign({}, transform.transform, {
             // todo: quickfix
             useUV: true
           }), shaderInfo, this.utils),
@@ -42005,7 +42038,7 @@ vec4 _mod289(vec4 x)
       }
       delete options2.renderTarget;
       return Object.assign({
-        vert: new HydraVertexShader({
+        vert: new TriodeVertexShader({
           glslName: "combine"
         }, shaderInfo, [], { useCamera: false }),
         viewport: this._viewport,
@@ -42014,8 +42047,8 @@ vec4 _mod289(vec4 x)
     }
     if (transform) {
       Object.assign(options2, {
-        frag: new HydraFragmentShader(transform.transform, shaderInfo, this.utils),
-        vert: new HydraVertexShader(transform.transform, shaderInfo, this.utils, { useCamera: true }),
+        frag: new TriodeFragmentShader(transform.transform, shaderInfo, this.utils),
+        vert: new TriodeVertexShader(transform.transform, shaderInfo, this.utils, { useCamera: true }),
         primitive: transform.transform.primitive,
         userArgs: transform.userArgs
       });
@@ -43461,7 +43494,7 @@ vec4 _mod289(vec4 x)
     }, options2);
     return new ShaderMaterial(parameters);
   };
-  const hydra = (source, properties = {}) => {
+  const triode = (source, properties = {}) => {
     let options2 = source;
     if (source instanceof GlslSource) {
       Object.assign(source._material, properties);
@@ -43585,7 +43618,7 @@ vec4 _mod289(vec4 x)
     blendMode: true
   });
   const dots = (pos, size2, color2, fade2, options2 = {}) => {
-    return hydra(createRuntimeSource("dots", dotsFunc, [pos, size2, color2, fade2]), Object.assign({
+    return triode(createRuntimeSource("dots", dotsFunc, [pos, size2, color2, fade2]), Object.assign({
       transparent: true,
       blendMode: "normal"
     }, options2));
@@ -43605,7 +43638,7 @@ vec4 _mod289(vec4 x)
     blendMode: true
   });
   const squares = (pos, size2, color2, fade2, options2 = {}) => {
-    return hydra(createRuntimeSource("squares", squaresFunc, [pos, size2, color2, fade2]), Object.assign({
+    return triode(createRuntimeSource("squares", squaresFunc, [pos, size2, color2, fade2]), Object.assign({
       transparent: true,
       blendMode: "normal"
     }, options2));
@@ -43622,7 +43655,7 @@ vec4 _mod289(vec4 x)
     primitive: "lines"
   });
   const lines = (pos, color2, options2 = {}) => {
-    return hydra(createRuntimeSource("lines", linesFunc, [pos, color2]), Object.assign({
+    return triode(createRuntimeSource("lines", linesFunc, [pos, color2]), Object.assign({
       transparent: true,
       blendMode: "normal"
     }, options2));
@@ -43639,7 +43672,7 @@ vec4 _mod289(vec4 x)
     primitive: "line strip"
   });
   const linestrip = (pos, color2, options2 = {}) => {
-    return hydra(createRuntimeSource("linestrip", linestripFunc, [pos, color2]), Object.assign({
+    return triode(createRuntimeSource("linestrip", linestripFunc, [pos, color2]), Object.assign({
       transparent: true,
       blendMode: "normal"
     }, options2));
@@ -43656,7 +43689,7 @@ vec4 _mod289(vec4 x)
     primitive: "line loop"
   });
   const lineloop = (pos, color2, options2 = {}) => {
-    return hydra(createRuntimeSource("lineloop", lineloopFunc, [pos, color2]), Object.assign({
+    return triode(createRuntimeSource("lineloop", lineloopFunc, [pos, color2]), Object.assign({
       transparent: true,
       blendMode: "normal"
     }, options2));
@@ -43672,7 +43705,7 @@ vec4 _mod289(vec4 x)
     useNormal: false
   });
   const text = (color2, options2 = {}) => {
-    return hydra(createRuntimeSource("text", textFunc, [color2]), options2);
+    return triode(createRuntimeSource("text", textFunc, [color2]), options2);
   };
   const meshFunc = processFunction({
     name: "mesh",
@@ -43684,8 +43717,9 @@ vec4 _mod289(vec4 x)
     primitive: "triangles"
   });
   const mesh = (color2, options2 = {}) => {
-    return hydra(createRuntimeSource("mesh", meshFunc, [color2]), options2);
+    return triode(createRuntimeSource("mesh", meshFunc, [color2]), options2);
   };
+  const hydra = (...args) => triode(...args);
   const getBlend = (blendMode) => {
     switch (blendMode) {
       case "custom":
@@ -43703,7 +43737,7 @@ vec4 _mod289(vec4 x)
         return NoBlending;
     }
   };
-  class HydraPass extends Pass {
+  class TriodePass extends Pass {
     constructor(options2) {
       super();
       this.options = options2;
@@ -43711,7 +43745,7 @@ vec4 _mod289(vec4 x)
       this.textureID = options2.textureID || "prevBuffer";
     }
   }
-  class HydraShaderPass extends HydraPass {
+  class TriodeShaderPass extends TriodePass {
     constructor(shader, options2 = {}) {
       super(options2);
       if (shader instanceof ShaderMaterial) {
@@ -43752,12 +43786,12 @@ vec4 _mod289(vec4 x)
       this.fsQuad.dispose();
     }
   }
-  class HydraMaterialPass extends HydraPass {
+  class TriodeMaterialPass extends TriodePass {
     constructor(options2) {
       super(options2);
       const material = options2.material || {};
       material.depthTest = false;
-      this.material = hydra(options2, material);
+      this.material = triode(options2, material);
       this.fsQuad = new FullScreenQuad(this.material);
     }
     render(renderer, writeBuffer, readBuffer) {
@@ -43783,7 +43817,7 @@ vec4 _mod289(vec4 x)
       this.fsQuad.dispose();
     }
   }
-  class HydraRenderPass extends HydraPass {
+  class TriodeRenderPass extends TriodePass {
     constructor(scene, camera2, options2 = {}) {
       super(options2);
       this.scene = scene;
@@ -43842,7 +43876,7 @@ vec4 _mod289(vec4 x)
       renderer.autoClear = oldAutoClear;
     }
   }
-  class HydraFadePass extends HydraMaterialPass {
+  class TriodeFadePass extends TriodeMaterialPass {
     constructor(options2, uniforms) {
       let amount = options2;
       let color2 = 0;
@@ -43855,14 +43889,14 @@ vec4 _mod289(vec4 x)
       }
       const passOptions = {
         // todo: create class/struct
-        frag: new HydraShader(GLSL1, ["", `
+        frag: new TriodeShader(GLSL1, ["", `
       varying vec2 vUv;
       uniform sampler2D prevBuffer;
     `], "", `
       vec4 color = mix(texture2D(prevBuffer, vUv), vec4(${color2.toArray().map(ensure_decimal_dot).join(", ")}, 1.0), ${amount});
       gl_FragColor = color;
     `),
-        vert: new HydraVertexShader({ glslName: "clear" }, null, null, { useCamera: camera2 }),
+        vert: new TriodeVertexShader({ glslName: "clear" }, null, null, { useCamera: camera2 }),
         uniforms: Object.assign({
           prevBuffer: { value: null }
         }, uniforms)
@@ -44125,7 +44159,9 @@ vec4 _mod289(vec4 x)
     }
     const txApi = runtime && runtime.modules ? runtime.modules.tx : null;
     if (!txApi || typeof txApi.load !== "function") {
-      throw new Error("arr.image() requires an active Hydra runtime with tx.load(url, callback). Use hydra.synth.arr.image(...).");
+      throw new Error(
+        "arr.image() requires an active Triode runtime with tx.load(url, callback). Use triode.synth.arr.image(...)."
+      );
     }
     return new Promise((resolve, reject) => {
       let settled = false;
@@ -44619,8 +44655,8 @@ vec4 _mod289(vec4 x)
     this.composer = new EffectComposer(this.synth.renderer);
     this.composer.renderToScreen = false;
     this.uniforms = {
-      time: HydraUniform.get("time", "hydra"),
-      resolution: HydraUniform.get("resolution", "hydra")
+      time: TriodeUniform.get("time", "triode"),
+      resolution: TriodeUniform.get("resolution", "triode")
     };
     this.initTempFbos(this.composer.renderTarget2);
     this.camera();
@@ -44707,7 +44743,7 @@ vec4 _mod289(vec4 x)
         if (this._autoClear.amount >= 1) {
           this.composer.addPass(new ClearPass());
         } else {
-          this.composer.addPass(new HydraFadePass(this._autoClear, this.uniforms));
+          this.composer.addPass(new TriodeFadePass(this._autoClear, this.uniforms));
         }
       }
       for (let i = 0; i < passes.length; i++) {
@@ -44724,7 +44760,7 @@ vec4 _mod289(vec4 x)
           }
           fxScene = options2.scene;
           fxCamera = options2.camera;
-          pass = new HydraRenderPass(fxScene, fxCamera, options2);
+          pass = new TriodeRenderPass(fxScene, fxCamera, options2);
           if (options2.layers && options2.layers.length) {
             options2.layers.forEach((layer, layerIndex) => {
               layer.compile(this.synth.renderer, fxCamera);
@@ -44734,13 +44770,13 @@ vec4 _mod289(vec4 x)
             this.layers.push(...options2.layers);
           }
         } else {
-          pass = new HydraMaterialPass(options2);
+          pass = new TriodeMaterialPass(options2);
         }
         if (options2.autoClear && options2.autoClear.amount > 0) {
           if (options2.autoClear.amount >= 1) {
             pass.clear = true;
           } else {
-            this.composer.addPass(new HydraFadePass(options2.autoClear, this.uniforms));
+            this.composer.addPass(new TriodeFadePass(options2.autoClear, this.uniforms));
           }
         }
         this.composer.addPass(pass);
@@ -46077,7 +46113,7 @@ vec4 _mod289(vec4 x)
       };
     }
   };
-  const MISSING_GLOBAL = Symbol("hydra-missing-global");
+  const MISSING_GLOBAL = Symbol("triode-missing-global");
   const globalBindings = /* @__PURE__ */ new Map();
   const setWindowGlobal = (name, value) => {
     if (value === MISSING_GLOBAL) {
@@ -46399,10 +46435,11 @@ vec4 _mod289(vec4 x)
       canvas.style.imageRendering = "pixelated";
       document.body.appendChild(canvas);
     }
+    canvas._triodeInputRuntime = synth;
     canvas._hydraInputRuntime = synth;
-    if (!canvas._hydraInputListenersBound) {
+    if (!canvas._triodeInputListenersBound && !canvas._hydraInputListenersBound) {
       const forwardInput = (name) => (event) => {
-        const runtime = canvas._hydraInputRuntime;
+        const runtime = canvas._triodeInputRuntime || canvas._hydraInputRuntime;
         if (!runtime || runtime._disposed || !runtime.synth) {
           return;
         }
@@ -46417,6 +46454,7 @@ vec4 _mod289(vec4 x)
       canvas.addEventListener("mousemove", forwardInput("mousemove"));
       document.addEventListener("keydown", forwardInput("keydown"));
       document.addEventListener("keyup", forwardInput("keyup"));
+      canvas._triodeInputListenersBound = true;
       canvas._hydraInputListenersBound = true;
     }
     canvas.setAutoResize = function(enable = true) {
@@ -46456,9 +46494,9 @@ vec4 _mod289(vec4 x)
     return canvas;
   };
   const Mouse = mouseListen();
-  const MISSING_HELPER_GLOBAL = Symbol("hydra-missing-helper-global");
+  const MISSING_HELPER_GLOBAL = Symbol("triode-missing-helper-global");
   const helperGlobalBindings = /* @__PURE__ */ new Map();
-  const MISSING_MATH_HELPER = Symbol("hydra-missing-math-helper");
+  const MISSING_MATH_HELPER = Symbol("triode-missing-math-helper");
   const mathHelperBindings = /* @__PURE__ */ new Map();
   const isPlainObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
   const installHelperGlobal = (key, owner, value) => {
@@ -46527,7 +46565,7 @@ vec4 _mod289(vec4 x)
     }
     mathHelperBindings.delete(key);
   };
-  class HydraRenderer {
+  class TriodeRenderer {
     constructor({
       pb = null,
       width = 1280,
@@ -46903,15 +46941,15 @@ vec4 _mod289(vec4 x)
       this.css3DRenderer.domElement.style.pointerEvents = "none";
       document.body.appendChild(this.css3DRenderer.domElement);
       this.synth.css3DRenderer = this.css3DRenderer;
-      new HydraUniform("tex", null, () => this.output.getTexture(), "hydra");
-      new HydraUniform("tex0", null, () => this.o[0].getTexture(), "hydra");
-      new HydraUniform("tex1", null, () => this.o[1].getTexture(), "hydra");
-      new HydraUniform("tex2", null, () => this.o[2].getTexture(), "hydra");
-      new HydraUniform("tex3", null, () => this.o[3].getTexture(), "hydra");
-      new HydraUniform("resolution", null, () => [this.canvas.width, this.canvas.height], "hydra");
-      new HydraUniform("time", this.synth.time, () => this.synth.time, "hydra");
-      new HydraUniform("mouse", this.synth.mouse, () => this.synth.mouse, "hydra");
-      new HydraUniform("bpm", this.synth.bpm, () => this.synth.bpm, "hydra");
+      new TriodeUniform("tex", null, () => this.output.getTexture(), "triode");
+      new TriodeUniform("tex0", null, () => this.o[0].getTexture(), "triode");
+      new TriodeUniform("tex1", null, () => this.o[1].getTexture(), "triode");
+      new TriodeUniform("tex2", null, () => this.o[2].getTexture(), "triode");
+      new TriodeUniform("tex3", null, () => this.o[3].getTexture(), "triode");
+      new TriodeUniform("resolution", null, () => [this.canvas.width, this.canvas.height], "triode");
+      new TriodeUniform("time", this.synth.time, () => this.synth.time, "triode");
+      new TriodeUniform("mouse", this.synth.mouse, () => this.synth.mouse, "triode");
+      new TriodeUniform("bpm", this.synth.bpm, () => this.synth.bpm, "triode");
       this.renderAll = new ShaderPass(new ShaderMaterial({
         vertexShader: `
       varying vec2 vUv;
@@ -46950,10 +46988,10 @@ vec4 _mod289(vec4 x)
       }
       `,
         uniforms: {
-          tex0: HydraUniform.get("tex0", "hydra"),
-          tex1: HydraUniform.get("tex1", "hydra"),
-          tex2: HydraUniform.get("tex2", "hydra"),
-          tex3: HydraUniform.get("tex3", "hydra")
+          tex0: TriodeUniform.get("tex0", "triode"),
+          tex1: TriodeUniform.get("tex1", "triode"),
+          tex2: TriodeUniform.get("tex2", "triode"),
+          tex3: TriodeUniform.get("tex3", "triode")
         },
         depthTest: false
       }));
@@ -46977,8 +47015,8 @@ vec4 _mod289(vec4 x)
       }
       `,
         uniforms: {
-          tex0: HydraUniform.get("tex", "hydra"),
-          resolution: HydraUniform.get("resolution", "hydra")
+          tex0: TriodeUniform.get("tex", "triode"),
+          resolution: TriodeUniform.get("resolution", "triode")
         },
         depthTest: false
       }));
@@ -47001,7 +47039,7 @@ vec4 _mod289(vec4 x)
       }
     }
     createSource(i) {
-      let s = new HydraSource({ regl: this.regl, pb: this.pb, width: this.width, height: this.height, label: `s${i}` });
+      let s = new TriodeSource({ regl: this.regl, pb: this.pb, width: this.width, height: this.height, label: `s${i}` });
       this.synth["s" + this.s.length] = s;
       this.s.push(s);
       return s;
@@ -47142,7 +47180,8 @@ vec4 _mod289(vec4 x)
       this._restoreGlobalHelpers();
       this._restoreMathHelpers();
       clearSceneRuntime(this);
-      if (this.canvas && this.canvas._hydraInputRuntime === this) {
+      if (this.canvas && (this.canvas._triodeInputRuntime === this || this.canvas._hydraInputRuntime === this)) {
+        this.canvas._triodeInputRuntime = null;
         this.canvas._hydraInputRuntime = null;
       }
       clearRuntime(this);
@@ -47357,5 +47396,13 @@ vec4 _mod289(vec4 x)
       stageScene.clear();
     }
   }
-  return HydraRenderer;
+  if (typeof globalThis !== "undefined") {
+    if (typeof globalThis.Triode === "undefined") {
+      globalThis.Triode = TriodeRenderer;
+    }
+    if (typeof globalThis.Hydra === "undefined") {
+      globalThis.Hydra = TriodeRenderer;
+    }
+  }
+  return TriodeRenderer;
 }));

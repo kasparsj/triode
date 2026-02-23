@@ -15,18 +15,18 @@ triode supports both quick in-browser sketching and host-application embedding.
 
 ## Global vs non-global
 
-Hydra-style sketching:
+Triode global sketching:
 
 ```js
-const hydra = new Hydra({ makeGlobal: true, detectAudio: false });
+const triode = new Triode({ makeGlobal: true, detectAudio: false });
 osc(8, 0.1, 0.8).render();
 ```
 
 Host-safe embedding:
 
 ```js
-const hydra = new Hydra({ makeGlobal: false, detectAudio: false });
-const H = hydra.synth;
+const triode = new Triode({ makeGlobal: false, detectAudio: false });
+const H = triode.synth;
 H.stage().mesh(H.geom.box(), H.osc(8).phong()).render();
 ```
 
@@ -39,6 +39,6 @@ Use the interactive playground for fast recipe edits and sharable links:
 
 ## Lifecycle hygiene
 
-- Call `hydra.dispose()` when replacing runtime instances.
+- Call `triode.dispose()` when replacing runtime instances.
 - In host apps, keep one clear owner of runtime lifecycle.
 - Route `onError` to application logging/telemetry.

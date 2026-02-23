@@ -3,7 +3,7 @@
 ## Quick diagnostics
 
 1. Confirm browser runtime (not pure Node/SSR runtime execution).
-2. Confirm `Hydra` construction succeeds and a canvas exists.
+2. Confirm `Triode` construction succeeds and a canvas exists.
 3. Check console for shader/runtime errors.
 4. Temporarily reduce sketch complexity to isolate pipeline issues.
 
@@ -28,8 +28,8 @@ You are likely in non-global mode.
 
 Use either:
 
-- `new Hydra({ makeGlobal: true })`, or
-- `const H = hydra.synth; H.osc(...)`.
+- `new Triode({ makeGlobal: true })`, or
+- `const H = triode.synth; H.osc(...)`.
 
 ### How do I preserve object identity while livecoding?
 
@@ -53,5 +53,5 @@ Review:
 
 ### How should host apps clean up?
 
-Call `hydra.dispose()` before replacing runtime instances.
+Call `triode.dispose()` before replacing runtime instances.
 Also remove any external references to old runtime objects.

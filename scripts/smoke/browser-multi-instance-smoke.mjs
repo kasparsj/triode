@@ -68,8 +68,8 @@ const smokeHtml = `<!doctype html>
         root.appendChild(canvasA);
         root.appendChild(canvasB);
 
-        const hydraA = new Hydra({ detectAudio: false, makeGlobal: false, autoLoop: false, canvas: canvasA });
-        const hydraB = new Hydra({ detectAudio: false, makeGlobal: false, autoLoop: false, canvas: canvasB });
+        const hydraA = new Triode({ detectAudio: false, makeGlobal: false, autoLoop: false, canvas: canvasA });
+        const hydraB = new Triode({ detectAudio: false, makeGlobal: false, autoLoop: false, canvas: canvasB });
         const A = hydraA.synth;
         const B = hydraB.synth;
 
@@ -140,13 +140,13 @@ const smokeHtml = `<!doctype html>
         const originalGetCode = window.getCode;
         const originalGridGeometry = window.GridGeometry;
         const originalMathMap = Math.map;
-        const hydraGlobalA = new Hydra({
+        const hydraGlobalA = new Triode({
           detectAudio: false,
           makeGlobal: true,
           autoLoop: false,
           canvas: globalCanvasA
         });
-        const hydraGlobalB = new Hydra({
+        const hydraGlobalB = new Triode({
           detectAudio: false,
           makeGlobal: true,
           autoLoop: false,

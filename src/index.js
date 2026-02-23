@@ -1,3 +1,3 @@
-import Synth from './hydra-synth.js'
+import Synth from './triode-synth.js'
 
 module.exports = Synth

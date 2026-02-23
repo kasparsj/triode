@@ -18,10 +18,10 @@ This guide explains how triode turns chains and scenes into pixels.
 - `Output`
   - owns composer passes, temporary render targets, camera state.
 
-- `HydraMaterialPass` / `HydraRenderPass` / `HydraFadePass`
+- `TriodeMaterialPass` / `TriodeRenderPass` / `TriodeFadePass`
   - pass types for shader-only, scene rendering, and feedback/fade accumulation.
 
-- `HydraUniform`
+- `TriodeUniform`
   - shared uniform registry (`time`, `resolution`, `mouse`, `bpm`, output textures).
 
 ## Scene pass vs material pass

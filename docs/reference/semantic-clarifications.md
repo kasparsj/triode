@@ -83,8 +83,8 @@ Use public scene composition methods in docs, recipes, and production sketches.
 ## Global vs non-global runtime semantics
 
 - `makeGlobal: true` installs helpers like `osc`, `stage`, module namespaces, and math helpers into global scope for live-coding ergonomics.
-- `makeGlobal: false` keeps APIs under `hydra.synth` for host-safe embedding and multi-instance control.
-- Current constructor default is `makeGlobal: false`; opt into globals explicitly with constructor config or `hydra.synth.liveGlobals(true)`.
+- `makeGlobal: false` keeps APIs under `triode.synth` for host-safe embedding and multi-instance control.
+- Current constructor default is `makeGlobal: false`; opt into globals explicitly with constructor config or `triode.synth.liveGlobals(true)`.
 - `legacy: true` restores compatibility constructor defaults (`makeGlobal: true`, `liveMode: "restart"`) and suppresses compatibility warnings.
 
 Prefer non-global mode for application integration, editor embedding, and test harnesses.

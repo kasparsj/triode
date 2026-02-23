@@ -10,8 +10,8 @@ triode API docs are split into generated signatures and practical reference guid
 
 ## API shape
 
-- `HydraRenderer` constructor and runtime lifecycle methods.
-- `hydra.synth` livecoding API (`stage`, `scene`, generators, helpers).
+- `TriodeRenderer` constructor and runtime lifecycle methods.
+- `triode.synth` livecoding API (`stage`, `scene`, generators, helpers).
 - Scene graph composition methods (`mesh`, `points`, `group`, `render`, etc.).
 - Transform chain methods (`out`, `render`, `tex`, material bridges).
 - Module namespaces: `tx/tex`, `gm/geom`, `mt/mat`, `cmp/compose`, `rnd/random`, `nse/noiseUtil`, `arr`, `el`, `gui`, `math`.

@@ -8,7 +8,7 @@
 - **Continuous mode**: Live eval mode that keeps one runtime instance and reconciles edits.
 - **Restart mode**: Live eval mode that rebuilds runtime state on each eval.
 - **Global mode**: Helpers installed on global scope (`osc`, `stage`, etc.).
-- **Non-global mode**: API accessed via `hydra.synth` namespace.
+- **Non-global mode**: API accessed via `triode.synth` namespace.
 - **Stage**: triode helper that creates a scene and can apply camera/lights/world/render presets.
 - **Scene graph**: Hierarchical object model used for 3D composition.
 - **Render-to-texture**: Rendering a chain/scene into a texture for reuse (`.tex()`).

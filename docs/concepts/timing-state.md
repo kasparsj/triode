@@ -1,6 +1,6 @@
 # Timing and State
 
-triode exposes frame timing and mutable live state through `hydra.synth`.
+triode exposes frame timing and mutable live state through `triode.synth`.
 
 ## Time and frame hooks
 
@@ -21,7 +21,7 @@ These are useful for parameter nudging and interaction-driven sketches.
 ## Global and non-global state
 
 - `makeGlobal: true`: installs helpers on global scope.
-- `makeGlobal: false`: keeps API under `hydra.synth`.
+- `makeGlobal: false`: keeps API under `triode.synth`.
 - `liveGlobals(enable?)`: toggles this behavior at runtime.
 
 For embedded apps and multi-instance reliability, prefer non-global mode.

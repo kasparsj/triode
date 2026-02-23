@@ -10,7 +10,7 @@ This section gets you from install to a first working 3D patch quickly.
 
 ## If you are coming from Hydra
 
-- Keep `Hydra` as the runtime entry point.
+- Use `Triode` as the runtime entry point (`Hydra` remains as a compatibility alias).
 - Keep familiar generators (`osc`, `noise`, `src`, `solid`) and chain methods.
 - Add scene APIs (`stage`, `scene`, `geom`, `mat`) when moving into 3D composition.
 

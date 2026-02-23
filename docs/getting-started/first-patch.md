@@ -1,4 +1,4 @@
-# First Patch: Hydra Signal + 3D Scene
+# First Patch: Triode Signal + 3D Scene
 
 Use this patch to understand triode's two-layer model: signal chains and scene graph.
 
@@ -28,7 +28,7 @@ update = () => {
 
 ## Why this patch matters
 
-- `osc(...).phong()` bridges Hydra signals into a Three material.
+- `osc(...).phong()` bridges triode signals into a Three material.
 - `stage()` gives a chainable scene handle.
 - `key` helps object identity in `liveMode: "continuous"` during iterative edits.
 

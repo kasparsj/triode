@@ -95,7 +95,7 @@ const disposeRuntime = () => {
     // no-op
   }
   state.runtime = null;
-  window.__playgroundHydra = null;
+  window.__playgroundTriode = null;
 };
 
 const resetRuntime = () => {
@@ -332,14 +332,14 @@ const runSketch = () => {
   }
 
   try {
-    if (typeof window.Hydra !== "function") {
+    if (typeof window.Triode !== "function") {
       throw new Error(
-        "Hydra runtime is unavailable. Ensure dist/triode.js is loaded.",
+        "Triode runtime is unavailable. Ensure dist/triode.js is loaded.",
       );
     }
 
     if (!state.runtime) {
-      state.runtime = new window.Hydra({
+      state.runtime = new window.Triode({
         canvas: els.canvas,
         detectAudio: false,
         makeGlobal: false,
@@ -347,18 +347,18 @@ const runSketch = () => {
         liveMode: state.runtimeMode,
       });
     }
-    const hydra = state.runtime;
-    window.__playgroundHydra = hydra;
+    const triode = state.runtime;
+    window.__playgroundTriode = triode;
     window.__playgroundParams = { ...state.values };
 
     const script = [
       "const params = window.__playgroundParams;",
-      "const H = window.__playgroundHydra.synth;",
+      "const H = window.__playgroundTriode.synth;",
       "with (H) {",
       els.code.value,
       "}",
     ].join("\n");
-    hydra.eval(script);
+    triode.eval(script);
 
     setStatus(
       state.runtimeMode === "continuous" ? "Live (continuous)" : "Live (restart)",

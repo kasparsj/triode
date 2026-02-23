@@ -1,9 +1,10 @@
-import Hydra from "../src/hydra-synth.js";
+import Triode from "../src/triode-synth.js";
 
 function init() {
-  const hydra = new Hydra({ detectAudio: false, makeGlobal: true });
-  const H = hydra.synth;
-  window.hydraSynth = hydra;
+  const triode = new Triode({ detectAudio: false, makeGlobal: true });
+  const H = triode.synth;
+  window.triodeSynth = triode;
+  window.hydraSynth = triode;
 
   H.perspective([2, 2, 3], [0, 0, 0], { controls: true });
 

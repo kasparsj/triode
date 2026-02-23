@@ -1,4 +1,4 @@
-// based on: https://hydra-extensions.glitch.me/hydra-canvas.js
+// Adapted from https://hydra-extensions.glitch.me/hydra-canvas.js
 
 const initCanvas = (canvas, synth) => {
   const setResolution = (width, height) => synth.setResolution(width, height)
@@ -39,10 +39,11 @@ const initCanvas = (canvas, synth) => {
     document.body.appendChild(canvas)
   }
 
+  canvas._triodeInputRuntime = synth
   canvas._hydraInputRuntime = synth
-  if (!canvas._hydraInputListenersBound) {
+  if (!canvas._triodeInputListenersBound && !canvas._hydraInputListenersBound) {
     const forwardInput = (name) => (event) => {
-      const runtime = canvas._hydraInputRuntime
+      const runtime = canvas._triodeInputRuntime || canvas._hydraInputRuntime
       if (!runtime || runtime._disposed || !runtime.synth) {
         return
       }
@@ -57,6 +58,7 @@ const initCanvas = (canvas, synth) => {
     canvas.addEventListener('mousemove', forwardInput('mousemove'))
     document.addEventListener('keydown', forwardInput('keydown'))
     document.addEventListener('keyup', forwardInput('keyup'))
+    canvas._triodeInputListenersBound = true
     canvas._hydraInputListenersBound = true
   }
 

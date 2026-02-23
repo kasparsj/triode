@@ -317,7 +317,7 @@ const pointsym = (texture, options = {}) => {
     // const scene = createQuadScene(src(texture).rotate(90).tex());
     // const plane = scene.children[0];
     //
-    // const renderer = hydraSynth.renderer;
+    // const renderer = triodeSynth.renderer;
     // renderer.autoClear = false;
     // renderer.setRenderTarget(renderTarget);
     // renderer.setViewport(0, texHeight, texWidth, texHeight);

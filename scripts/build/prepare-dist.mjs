@@ -9,8 +9,8 @@ const rootDir = path.resolve(__dirname, "..", "..");
 for (const filename of [
   "triode.js",
   "triode.js.map",
-  "hydra-synth.js",
-  "hydra-synth.js.map",
+  "triode-synth.js",
+  "triode-synth.js.map",
 ]) {
   const filePath = path.join(rootDir, "dist", filename);
   try {

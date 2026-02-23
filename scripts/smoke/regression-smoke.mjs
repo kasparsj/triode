@@ -129,7 +129,7 @@ try {
   const { loadScript } = await import("../../src/lib/load-script.js");
   const lights = await import("../../src/three/lights.js");
   const runtime = await import("../../src/three/runtime.js");
-  const { default: HydraSource } = await import("../../src/hydra-source.js");
+  const { default: TriodeSource } = await import("../../src/triode-source.js");
   const arr = await import("../../src/three/arr.js");
   const { default: VideoRecorder } =
     await import("../../src/lib/video-recorder.js");
@@ -181,8 +181,8 @@ try {
   assert.ok(hemiLight, "Expected hemisphere light to exist");
   assert.equal(hemiLight.intensity, 0.75);
 
-  // HydraSource: changing one axis should trigger canvas resize
-  const source = new HydraSource({ width: 100, height: 100, label: "s0" });
+  // TriodeSource: changing one axis should trigger canvas resize
+  const source = new TriodeSource({ width: 100, height: 100, label: "s0" });
   const ctx = source.initCanvas(100, 200);
   assert.equal(ctx.canvas.width, 100);
   assert.equal(ctx.canvas.height, 200);
@@ -217,7 +217,7 @@ try {
   };
   runtime.clearRuntime();
   runtime.setRuntime(imageRuntime);
-  assert.throws(() => arr.image("mock://image.png"), /active Hydra runtime/);
+  assert.throws(() => arr.image("mock://image.png"), /active Triode runtime/);
   const imageApi = runtime.bindRuntimeModule(
     { image: arr.image },
     imageRuntime,

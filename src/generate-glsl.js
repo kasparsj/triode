@@ -1,7 +1,7 @@
 import {formatArguments} from './format-arguments.js'
 import {typeLookup, getLookup, getTypeLookup, castType, replaceGenType} from "./types.js";
 import GlslSource from "./glsl-source.js";
-import {HydraScene} from "./three/scene.js";
+import {TriodeScene} from "./three/scene.js";
 
 // converts a tree of javascript functions to a shader
 export default function(source) {
@@ -77,8 +77,8 @@ function generateGlsl (source, transforms, shaderParams) {
       fragColor = (uv, returnType, alpha) =>  `${shaderString(`${f0(uv, 'vec4')}`, transform, inputs, shaderParams, returnType, alpha)}`
     } else if (transform.transform.type === 'combine') {
       // combining two generated shader strings (i.e. for blend, mult, add funtions)
-      const sourceVert = source instanceof GlslSource && (source.transforms[0].transform.vert || source.transforms[0].transform.type === 'vert') || source instanceof HydraScene;
-      const input0Vert = inputs[0].value instanceof GlslSource && (inputs[0].value.transforms[0].transform.vert || inputs[0].value.transforms[0].transform.type === 'vert') || inputs[0].value instanceof HydraScene;
+      const sourceVert = source instanceof GlslSource && (source.transforms[0].transform.vert || source.transforms[0].transform.type === 'vert') || source instanceof TriodeScene;
+      const input0Vert = inputs[0].value instanceof GlslSource && (inputs[0].value.transforms[0].transform.vert || inputs[0].value.transforms[0].transform.type === 'vert') || inputs[0].value instanceof TriodeScene;
       if (sourceVert || input0Vert) {
         const params = Object.assign({}, shaderParams, {
           fragColor: fragColor('st', 'vec4', 1.0) || 'vec4(0)',

@@ -51,7 +51,7 @@ stage().lights({ all: true }).mesh(geom.box(), mat).render();
   - best for fast live coding and sketching.
 
 - `makeGlobal: false`
-  - call through `const H = hydra.synth; H.osc(...); H.stage(...);`
+  - call through `const H = triode.synth; H.osc(...); H.stage(...);`
   - best for embedding in serious apps, multi-instance hosts, and isolation.
 
 ## Semantics to keep in mind

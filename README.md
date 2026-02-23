@@ -10,7 +10,7 @@ triode is a three.js-powered live coding engine for 3D scene APIs while keeping 
 ## Hydra Compatibility
 
 - triode can be used as a drop-in runtime replacement for `hydra-synth` in Hydra editor/REPL-style setups.
-- Replace the loaded runtime bundle with triode's `dist/triode.js`, keeping the same `Hydra` global entrypoint.
+- Replace the loaded runtime bundle with triode's `dist/triode.js`. `Triode` is the primary global entrypoint and `Hydra` remains available as a compatibility alias.
 - This repository includes Hydra-compatible runtime pieces, but the main product direction is 3D live coding through triode's Three.js API.
 
 ## Distribution Model
@@ -26,7 +26,7 @@ triode is a three.js-powered live coding engine for 3D scene APIs while keeping 
 
 - Runtime target is browser execution (WebGL + DOM APIs required).
 - The ESM package entry is browser-only; importing in pure Node/SSR without a browser-like runtime is unsupported.
-- For server-side build pipelines, run Hydra code in browser contexts and publish artifacts from CI.
+- For server-side build pipelines, run triode code in browser contexts and publish artifacts from CI.
 
 ## Project Site
 
@@ -51,7 +51,7 @@ Use jsDelivr from this repository:
 ```html
 <script src="https://cdn.jsdelivr.net/gh/kasparsj/triode@v1.0.0/dist/triode.js"></script>
 <script>
-  const hydra = new Hydra({ detectAudio: false });
+  const triode = new Triode({ detectAudio: false });
   osc(8, 0.1, 0.8).render();
 </script>
 ```
@@ -62,7 +62,7 @@ For Hydra editor/REPL embeddings, this bundle is intended as a drop-in runtime r
 Success criteria:
 
 - You see animated output immediately.
-- `Hydra` is available on `window`.
+- `Triode` is available on `window` (`Hydra` alias is also available for compatibility).
 
 ### Option B: npm + bundler
 
@@ -73,9 +73,9 @@ npm i github:kasparsj/triode#v1.0.0 three
 If you want upstream Hydra instead, install `npm i hydra-synth`. For this repository, import `triode`.
 
 ```js
-import Hydra from "triode";
+import Triode from "triode";
 
-const hydra = new Hydra({
+const triode = new Triode({
   detectAudio: false,
   makeGlobal: true,
 });
@@ -86,14 +86,14 @@ osc(8, 0.1, 0.8).render();
 Non-global mode is also supported:
 
 ```js
-import Hydra from "triode";
+import Triode from "triode";
 
-const hydra = new Hydra({
+const triode = new Triode({
   detectAudio: false,
   makeGlobal: false,
 });
 
-const H = hydra.synth;
+const H = triode.synth;
 H.osc(8, 0.1, 0.8).render();
 ```
 

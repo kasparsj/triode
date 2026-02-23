@@ -3,7 +3,7 @@ perspective([2,2,3], [0,0,0], {controls: true});
 
 // create geometry and material
 const boxGeometry = geom.box(); // cube geometry
-const boxMaterial = osc().rotateDeg(noise(1).mult(45)).phong(); // use a hydra texture mapped onto a phong material
+const boxMaterial = osc().rotateDeg(noise(1).mult(45)).phong(); // use a triode texture mapped onto a phong material
 
 // compose scene
 const sc = stage({ key: "box-scene" })

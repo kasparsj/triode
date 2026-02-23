@@ -1,10 +1,10 @@
 # Hydra in triode
 
-triode keeps Hydra's chain language and runtime entrypoint while changing the render backend and expanding scene APIs.
+triode keeps Hydra's chain language while changing the render backend and expanding scene APIs.
 
 ## What stays familiar
 
-- `Hydra` constructor entrypoint.
+- `Triode` constructor entrypoint (`Hydra` remains as a compatibility alias).
 - Generators and transform chaining (`osc`, `noise`, `src`, `solid`, `modulate`, etc.).
 - Output flow (`render`, `out`, `o0..oN`, `s0..sN`).
 - Livecoding-oriented eval loops.

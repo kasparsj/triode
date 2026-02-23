@@ -1,7 +1,7 @@
 import arrayUtils from './lib/array-utils.js'
 import {getLookup} from "./types.js";
 import Output from "./output.js";
-import Source from "./hydra-source.js";
+import Source from "./triode-source.js";
 
 // [WIP] how to treat different dimensions (?)
 const DEFAULT_CONVERSIONS = {
