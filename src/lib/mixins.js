@@ -62,6 +62,28 @@ const normalizeRenderArgs = (_output, options = {}) => {
     };
 };
 
+const getRuntimeFromSource = (source) => {
+    if (
+        source &&
+        source.synth &&
+        typeof source.synth._getRuntime === 'function'
+    ) {
+        return source.synth._getRuntime();
+    }
+    return null;
+};
+
+const summarizeCompileError = (error, chainLabel = '') => {
+    const message = error && error.message ? error.message : String(error);
+    const lines = String(message)
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean);
+    const details = lines.slice(0, 2).join(' | ');
+    const chain = chainLabel ? ` in chain "${chainLabel}"` : '';
+    return `out() compile failed${chain}: ${details || message}`;
+};
+
 const resolveControlsOptions = (cameraOptions, target) => {
     const controls = cameraOptions.controls;
     if (!controls) {
@@ -279,7 +301,16 @@ const sourceMixin = {
         try {
             output._set(glsl, normalized.options)
         } catch (error) {
-            console.log('shader could not compile', error)
+            const chainLabel = Array.isArray(this.transforms)
+                ? this.transforms.map((transform) => transform.name).join(' -> ')
+                : '';
+            const summary = summarizeCompileError(error, chainLabel);
+            const runtime = getRuntimeFromSource(this);
+            if (runtime && typeof runtime._handleRuntimeError === 'function') {
+                runtime._handleRuntimeError(new Error(summary), 'compile');
+            } else {
+                console.warn(`[triode:compile] ${summary}`);
+            }
         }
         return this
     },

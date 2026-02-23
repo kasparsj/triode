@@ -15,10 +15,14 @@ Use when you want fluid iterative livecoding without full runtime reset.
 
 ## Restart mode
 
-- Runtime state is rebuilt on each eval cycle.
+- Runtime state is reset on each `eval(...)` cycle by default.
 - Closest to older restart-every-run workflows.
 
 Use when you prefer strict rerun determinism and can tolerate full reset cost.
+
+Per-call override:
+
+- `triode.eval(code, { mode: "continuous" | "restart" | "auto", reset?: boolean, hush?: boolean })`
 
 ## Identity guidance
 

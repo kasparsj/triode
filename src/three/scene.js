@@ -1687,6 +1687,11 @@ const sceneMixin = {
     );
   },
 
+  instancedAdd(geometry, material, count, options = {}) {
+    this.instanced(geometry, material, count, options);
+    return this;
+  },
+
   circle(geometry, material, options) {
     this._circle(geometry, material, toInternalCallOptions(options));
     return this;
@@ -1773,39 +1778,47 @@ const sceneMixin = {
     return this.children.length === 0;
   },
 
-  at(index = 0) {
+  at(index = 0, options = {}) {
     const object = this.children.filter(
       (o) => o.name !== lights.groupName && o.name !== world.groupName,
     )[index];
-    markLiveTouch(this._runtime, object);
-    markLiveTouch(this._runtime, this, { scene: !!this.isScene });
-    const sceneRoot = findSceneRoot(this);
-    if (sceneRoot) {
-      markLiveTouch(this._runtime, sceneRoot, { scene: true });
+    const touch =
+      !options || typeof options !== "object" || options.touch !== false;
+    if (touch) {
+      markLiveTouch(this._runtime, object);
+      markLiveTouch(this._runtime, this, { scene: !!this.isScene });
+      const sceneRoot = findSceneRoot(this);
+      if (sceneRoot) {
+        markLiveTouch(this._runtime, sceneRoot, { scene: true });
+      }
     }
     return object;
   },
 
-  obj(index = 0) {
-    return this.at(index);
+  obj(index = 0, options = {}) {
+    return this.at(index, options);
   },
 
   texture(output, options = {}) {
     return this.tex(output, options);
   },
 
-  find(filter = { isMesh: true }) {
+  find(filter = { isMesh: true }, options = {}) {
     const props = Object.keys(filter);
     const objects = this.children.filter((o) => {
       return props.find((p) => o[p] !== filter[p]) === undefined;
     });
-    objects.forEach((object) => {
-      markLiveTouch(this._runtime, object);
-    });
-    markLiveTouch(this._runtime, this, { scene: !!this.isScene });
-    const sceneRoot = findSceneRoot(this);
-    if (sceneRoot) {
-      markLiveTouch(this._runtime, sceneRoot, { scene: true });
+    const touch =
+      !options || typeof options !== "object" || options.touch !== false;
+    if (touch) {
+      objects.forEach((object) => {
+        markLiveTouch(this._runtime, object);
+      });
+      markLiveTouch(this._runtime, this, { scene: !!this.isScene });
+      const sceneRoot = findSceneRoot(this);
+      if (sceneRoot) {
+        markLiveTouch(this._runtime, sceneRoot, { scene: true });
+      }
     }
     return objects;
   },
@@ -1898,6 +1911,11 @@ class TriodeScene extends THREE.Scene {
     const layer = layers.create(id, this, options);
     this._layers.push(layer);
     return layer;
+  }
+
+  layerAdd(id, options = {}) {
+    this.layer(id, options);
+    return this;
   }
 
   lookAt(target, options = {}) {

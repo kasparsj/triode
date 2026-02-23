@@ -8,13 +8,15 @@ class Audio {
     max = 15,
     scale = 10,
     isDrawing = false,
-    parentEl = document.body
+    parentEl = document.body,
+    makeGlobal = true
   }) {
     this.vol = 0
     this.scale = scale
     this.max = max
     this.cutoff = cutoff
     this.smooth = smooth
+    this.makeGlobal = makeGlobal === true
     this.setBins(numBins)
 
     // beat detection from: https://github.com/therewasaguy/p5-music-viz/blob/gh-pages/demos/01d_beat_detect_amplitude/sketch.js
@@ -38,7 +40,11 @@ class Audio {
     this.canvas.style.position = 'absolute'
     this.canvas.style.right = '0px'
     this.canvas.style.bottom = '0px'
-    parentEl.appendChild(this.canvas)
+    const container =
+      parentEl && typeof parentEl.appendChild === 'function'
+        ? parentEl
+        : document.body
+    container.appendChild(this.canvas)
 
     this.isDrawing = isDrawing
     this.ctx = this.canvas.getContext('2d')
@@ -145,12 +151,21 @@ class Audio {
       scale: this.scale,
       smooth: this.smooth
     }))
-    // to do: what to do in non-global mode?
-    const self = this
-    this.bins.forEach((bin, index) => {
-      window['a' + index] = (scale = 1, offset = 0) => () => (self.fft[index] * scale + offset)
-    })
+    if (this.makeGlobal && typeof window !== 'undefined') {
+      const self = this
+      this.bins.forEach((bin, index) => {
+        window['a' + index] = (scale = 1, offset = 0) => () => (self.fft[index] * scale + offset)
+      })
+    }
   //  console.log(this.settings)
+  }
+
+  bin(index = 0, scale = 1, offset = 0) {
+    const safeIndex =
+      typeof index === 'number' && Number.isFinite(index)
+        ? Math.max(0, Math.floor(index))
+        : 0
+    return () => ((this.fft[safeIndex] || 0) * scale + offset)
   }
 
   setScale(scale){

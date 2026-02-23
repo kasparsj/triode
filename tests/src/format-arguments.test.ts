@@ -84,6 +84,22 @@ describe('format-arguments defaults and coercion', () => {
     expect(formatted.name).toBe('tex4')
   })
 
+  it('keeps sampler coercion non-fatal for null values', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const fallbackTexture = { id: 'fallback' }
+    const transform = createTransform(
+      [{ name: 'tex', type: 'sampler2D', default: fallbackTexture }],
+      [null]
+    )
+
+    const [formatted] = formatArguments(transform, 2)
+
+    expect(formatted.value).toBe(fallbackTexture)
+    expect(formatted.isUniform).toBe(true)
+    expect(formatted.name).toBe('tex2')
+    expect(warnSpy).not.toHaveBeenCalled()
+  })
+
   it('maps Output and Source inputs through src() for vector accessors', () => {
     const outputRef = Object.create(Output.prototype)
     const sourceRef = Object.create(Source.prototype)
@@ -161,5 +177,14 @@ describe('format-arguments defaults and coercion', () => {
     const [scalarArrayArg] = formatArguments(scalarArrayTransform, 3)
     expect(scalarArrayArg.value({}, { time: 2, bpm: 60 }, 0)).toBe(3)
     expect(warnSpy).toHaveBeenCalled()
+  })
+
+  it('avoids texture coercion crashes when vec input is nullish', () => {
+    const transform = createTransform(
+      [{ name: 'offset', type: 'vec3', default: null }],
+      [null]
+    )
+
+    expect(() => formatArguments(transform, 6)).not.toThrow()
   })
 })

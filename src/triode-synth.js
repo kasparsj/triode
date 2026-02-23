@@ -41,6 +41,51 @@ const isPlainObject = (value) =>
   typeof value === 'object' &&
   !Array.isArray(value)
 
+const toFiniteNumber = (value, fallback) =>
+  typeof value === 'number' && Number.isFinite(value) ? value : fallback
+
+const DEFAULT_RUNTIME_ERROR_POLICY = {
+  maxPerSecond: 4,
+  dedupeWindowMs: 1000,
+  verbose: false,
+  pauseOnError: false,
+}
+
+const normalizeErrorPolicy = (policy) => {
+  const source = isPlainObject(policy) ? policy : {}
+  return {
+    maxPerSecond: Math.max(
+      0,
+      Math.floor(toFiniteNumber(source.maxPerSecond, DEFAULT_RUNTIME_ERROR_POLICY.maxPerSecond))
+    ),
+    dedupeWindowMs: Math.max(
+      0,
+      toFiniteNumber(source.dedupeWindowMs, DEFAULT_RUNTIME_ERROR_POLICY.dedupeWindowMs)
+    ),
+    verbose: source.verbose === true,
+    pauseOnError: source.pauseOnError === true,
+  }
+}
+
+const normalizeArgPolicy = (policy) => {
+  const source = isPlainObject(policy) ? policy : {}
+  const invalid = typeof source.invalid === 'string' ? source.invalid : 'warn'
+  return {
+    invalid: invalid === 'clamp' || invalid === 'throw' ? invalid : 'warn',
+    nanFallback: toFiniteNumber(source.nanFallback, 0),
+  }
+}
+
+const normalizeArrayHelpersMode = (value) =>
+  value === 'module' ? 'module' : 'prototype'
+
+const normalizeCssRenderersMode = (value) => {
+  if (value === false) {
+    return false
+  }
+  return value === 'eager' ? 'eager' : 'lazy'
+}
+
 const installHelperGlobal = (key, owner, value) => {
   if (typeof window === 'undefined') {
     return
@@ -121,12 +166,16 @@ class TriodeRenderer {
     numOutputs = 4,
     makeGlobal,
     autoLoop = true,
-    detectAudio = true,
+    detectAudio,
     enableStreamCapture = true,
     webgl = 2,
     canvas,
     css2DElement,
     css3DElement,
+    cssRenderers = 'lazy',
+    errorPolicy,
+    argPolicy,
+    arrayHelpers = 'prototype',
     precision,
     onError,
     liveMode,
@@ -136,17 +185,21 @@ class TriodeRenderer {
     extendTransforms = {} // add your own functions on init
   } = {}) {
 
-    ArrayUtils.init()
+    this.arrayHelpers = normalizeArrayHelpersMode(arrayHelpers)
+    if (this.arrayHelpers === 'prototype') {
+      ArrayUtils.init()
+    }
 
     this.pb = pb
 
     this.width = width
     this.height = height
     this.renderAll = false
-    this.detectAudio = detectAudio
     this.legacy = legacy === true
     this.makeGlobal =
       typeof makeGlobal === 'boolean' ? makeGlobal : this.legacy
+    this.detectAudio =
+      typeof detectAudio === 'boolean' ? detectAudio : this.makeGlobal
     const resolvedLiveMode =
       typeof liveMode === 'string'
         ? liveMode
@@ -154,11 +207,20 @@ class TriodeRenderer {
           ? 'restart'
           : 'continuous'
     this.liveMode = resolvedLiveMode === 'continuous' ? 'continuous' : 'restart'
+    this.cssRenderersMode = normalizeCssRenderersMode(cssRenderers)
+    this.errorPolicy = normalizeErrorPolicy(errorPolicy)
+    this.argPolicy = normalizeArgPolicy(argPolicy)
     this._disposed = false
     this._loop = null
+    this._frozen = false
+    this._frozenTime = null
     this._globalHelpersInstalled = false
     this._mathHelpersInstalled = false
     this._deprecationWarnings = new Set()
+    this._runtimeErrorCache = new Map()
+    this._runtimeErrorWindowStart = 0
+    this._runtimeErrorCount = 0
+    this._maxRuntimeErrorCacheSize = 200
     this._runtimeErrorHandler = typeof onError === 'function' ? onError : null
     this.clock = coerceClock(clock)
     this.adapters = resolveRuntimeAdapters(adapters)
@@ -199,11 +261,17 @@ class TriodeRenderer {
       legacy: this.legacy,
       hush: this.hush.bind(this),
       resetRuntime: this.resetRuntime.bind(this),
+      reset: this.reset.bind(this),
+      freeze: this.freeze.bind(this),
+      resume: this.resume.bind(this),
+      step: this.step.bind(this),
       tick: this.tick.bind(this),
       shadowMap: this.shadowMap.bind(this),
       scene: sceneApi,
       stage: stageApi,
       liveGlobals: this.liveGlobals.bind(this),
+      errorPolicy: this.errorPolicy,
+      argPolicy: this.argPolicy,
       ortho: (...args) => this.output.ortho.apply(this.output, args),
       perspective: (...args) => this.output.perspective.apply(this.output, args),
       screenCoords: (w, h) => this.output.screenCoords(w, h),
@@ -303,7 +371,7 @@ class TriodeRenderer {
       }
     }
 
-    if(detectAudio) this._initAudio()
+    if(this.detectAudio) this._initAudio()
 
     if(autoLoop) {
       this._loop = this.adapters.createLoop(this.tick.bind(this))
@@ -314,8 +382,23 @@ class TriodeRenderer {
     this.sandbox = this.adapters.createSandbox(this.synth, this.makeGlobal, ['speed', 'update', 'afterUpdate', 'click', 'mousedown', 'mouseup', 'mousemove', 'keydown', 'keyup', 'bpm', 'fps'])
   }
 
-  eval(code) {
-    const continuousEval = this.liveMode === 'continuous'
+  eval(code, options = {}) {
+    const evalOptions = isPlainObject(options) ? options : {}
+    const modeOption =
+      typeof evalOptions.mode === 'string' && evalOptions.mode !== 'auto'
+        ? evalOptions.mode
+        : this.liveMode
+    const mode = modeOption === 'continuous' ? 'continuous' : 'restart'
+    const shouldReset =
+      evalOptions.reset === true ||
+      (evalOptions.reset !== false && mode === 'restart')
+    if (evalOptions.hush === true) {
+      this.hush()
+    }
+    if (shouldReset) {
+      this.resetRuntime()
+    }
+    const continuousEval = mode === 'continuous'
     if (continuousEval) {
       scene.beginSceneEval(this, code)
     }
@@ -333,39 +416,109 @@ class TriodeRenderer {
     this.saveFrame = true
   }
 
-  hush() {
-    this.s.forEach((source) => {
-      source.clear()
-    })
-    this.o.forEach((output) => {
-      this.synth.solid(0, 0, 0, 0).out(output)
-    })
-    this.synth.render(this.o[0])
-    this.sandbox.set('update', (dt) => {})
-    this.sandbox.set('click', (event) => {})
-    this.sandbox.set('mousedown', (event) => {})
-    this.sandbox.set('mouseup', (event) => {})
-    this.sandbox.set('mousemove', (event) => {})
-    this.sandbox.set('keydown', (event) => {})
-    this.sandbox.set('keyup', (event) => {})
-    this.sandbox.set('afterUpdate', (dt) => {})
+  hush(options = {}) {
+    const hushOptions = isPlainObject(options) ? options : {}
+    const clearSources = hushOptions.sources !== false
+    const clearOutputs = hushOptions.outputs !== false
+    const clearHooks = hushOptions.hooks !== false
+
+    if (clearSources) {
+      this.s.forEach((source) => {
+        source.clear()
+      })
+    }
+    if (clearOutputs) {
+      this.o.forEach((output) => {
+        this.synth.solid(0, 0, 0, 0).out(output)
+      })
+      this.synth.render(this.o[0])
+    }
+    if (clearHooks) {
+      this.sandbox.set('update', (dt) => {})
+      this.sandbox.set('click', (event) => {})
+      this.sandbox.set('mousedown', (event) => {})
+      this.sandbox.set('mouseup', (event) => {})
+      this.sandbox.set('mousemove', (event) => {})
+      this.sandbox.set('keydown', (event) => {})
+      this.sandbox.set('keyup', (event) => {})
+      this.sandbox.set('afterUpdate', (dt) => {})
+    }
   }
 
-  resetRuntime() {
+  resetRuntime(options = {}) {
     if (this._disposed) {
       return
     }
+    const resetOptions = Object.assign(
+      {
+        scene: true,
+        time: true,
+        hooks: true,
+        outputs: true,
+        sources: true,
+      },
+      isPlainObject(options) ? options : {},
+    )
     withRuntime(this, () => {
-      this.hush()
-      scene.clearSceneRuntime(this)
+      if (
+        resetOptions.outputs ||
+        resetOptions.hooks ||
+        resetOptions.sources
+      ) {
+        this.hush({
+          outputs: resetOptions.outputs,
+          hooks: resetOptions.hooks,
+          sources: resetOptions.sources,
+        })
+      }
+      if (resetOptions.scene) {
+        scene.clearSceneRuntime(this)
+      }
     })
-    const nextTime = this.clock.reset(0)
-    this.synth.time = nextTime
-    this.sandbox.set('time', nextTime)
-    this.timeSinceLastUpdate = 0
-    this._time = 0
-    if (this.synth.stats && typeof this.synth.stats === 'object') {
-      this.synth.stats.fps = 0
+    if (resetOptions.time) {
+      const nextTime = this.clock.reset(0)
+      this.synth.time = nextTime
+      this._frozenTime = nextTime
+      this.sandbox.set('time', nextTime)
+      this.timeSinceLastUpdate = 0
+      this._time = 0
+      if (this.synth.stats && typeof this.synth.stats === 'object') {
+        this.synth.stats.fps = 0
+      }
+    }
+  }
+
+  reset(options = {}) {
+    this.resetRuntime(options)
+  }
+
+  freeze(time = this.synth.time) {
+    const nextTime = toFiniteNumber(time, this.synth.time)
+    this._frozen = true
+    this._frozenTime = nextTime
+    const resetTime = this.clock.reset(nextTime)
+    this.synth.time = resetTime
+    if (this.sandbox && typeof this.sandbox.set === 'function') {
+      this.sandbox.set('time', resetTime)
+    }
+  }
+
+  resume() {
+    this._frozen = false
+    this._frozenTime = null
+  }
+
+  step(dtMs = 16.6667) {
+    const dt = toFiniteNumber(dtMs, 16.6667)
+    const wasFrozen = this._frozen === true
+    if (wasFrozen) {
+      this._frozen = false
+    }
+    this.tick(dt)
+    if (wasFrozen) {
+      this._frozen = true
+      this._frozenTime = this.synth.time
+      this.clock.reset(this.synth.time)
     }
   }
 
@@ -435,7 +588,77 @@ class TriodeRenderer {
     return null
   }
 
+  _nowMs() {
+    const perf =
+      typeof globalThis !== 'undefined' ? globalThis.performance : undefined
+    if (perf && typeof perf.now === 'function') {
+      return perf.now()
+    }
+    return Date.now()
+  }
+
+  _trimRuntimeErrorCache(nowMs) {
+    if (this._runtimeErrorCache.size <= this._maxRuntimeErrorCacheSize) {
+      return
+    }
+    const dedupeWindowMs =
+      this.errorPolicy && typeof this.errorPolicy.dedupeWindowMs === 'number'
+        ? this.errorPolicy.dedupeWindowMs
+        : DEFAULT_RUNTIME_ERROR_POLICY.dedupeWindowMs
+    const minAge = Math.max(1000, dedupeWindowMs * 2)
+    for (const [key, seenAt] of this._runtimeErrorCache.entries()) {
+      if (nowMs - seenAt > minAge) {
+        this._runtimeErrorCache.delete(key)
+      }
+      if (this._runtimeErrorCache.size <= this._maxRuntimeErrorCacheSize) {
+        break
+      }
+    }
+  }
+
+  _shouldReportRuntimeError(error, context = 'tick') {
+    const policy = this.errorPolicy || DEFAULT_RUNTIME_ERROR_POLICY
+    if (policy.verbose === true) {
+      return true
+    }
+    const nowMs = this._nowMs()
+    if (
+      this._runtimeErrorWindowStart === 0 ||
+      nowMs - this._runtimeErrorWindowStart >= 1000
+    ) {
+      this._runtimeErrorWindowStart = nowMs
+      this._runtimeErrorCount = 0
+    }
+    if (this._runtimeErrorCount >= policy.maxPerSecond) {
+      return false
+    }
+    const message =
+      error && typeof error === 'object' && 'message' in error
+        ? error.message
+        : String(error)
+    const key = `${context}:${message}`
+    const lastSeen = this._runtimeErrorCache.get(key)
+    if (
+      typeof lastSeen === 'number' &&
+      nowMs - lastSeen < policy.dedupeWindowMs
+    ) {
+      return false
+    }
+    this._runtimeErrorCache.set(key, nowMs)
+    this._runtimeErrorCount += 1
+    this._trimRuntimeErrorCache(nowMs)
+    return true
+  }
+
   _handleRuntimeError(error, context = 'tick') {
+    const shouldReport =
+      typeof this._shouldReportRuntimeError === 'function'
+        ? this._shouldReportRuntimeError(error, context)
+        : true
+    if (!shouldReport) {
+      return
+    }
+    const policy = this.errorPolicy || DEFAULT_RUNTIME_ERROR_POLICY
     const handler = this._getRuntimeErrorHandler()
     if (handler) {
       try {
@@ -447,7 +670,18 @@ class TriodeRenderer {
         console.warn('Error in onError handler:', handlerError)
       }
     }
-    console.warn(`Error during ${context}():`, error)
+    const message =
+      error && typeof error === 'object' && 'message' in error
+        ? error.message
+        : String(error)
+    if (policy.verbose) {
+      console.warn(`[triode:${context}] ${message}`, error)
+    } else {
+      console.warn(`[triode:${context}] ${message}`)
+    }
+    if (policy.pauseOnError) {
+      this.freeze()
+    }
   }
 
   setResolution(width, height) {
@@ -464,8 +698,12 @@ class TriodeRenderer {
     this.s.forEach((source) => {
       source.resize(width, height)
     })
-    this.css2DRenderer.setSize(width, height)
-    this.css3DRenderer.setSize(width, height)
+    if (this.css2DRenderer && typeof this.css2DRenderer.setSize === 'function') {
+      this.css2DRenderer.setSize(width, height)
+    }
+    if (this.css3DRenderer && typeof this.css3DRenderer.setSize === 'function') {
+      this.css3DRenderer.setSize(width, height)
+    }
   }
 
   canvasToImage (callback) {
@@ -496,7 +734,8 @@ class TriodeRenderer {
     const adapters = this.adapters || defaultRuntimeAdapters
     this.synth.a = adapters.createAudio({
       numBins: 4,
-      parentEl: this.canvas.parentNode
+      parentEl: this.canvas.parentNode,
+      makeGlobal: this.makeGlobal,
       // changeListener: ({audio}) => {
       //   that.a = audio.bins.map((_, index) =>
       //     (scale = 1, offset = 0) => () => (audio.fft[index] * scale + offset)
@@ -510,6 +749,90 @@ class TriodeRenderer {
       //   }
       // }
     })
+    if (this.synth.a && typeof this.synth.a.bin !== 'function') {
+      this.synth.a.bin = (index = 0, scale = 1, offset = 0) => () => {
+        const safeIndex = Number.isInteger(index) ? index : 0
+        const bins = this.synth.a && Array.isArray(this.synth.a.fft) ? this.synth.a.fft : []
+        const value = typeof bins[safeIndex] === 'number' ? bins[safeIndex] : 0
+        return value * scale + offset
+      }
+    }
+  }
+
+  _normalizeCssRendererKey(cssRenderer) {
+    if (cssRenderer === 'css2DRenderer' || cssRenderer === 'css3DRenderer') {
+      return cssRenderer
+    }
+    if (typeof cssRenderer !== 'string') {
+      return null
+    }
+    switch (cssRenderer.toLowerCase()) {
+      case '2d':
+      case 'css2d':
+      case 'css2drenderer':
+        return 'css2DRenderer'
+      case '3d':
+      case 'css3d':
+      case 'css3drenderer':
+        return 'css3DRenderer'
+      default:
+        return null
+    }
+  }
+
+  _configureCssRendererDom(renderer) {
+    if (!renderer || !renderer.domElement) {
+      return
+    }
+    renderer.setSize(this.width, this.height)
+    renderer.domElement.style.position = 'absolute'
+    renderer.domElement.style.top = '0px'
+    renderer.domElement.style.pointerEvents = 'none'
+    if (
+      typeof document !== 'undefined' &&
+      document.body &&
+      !renderer.domElement.parentNode
+    ) {
+      document.body.appendChild(renderer.domElement)
+    }
+  }
+
+  _createCssRenderer(rendererKey) {
+    const adapters = this.adapters || defaultRuntimeAdapters
+    if (rendererKey === 'css2DRenderer') {
+      this.css2DRenderer = adapters.createCss2DRenderer({
+        element: this._css2DElement,
+      })
+      this._configureCssRendererDom(this.css2DRenderer)
+      this.synth.css2DRenderer = this.css2DRenderer
+      return this.css2DRenderer
+    }
+    if (rendererKey === 'css3DRenderer') {
+      this.css3DRenderer = adapters.createCss3DRenderer({
+        element: this._css3DElement,
+      })
+      this._configureCssRendererDom(this.css3DRenderer)
+      this.synth.css3DRenderer = this.css3DRenderer
+      return this.css3DRenderer
+    }
+    return null
+  }
+
+  ensureCssRenderer(cssRenderer) {
+    if (this.cssRenderersMode === false) {
+      return null
+    }
+    const rendererKey = this._normalizeCssRendererKey(cssRenderer)
+    if (!rendererKey) {
+      return null
+    }
+    if (rendererKey === 'css2DRenderer' && this.css2DRenderer) {
+      return this.css2DRenderer
+    }
+    if (rendererKey === 'css3DRenderer' && this.css3DRenderer) {
+      return this.css3DRenderer
+    }
+    return this._createCssRenderer(rendererKey)
   }
 
   _initThree (webgl, css2DElement, css3DElement) {
@@ -529,21 +852,16 @@ class TriodeRenderer {
     this.synth.renderer = this.renderer;
     this.composer = adapters.createComposer(this.renderer);
 
-    this.css2DRenderer = adapters.createCss2DRenderer({element:css2DElement});
-    this.css2DRenderer.setSize(this.width, this.height);
-    this.css2DRenderer.domElement.style.position = 'absolute';
-    this.css2DRenderer.domElement.style.top = '0px';
-    this.css2DRenderer.domElement.style.pointerEvents = 'none';
-    document.body.appendChild( this.css2DRenderer.domElement );
-    this.synth.css2DRenderer = this.css2DRenderer;
-
-    this.css3DRenderer = adapters.createCss3DRenderer({element:css3DElement});
-    this.css3DRenderer.setSize(this.width, this.height);
-    this.css3DRenderer.domElement.style.position = 'absolute';
-    this.css3DRenderer.domElement.style.top = '0px';
-    this.css3DRenderer.domElement.style.pointerEvents = 'none';
-    document.body.appendChild( this.css3DRenderer.domElement );
-    this.synth.css3DRenderer = this.css3DRenderer;
+    this._css2DElement = css2DElement
+    this._css3DElement = css3DElement
+    this.css2DRenderer = null
+    this.css3DRenderer = null
+    this.synth.css2DRenderer = null
+    this.synth.css3DRenderer = null
+    if (this.cssRenderersMode === 'eager') {
+      this.ensureCssRenderer('css2DRenderer')
+      this.ensureCssRenderer('css3DRenderer')
+    }
 
     new TriodeUniform('tex', null, () => this.output.getTexture(), 'triode');
     new TriodeUniform('tex0', null, () => this.o[0].getTexture(), 'triode');
@@ -698,9 +1016,15 @@ class TriodeRenderer {
     this.sandbox.tick()
     if(this.detectAudio === true) this.synth.a.tick()
   //  let updateInterval = 1000/this.synth.fps // ms
-    const nextTime = this.clock.step(dt, this.synth.speed)
+    const frameDt = toFiniteNumber(dt, 0)
+    const effectiveDt = this._frozen ? 0 : frameDt
+    const speed = this._frozen ? 0 : this.synth.speed
+    const nextTime = this.clock.step(frameDt, speed)
+    if (this._frozen) {
+      this._frozenTime = nextTime
+    }
     this.sandbox.set('time', this.synth.time = nextTime)
-    this.timeSinceLastUpdate += dt
+    this.timeSinceLastUpdate += effectiveDt
     if(!this.synth.fps || this.timeSinceLastUpdate >= 1000/this.synth.fps) {
     //  console.log(1000/this.timeSinceLastUpdate)
       this.synth.stats.fps = Math.ceil(1000/this.timeSinceLastUpdate)
@@ -1023,11 +1347,38 @@ class TriodeRenderer {
         ? cameraConfig.type.toLowerCase()
         : (this.output._camera instanceof THREE.PerspectiveCamera ? 'perspective' : 'ortho')
     const { eye, target, type, ...cameraOptions } = cameraConfig
+    const normalizedCameraOptions = this._normalizeStageCameraOptions(cameraOptions)
     if (cameraType === 'perspective') {
-      this.output.perspective(eye, target, cameraOptions)
+      this.output.perspective(eye, target, normalizedCameraOptions)
     } else {
-      this.output.ortho(eye, target, cameraOptions)
+      this.output.ortho(eye, target, normalizedCameraOptions)
     }
+  }
+
+  _normalizeStageCameraOptions(cameraOptions = {}) {
+    if (!isPlainObject(cameraOptions)) {
+      return cameraOptions
+    }
+    const normalized = Object.assign({}, cameraOptions)
+    if (!normalized.controls) {
+      return normalized
+    }
+    if (normalized.controls === true) {
+      normalized.controls = {
+        modifier: normalized.modifier !== undefined ? normalized.modifier : 'none',
+      }
+      return normalized
+    }
+    if (
+      isPlainObject(normalized.controls) &&
+      normalized.controls.modifier === undefined &&
+      normalized.modifier === undefined
+    ) {
+      normalized.controls = Object.assign({}, normalized.controls, {
+        modifier: 'none',
+      })
+    }
+    return normalized
   }
 
   _applyStageLights(stageScene, lightsConfig) {

@@ -91,7 +91,12 @@ const triangle = (...args) => {
 
 const grid = (...args) => new GridGeometry(...args);
 
+let didWarnTextNotImplemented = false;
 const text = (text, options = {}) => {
+    if (!didWarnTextNotImplemented) {
+        console.warn('[triode:geom] gm.text() is not implemented yet; returning empty BufferGeometry.');
+        didWarnTextNotImplemented = true;
+    }
     const geom = new THREE.BufferGeometry();
     // todo: implement!
     return geom;

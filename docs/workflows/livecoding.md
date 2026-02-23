@@ -12,6 +12,7 @@ triode supports both quick in-browser sketching and host-application embedding.
 
 - `liveMode: "continuous"`: persistent runtime; best for live editing.
 - `liveMode: "restart"`: full reset each eval; best for strict reruns.
+- Per-eval override: `triode.eval(code, { mode, reset, hush })`.
 
 ## Global vs non-global
 
@@ -42,3 +43,5 @@ Use the interactive playground for fast recipe edits and sharable links:
 - Call `triode.dispose()` when replacing runtime instances.
 - In host apps, keep one clear owner of runtime lifecycle.
 - Route `onError` to application logging/telemetry.
+- Use `triode.freeze()`, `triode.step()`, and `triode.resume()` for deterministic live patching.
+- Use `triode.reset({ scene, time, hooks, outputs, sources })` for granular panic/reset flows.

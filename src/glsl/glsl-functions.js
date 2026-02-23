@@ -1261,16 +1261,16 @@ export default () => [
     name: 'map',
     type: 'genType',
     inputs: [
-        {name: 'start1', type: 'vec4', default: NaN},
-        {name: 'stop1', type: 'vec4', default: NaN},
+        {name: 'start1', type: 'vec4', default: [0, 0, 0, 0]},
+        {name: 'stop1', type: 'vec4', default: [1, 1, 1, 1]},
         {name: 'start2', type: 'vec4', default: 0},
         {name: 'stop2', type: 'vec4', default: 1},
     ],
     glsl: `return (_c0 - start1) / (stop1 - start1) * (stop2 - start2) + start2;`,
     coord: {
         inputs: [
-            {name: 'start1', type: 'vec2', default: NaN},
-            {name: 'stop1', type: 'vec2', default: NaN},
+            {name: 'start1', type: 'vec2', default: [0, 0]},
+            {name: 'stop1', type: 'vec2', default: [1, 1]},
             {name: 'start2', type: 'vec2', default: 0},
             {name: 'stop2', type: 'vec2', default: 1},
         ],

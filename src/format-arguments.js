@@ -25,14 +25,6 @@ function fillArrayWithDefaults(arr, len) {
   return arr.slice(0, len)
 }
 
-const ensure_decimal_dot = (val) => {
-  val = val.toString()
-  if (val.indexOf('.') < 0) {
-    val += '.'
-  }
-  return val
-}
-
 const resolveInputDefault = (input) =>
   typeof input.default === 'function' ? input.default() : input.default
 
@@ -41,6 +33,25 @@ const isFiniteNumber = (value) =>
 
 const normalizeNumericValue = (value, fallback = 0) =>
   isFiniteNumber(value) ? value : fallback
+
+const parseNumericValue = (value, fallback = 0) => {
+  if (typeof value === 'number') {
+    return normalizeNumericValue(value, fallback)
+  }
+  if (typeof value === 'string' && value.trim().length > 0) {
+    return normalizeNumericValue(Number(value), fallback)
+  }
+  return fallback
+}
+
+const ensure_decimal_dot = (val) => {
+  const numeric = parseNumericValue(val, 0)
+  let formatted = String(numeric)
+  if (Number.isInteger(numeric)) {
+    formatted += '.'
+  }
+  return formatted
+}
 
 
 
@@ -133,11 +144,15 @@ function formatArguments(transform, startIndex) {
       } else if (input.type === 'sampler2D' || input.type === 'sampler2DArray') {
         // typedArg.tex = typedArg.value
         var x = typedArg.value
-        typedArg.value = x.isRenderTarget ? x.texture : x
+        if (x == null) {
+          x = resolveInputDefault(input)
+          console.warn(`[triode:arg] ${input.name} expected sampler input; using default`)
+        }
+        typedArg.value = x && x.isRenderTarget ? x.texture : x || null
         typedArg.isUniform = true
       } else {
         // if passing in a texture reference, when function asks for vec4, convert to vec4
-        if (typedArg.value instanceof Output || typedArg.value instanceof Source || typedArg.value.isTexture || typedArg.value.isRenderTarget) {
+        if (typedArg.value && (typedArg.value instanceof Output || typedArg.value instanceof Source || typedArg.value.isTexture || typedArg.value.isRenderTarget)) {
           var x1 = typedArg.value.isRenderTarget ? typedArg.value.texture : typedArg.value
           if (input.type === 'vec4') {
             typedArg.value = src(x1)

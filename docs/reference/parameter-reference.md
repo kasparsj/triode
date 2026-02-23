@@ -6,26 +6,30 @@ For behavior-level edge cases (units, precedence, and internal/public boundaries
 
 ## Triode constructor options
 
-| Option                | Type                             | Default            | Notes                                                                                                                                        |
-| --------------------- | -------------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `width`               | `number`                         | `1280`             | Initial canvas width.                                                                                                                        |
-| `height`              | `number`                         | `720`              | Initial canvas height.                                                                                                                       |
-| `canvas`              | `HTMLCanvasElement`              | auto-created       | Provide your own canvas for embedding.                                                                                                       |
-| `makeGlobal`          | `boolean`                        | `false`            | Installs globals like `osc`, `stage`, `geom`, etc. Use `liveGlobals(true)` to opt in at runtime (`legacy: true` defaults this to `true`).    |
-| `autoLoop`            | `boolean`                        | `true`             | Starts internal RAF loop automatically.                                                                                                      |
-| `detectAudio`         | `boolean`                        | `true`             | Initializes audio analyzer (`a` bins).                                                                                                       |
-| `numSources`          | `number`                         | `4`                | Number of source slots `s0..sN`.                                                                                                             |
-| `numOutputs`          | `number`                         | `4`                | Number of output slots `o0..oN`.                                                                                                             |
-| `webgl`               | `1 \| 2`                         | `2`                | Select WebGL renderer backend.                                                                                                               |
-| `precision`           | `"lowp" \| "mediump" \| "highp"` | platform-dependent | Shader precision hint.                                                                                                                       |
-| `onError`             | `(error, context) => void`       | unset              | Runtime hook for `update/afterUpdate/tick` failures.                                                                                         |
-| `liveMode`            | `"restart" \| "continuous"`      | `"continuous"`     | Eval behavior: rebuild on each run vs persistent scene reconciliation (`legacy: true` defaults this to `"restart"`).                         |
-| `legacy`              | `boolean`                        | `false`            | Compatibility mode: restores legacy constructor defaults and suppresses deprecation warnings for `rotate(...)` and underscore scene methods. |
-| `enableStreamCapture` | `boolean`                        | `true`             | Enables `vidRecorder` capture setup.                                                                                                         |
-| `extendTransforms`    | object/array                     | `{}`               | Registers custom transforms at startup.                                                                                                      |
-| `css2DElement`        | `HTMLElement`                    | auto               | Target element for CSS2D renderer if used.                                                                                                   |
-| `css3DElement`        | `HTMLElement`                    | auto               | Target element for CSS3D renderer if used.                                                                                                   |
-| `pb`                  | `unknown`                        | `null`             | Legacy/peer stream source integration input.                                                                                                 |
+| Option                | Type                                                          | Default                               | Notes                                                                                                                                        |
+| --------------------- | ------------------------------------------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `width`               | `number`                                                      | `1280`                                | Initial canvas width.                                                                                                                        |
+| `height`              | `number`                                                      | `720`                                 | Initial canvas height.                                                                                                                       |
+| `canvas`              | `HTMLCanvasElement`                                           | auto-created                          | Provide your own canvas for embedding.                                                                                                       |
+| `makeGlobal`          | `boolean`                                                     | `false`                               | Installs globals like `osc`, `stage`, `geom`, etc. Use `liveGlobals(true)` to opt in at runtime (`legacy: true` defaults this to `true`).    |
+| `autoLoop`            | `boolean`                                                     | `true`                                | Starts internal RAF loop automatically.                                                                                                      |
+| `detectAudio`         | `boolean`                                                     | follows `makeGlobal`                  | Initializes audio analyzer (`a` bins). Defaults to `false` in non-global mode unless explicitly set.                                         |
+| `errorPolicy`         | `{ maxPerSecond?, dedupeWindowMs?, verbose?, pauseOnError? }` | `{4,1000,false,false}`                | Runtime error dedupe/rate policy for `update`/`afterUpdate`/`tick`/compile contexts.                                                         |
+| `argPolicy`           | `{ invalid?, nanFallback? }`                                  | `{ invalid: "warn", nanFallback: 0 }` | Argument coercion policy container (current runtime stores and exposes this policy for host tooling).                                        |
+| `arrayHelpers`        | `"prototype" \| "module"`                                     | `"prototype"`                         | Controls whether Array prototype helpers are installed globally.                                                                             |
+| `cssRenderers`        | `"lazy" \| "eager" \| false`                                  | `"lazy"`                              | CSS2D/CSS3D renderer creation mode. `lazy` defers DOM/renderer creation until requested by render options.                                   |
+| `numSources`          | `number`                                                      | `4`                                   | Number of source slots `s0..sN`.                                                                                                             |
+| `numOutputs`          | `number`                                                      | `4`                                   | Number of output slots `o0..oN`.                                                                                                             |
+| `webgl`               | `1 \| 2`                                                      | `2`                                   | Select WebGL renderer backend.                                                                                                               |
+| `precision`           | `"lowp" \| "mediump" \| "highp"`                              | platform-dependent                    | Shader precision hint.                                                                                                                       |
+| `onError`             | `(error, context) => void`                                    | unset                                 | Runtime hook for `update/afterUpdate/tick` failures.                                                                                         |
+| `liveMode`            | `"restart" \| "continuous"`                                   | `"continuous"`                        | Eval behavior: rebuild on each run vs persistent scene reconciliation (`legacy: true` defaults this to `"restart"`).                         |
+| `legacy`              | `boolean`                                                     | `false`                               | Compatibility mode: restores legacy constructor defaults and suppresses deprecation warnings for `rotate(...)` and underscore scene methods. |
+| `enableStreamCapture` | `boolean`                                                     | `true`                                | Enables `vidRecorder` capture setup.                                                                                                         |
+| `extendTransforms`    | object/array                                                  | `{}`                                  | Registers custom transforms at startup.                                                                                                      |
+| `css2DElement`        | `HTMLElement`                                                 | auto                                  | Target element for CSS2D renderer if used.                                                                                                   |
+| `css3DElement`        | `HTMLElement`                                                 | auto                                  | Target element for CSS3D renderer if used.                                                                                                   |
+| `pb`                  | `unknown`                                                     | `null`                                | Legacy/peer stream source integration input.                                                                                                 |
 
 ## Scene composition methods
 
@@ -116,6 +120,8 @@ Runtime scope note:
 - `false` to disable/dispose controls on the camera.
 - object config for explicit behavior.
 
+`stage({ camera: { controls: true } })` defaults modifier to `"none"` for helper ergonomics; direct camera helpers retain `"alt"` unless configured.
+
 | Control option               | Type                                   | Default         | Notes                                                   |
 | ---------------------------- | -------------------------------------- | --------------- | ------------------------------------------------------- |
 | `controls.enabled`           | `boolean`                              | `true`          | Set `false` to disable controls explicitly.             |
@@ -166,3 +172,13 @@ Mappings:
 | `keydown`, `keyup`                           | keyboard hooks routed from document                |
 | `onError(error, { context, time })`          | centralized runtime error handling                 |
 | `liveGlobals(enable?)`                       | toggles runtime global helper installation         |
+
+## Runtime control helpers
+
+| Method                 | Purpose                                                                           |
+| ---------------------- | --------------------------------------------------------------------------------- |
+| `eval(code, options?)` | Evaluate live code with per-call mode/reset/hush controls.                        |
+| `reset(options?)`      | Alias to `resetRuntime` with granular flags (`scene/time/hooks/outputs/sources`). |
+| `freeze(time?)`        | Pause time progression at current or explicit time.                               |
+| `step(dtMs?)`          | Advance a single deterministic frame step (works with frozen runtime).            |
+| `resume()`             | Resume realtime clock progression after freeze.                                   |

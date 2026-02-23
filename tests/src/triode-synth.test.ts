@@ -34,6 +34,36 @@ describe('triode-synth live coding behavior', () => {
     expect(endSpy).toHaveBeenCalledWith(runtime)
   })
 
+  it('resets by default in restart mode and supports explicit eval overrides', () => {
+    const beginSpy = vi
+      .spyOn(scene, 'beginSceneEval')
+      .mockImplementation(() => undefined)
+    const endSpy = vi
+      .spyOn(scene, 'endSceneEval')
+      .mockImplementation(() => undefined)
+
+    const runtime = {
+      liveMode: 'restart',
+      hush: vi.fn(),
+      resetRuntime: vi.fn(),
+      sandbox: {
+        eval: vi.fn(),
+      },
+    }
+
+    TriodeRenderer.prototype.eval.call(runtime, 'stage().render()')
+    TriodeRenderer.prototype.eval.call(runtime, 'stage().render()', {
+      mode: 'continuous',
+      reset: false,
+      hush: true,
+    })
+
+    expect(runtime.resetRuntime).toHaveBeenCalledTimes(1)
+    expect(runtime.hush).toHaveBeenCalledTimes(1)
+    expect(beginSpy).toHaveBeenCalledWith(runtime, 'stage().render()')
+    expect(endSpy).toHaveBeenCalledWith(runtime)
+  })
+
   it('onFrame wires callback to update() and keeps chain-safe sandbox state', () => {
     const callback = vi.fn()
     const runtime = {
@@ -106,6 +136,32 @@ describe('triode-synth live coding behavior', () => {
       })
     )
     expect(result).toBe(stageScene)
+  })
+
+  it('stage camera controls default to modifier none when enabled explicitly', () => {
+    const runtime = {
+      output: {
+        _camera: {},
+        perspective: vi.fn(),
+        ortho: vi.fn(),
+      },
+      _normalizeStageCameraOptions: TriodeRenderer.prototype._normalizeStageCameraOptions,
+    }
+
+    TriodeRenderer.prototype._applyStageCamera.call(runtime, {
+      type: 'perspective',
+      controls: true,
+    })
+
+    expect(runtime.output.perspective).toHaveBeenCalledWith(
+      undefined,
+      undefined,
+      expect.objectContaining({
+        controls: {
+          modifier: 'none',
+        },
+      })
+    )
   })
 })
 
@@ -228,6 +284,48 @@ describe('triode-synth deterministic tick and non-fatal errors', () => {
     })
     expect(warnSpy).toHaveBeenCalled()
   })
+
+  it('_handleRuntimeError applies dedupe/rate policy and optional pause-on-error', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const freezeSpy = vi.fn()
+    const onError = vi.fn()
+    const now = vi
+      .fn()
+      .mockReturnValueOnce(100)
+      .mockReturnValueOnce(200)
+      .mockReturnValueOnce(1200)
+
+    const runtime = {
+      synth: {
+        time: 9,
+        onError,
+      },
+      errorPolicy: {
+        maxPerSecond: 1,
+        dedupeWindowMs: 1000,
+        verbose: false,
+        pauseOnError: true,
+      },
+      freeze: freezeSpy,
+      _runtimeErrorCache: new Map(),
+      _runtimeErrorWindowStart: 0,
+      _runtimeErrorCount: 0,
+      _maxRuntimeErrorCacheSize: 200,
+      _runtimeErrorHandler: null,
+      _nowMs: now,
+      _trimRuntimeErrorCache: TriodeRenderer.prototype._trimRuntimeErrorCache,
+      _shouldReportRuntimeError: TriodeRenderer.prototype._shouldReportRuntimeError,
+      _getRuntimeErrorHandler: TriodeRenderer.prototype._getRuntimeErrorHandler,
+    }
+
+    TriodeRenderer.prototype._handleRuntimeError.call(runtime, new Error('boom'), 'update')
+    TriodeRenderer.prototype._handleRuntimeError.call(runtime, new Error('boom'), 'update')
+    TriodeRenderer.prototype._handleRuntimeError.call(runtime, new Error('boom'), 'update')
+
+    expect(onError).toHaveBeenCalledTimes(2)
+    expect(warnSpy).toHaveBeenCalledTimes(2)
+    expect(freezeSpy).toHaveBeenCalledTimes(2)
+  })
 })
 
 describe('triode-synth reset/dispose/hot-reload controls', () => {
@@ -262,6 +360,41 @@ describe('triode-synth reset/dispose/hot-reload controls', () => {
     expect(runtime._time).toBe(0)
     expect(runtime.synth.stats.fps).toBe(0)
     expect(runtime.sandbox.set).toHaveBeenCalledWith('time', 0)
+  })
+
+  it('resetRuntime() supports granular options', () => {
+    const clearSceneSpy = vi
+      .spyOn(scene, 'clearSceneRuntime')
+      .mockImplementation(() => undefined)
+    const runtime = {
+      _disposed: false,
+      hush: vi.fn(),
+      synth: {
+        time: 22,
+        stats: { fps: 120 },
+      },
+      sandbox: {
+        set: vi.fn(),
+      },
+      timeSinceLastUpdate: 40,
+      _time: 99,
+      clock: {
+        reset: vi.fn(() => 0),
+      },
+    }
+
+    TriodeRenderer.prototype.resetRuntime.call(runtime, {
+      scene: false,
+      time: false,
+      hooks: false,
+      outputs: false,
+      sources: false,
+    })
+
+    expect(runtime.hush).not.toHaveBeenCalled()
+    expect(clearSceneSpy).not.toHaveBeenCalled()
+    expect(runtime.clock.reset).not.toHaveBeenCalled()
+    expect(runtime.sandbox.set).not.toHaveBeenCalled()
   })
 
   it('liveGlobals() toggles makeGlobal state and helper installation', () => {

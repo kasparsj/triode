@@ -202,6 +202,13 @@ Output.prototype._set = function (passes, {cssRenderer = false}) {
   this.cssRenderer = typeof cssRenderer === 'string'
       ? {'2d': 'css2DRenderer', 'css2drenderer': 'css2DRenderer', '3d': 'css3DRenderer', 'css3drenderer': 'css3DRenderer'}[cssRenderer.toLowerCase()]
       : null;
+  if (
+    this.cssRenderer &&
+    this.synth &&
+    typeof this.synth.ensureCssRenderer === 'function'
+  ) {
+    this.synth.ensureCssRenderer(this.cssRenderer);
+  }
 }
 
 Output.prototype.clearNow = function() {

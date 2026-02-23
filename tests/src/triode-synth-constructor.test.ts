@@ -171,6 +171,7 @@ describe('triode-synth constructor adapters', () => {
       adapters: setup.adapters,
       clock,
       precision: 'highp',
+      cssRenderers: 'eager',
       autoLoop: true,
       detectAudio: true,
       enableStreamCapture: true,
@@ -210,6 +211,7 @@ describe('triode-synth constructor adapters', () => {
       canvas,
       adapters: setup.adapters,
       precision: 'highp',
+      cssRenderers: 'eager',
       autoLoop: false,
       detectAudio: true,
       enableStreamCapture: false,
@@ -265,6 +267,89 @@ describe('triode-synth constructor adapters', () => {
 
     triode.dispose()
     expect(setup.loop.stop).not.toHaveBeenCalled()
+  })
+
+  it('defaults detectAudio based on global mode and keeps audio globals opt-in', () => {
+    const nonGlobalSetup = createAdapters()
+    const nonGlobalCanvas = document.createElement('canvas')
+    nonGlobalCanvas.width = 320
+    nonGlobalCanvas.height = 180
+
+    const nonGlobalRuntime = new TriodeRenderer({
+      canvas: nonGlobalCanvas,
+      adapters: nonGlobalSetup.adapters,
+      precision: 'highp',
+      autoLoop: false,
+      enableStreamCapture: false,
+      makeGlobal: false,
+      numSources: 1,
+      numOutputs: 1,
+    })
+
+    expect(nonGlobalSetup.adapters.createAudio).not.toHaveBeenCalled()
+    nonGlobalRuntime.dispose()
+
+    const globalSetup = createAdapters()
+    const globalCanvas = document.createElement('canvas')
+    globalCanvas.width = 320
+    globalCanvas.height = 180
+
+    const globalRuntime = new TriodeRenderer({
+      canvas: globalCanvas,
+      adapters: globalSetup.adapters,
+      precision: 'highp',
+      autoLoop: false,
+      enableStreamCapture: false,
+      makeGlobal: true,
+      numSources: 1,
+      numOutputs: 1,
+    })
+
+    expect(globalSetup.adapters.createAudio).toHaveBeenCalledTimes(1)
+    globalRuntime.dispose()
+  })
+
+  it('creates css renderers lazily and supports deterministic freeze/step/resume', () => {
+    const setup = createAdapters()
+    const canvas = document.createElement('canvas')
+    canvas.width = 320
+    canvas.height = 180
+
+    const triode = new TriodeRenderer({
+      canvas,
+      adapters: setup.adapters,
+      precision: 'highp',
+      autoLoop: false,
+      detectAudio: false,
+      enableStreamCapture: false,
+      makeGlobal: false,
+      cssRenderers: 'lazy',
+      numSources: 1,
+      numOutputs: 1,
+      clock: createClock({ initialTime: 3 }),
+    })
+
+    expect(setup.adapters.createCss2DRenderer).not.toHaveBeenCalled()
+    expect(setup.adapters.createCss3DRenderer).not.toHaveBeenCalled()
+
+    triode.ensureCssRenderer('2d')
+    triode.ensureCssRenderer('css3drenderer')
+
+    expect(setup.adapters.createCss2DRenderer).toHaveBeenCalledTimes(1)
+    expect(setup.adapters.createCss3DRenderer).toHaveBeenCalledTimes(1)
+
+    triode.freeze()
+    triode.tick(16.67)
+    expect(triode.synth.time).toBe(3)
+
+    triode.step(16.67)
+    expect(triode.synth.time).toBeCloseTo(3.01667, 5)
+
+    triode.resume()
+    triode.tick(16.67)
+    expect(triode.synth.time).toBeCloseTo(3.03334, 5)
+
+    triode.dispose()
   })
 
   it('disposes adapter resources idempotently without leaking dom nodes', () => {

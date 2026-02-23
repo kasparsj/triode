@@ -7,6 +7,10 @@ export interface TriodeOptions {
   makeGlobal?: boolean;
   autoLoop?: boolean;
   detectAudio?: boolean;
+  errorPolicy?: TriodeRuntimeErrorPolicy;
+  argPolicy?: TriodeArgPolicy;
+  arrayHelpers?: TriodeArrayHelpersMode;
+  cssRenderers?: TriodeCssRenderersMode;
   enableStreamCapture?: boolean;
   webgl?: 1 | 2;
   canvas?: HTMLCanvasElement;
@@ -62,6 +66,35 @@ export type TriodeRuntimeErrorHandler = (
   context: TriodeRuntimeErrorContext,
 ) => void;
 export type TriodeLiveMode = "restart" | "continuous";
+export type TriodeEvalMode = TriodeLiveMode | "auto";
+export type TriodeArrayHelpersMode = "prototype" | "module";
+export type TriodeCssRenderersMode = "lazy" | "eager" | false;
+
+export interface TriodeRuntimeErrorPolicy {
+  maxPerSecond?: number;
+  dedupeWindowMs?: number;
+  verbose?: boolean;
+  pauseOnError?: boolean;
+}
+
+export interface TriodeArgPolicy {
+  invalid?: "warn" | "clamp" | "throw";
+  nanFallback?: number;
+}
+
+export interface TriodeEvalOptions {
+  mode?: TriodeEvalMode;
+  reset?: boolean;
+  hush?: boolean;
+}
+
+export interface TriodeResetOptions {
+  scene?: boolean;
+  time?: boolean;
+  hooks?: boolean;
+  outputs?: boolean;
+  sources?: boolean;
+}
 
 export type TriodeModuleMethod = (...args: unknown[]) => unknown;
 export type TriodeNumericTuple = [number, number] | [number, number, number];
@@ -225,16 +258,18 @@ export interface TriodeSceneApi {
   world(options?: Record<string, unknown>): TriodeSceneApi;
   group(attributes?: TriodeSceneAttributes): TriodeSceneApi;
   layer(id: number, options?: Record<string, unknown>): unknown;
+  layerAdd(id: number, options?: Record<string, unknown>): TriodeSceneApi;
   lookAt(target: unknown, options?: Record<string, unknown>): TriodeSceneApi;
   out(output?: unknown | TriodeRenderCallOptions, options?: TriodeTransformRenderOptions): TriodeSceneApi;
   render(output?: unknown | TriodeRenderCallOptions, options?: TriodeTransformRenderOptions): TriodeSceneApi;
   autoClear(amount?: number, color?: number, options?: Record<string, unknown>): TriodeSceneApi;
   clear(amount?: number, color?: number, options?: Record<string, unknown>): TriodeSceneApi;
-  at(index?: number): unknown;
-  obj(index?: number): unknown;
+  at(index?: number, options?: { touch?: boolean }): unknown;
+  obj(index?: number, options?: { touch?: boolean }): unknown;
   texture(output?: unknown | TriodeRenderCallOptions, options?: Record<string, unknown>): unknown;
   instanced(geometry: unknown, material: unknown, count: number, options?: TriodeObjectOptions): unknown;
-  find(filter?: Record<string, unknown>): unknown[];
+  instancedAdd(geometry: unknown, material: unknown, count: number, options?: TriodeObjectOptions): TriodeSceneApi;
+  find(filter?: Record<string, unknown>, options?: { touch?: boolean }): unknown[];
   empty(): boolean;
   [key: string]: unknown;
 }
@@ -294,12 +329,18 @@ export interface TriodeSynthApi {
   render: (output?: unknown) => void;
   liveGlobals: (enable?: boolean) => boolean;
   setResolution: (width: number, height: number) => void;
-  hush: () => void;
-  resetRuntime: () => void;
+  hush: (options?: { hooks?: boolean; outputs?: boolean; sources?: boolean }) => void;
+  resetRuntime: (options?: TriodeResetOptions) => void;
+  reset: (options?: TriodeResetOptions) => void;
+  freeze: (time?: number) => void;
+  resume: () => void;
+  step: (dtMs?: number) => void;
   tick: (dt: number, uniforms?: unknown) => void;
   shadowMap: (options?: Record<string, unknown>) => void;
   scene: (attributes?: TriodeSceneAttributes) => TriodeSceneApi;
   stage: (config?: TriodeStageConfig) => TriodeSceneApi;
+  errorPolicy: TriodeRuntimeErrorPolicy;
+  argPolicy: TriodeArgPolicy;
   ortho: (eye?: TriodeNumericTuple, target?: TriodeNumericTuple, options?: TriodeCameraOptions) => unknown;
   perspective: (eye?: TriodeNumericTuple, target?: TriodeNumericTuple, options?: TriodeCameraOptions) => unknown;
   screenCoords: (width?: number, height?: number) => unknown;
@@ -340,10 +381,14 @@ declare class TriodeRenderer {
   readonly o: unknown[];
   readonly s: unknown[];
 
-  eval(code: string): void;
+  eval(code: string, options?: TriodeEvalOptions): void;
   getScreenImage(callback: (blob: Blob) => void): void;
-  hush(): void;
-  resetRuntime(): void;
+  hush(options?: { hooks?: boolean; outputs?: boolean; sources?: boolean }): void;
+  resetRuntime(options?: TriodeResetOptions): void;
+  reset(options?: TriodeResetOptions): void;
+  freeze(time?: number): void;
+  resume(): void;
+  step(dtMs?: number): void;
   loadScript(url?: string, once?: boolean): Promise<void>;
   setResolution(width: number, height: number): void;
   tick(dt: number, uniforms?: unknown): void;
@@ -364,6 +409,13 @@ export type HydraStats = TriodeStats;
 export type HydraRuntimeErrorContext = TriodeRuntimeErrorContext;
 export type HydraRuntimeErrorHandler = TriodeRuntimeErrorHandler;
 export type HydraLiveMode = TriodeLiveMode;
+export type HydraEvalMode = TriodeEvalMode;
+export type HydraArrayHelpersMode = TriodeArrayHelpersMode;
+export type HydraCssRenderersMode = TriodeCssRenderersMode;
+export type HydraRuntimeErrorPolicy = TriodeRuntimeErrorPolicy;
+export type HydraArgPolicy = TriodeArgPolicy;
+export type HydraEvalOptions = TriodeEvalOptions;
+export type HydraResetOptions = TriodeResetOptions;
 export type HydraModuleMethod = TriodeModuleMethod;
 export type HydraNumericTuple = TriodeNumericTuple;
 export type HydraControlModifier = TriodeControlModifier;

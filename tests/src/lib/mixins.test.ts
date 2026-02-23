@@ -72,6 +72,33 @@ describe('lib/mixins source chaining', () => {
     expect(output.renderTexture).toHaveBeenCalledWith({ stop: false })
     expect(texture).toBe('texture-result')
   })
+
+  it('routes compile failures through runtime error handling when available', () => {
+    const output = {
+      _set: vi.fn(() => {
+        throw new Error('shader failed to link')
+      }),
+    }
+    const runtime = {
+      _handleRuntimeError: vi.fn(),
+    }
+    const source = {
+      defaultOutput: output,
+      output: null,
+      compile: vi.fn(() => ['pass']),
+      synth: {
+        _getRuntime: () => runtime,
+      },
+      transforms: [{ name: 'osc' }, { name: 'rotateDeg' }],
+    }
+
+    sourceMixin.out.call(source)
+
+    expect(runtime._handleRuntimeError).toHaveBeenCalledWith(
+      expect.any(Error),
+      'compile'
+    )
+  })
 })
 
 describe('lib/mixins auto clear defaults', () => {
