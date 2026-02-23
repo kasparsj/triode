@@ -46040,7 +46040,7 @@ vec4 _mod289(vec4 x)
       a.style.display = "none";
       a.href = url;
       let d = /* @__PURE__ */ new Date();
-      a.download = `hydra-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}-${d.getHours()}.${d.getMinutes()}.${d.getSeconds()}.webm`;
+      a.download = `triode-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}-${d.getHours()}.${d.getMinutes()}.${d.getSeconds()}.webm`;
       document.body.appendChild(a);
       a.click();
       setTimeout(() => {
@@ -46677,7 +46677,7 @@ vec4 _mod289(vec4 x)
           this.captureStream = this.canvas.captureStream(25);
           this.synth.vidRecorder = new VideoRecorder(this.captureStream);
         } catch (e) {
-          console.warn("[hydra-synth warning]\nnew MediaSource() is not currently supported on iOS.");
+          console.warn("[triode warning]\nnew MediaSource() is not currently supported on iOS.");
           console.error(e);
         }
       }
@@ -46840,7 +46840,7 @@ vec4 _mod289(vec4 x)
       const a = document.createElement("a");
       a.style.display = "none";
       let d = /* @__PURE__ */ new Date();
-      a.download = `hydra-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}-${d.getHours()}.${d.getMinutes()}.${d.getSeconds()}.png`;
+      a.download = `triode-${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}-${d.getHours()}.${d.getMinutes()}.${d.getSeconds()}.png`;
       document.body.appendChild(a);
       var self2 = this;
       this.canvas.toBlob((blob) => {

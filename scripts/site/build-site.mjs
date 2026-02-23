@@ -648,7 +648,7 @@ const renderExamplePages = async (exampleSources, outputBySource) => {
     const relativeName = source.replace(/^examples\//, "");
     const title = toTitleCase(path.basename(relativeName, ".js"));
     const sourceHref = `${githubRepoUrl}/blob/main/${source}`;
-    const distHref = relativeHref(outputPath, "dist/hydra-synth.js");
+    const distHref = relativeHref(outputPath, "dist/triode.js");
     const exampleCode = JSON.stringify(code);
     const codeBlock = escapeHtml(code);
     const backToExamples = relativeHref(outputPath, "examples/index.html");
@@ -730,8 +730,8 @@ const copyStaticAssets = async () => {
 
   await fs.mkdir(path.join(outDir, "dist"), { recursive: true });
   await fs.copyFile(
-    path.join(rootDir, "dist/hydra-synth.js"),
-    path.join(outDir, "dist/hydra-synth.js"),
+    path.join(rootDir, "dist/triode.js"),
+    path.join(outDir, "dist/triode.js"),
   );
 
   try {

@@ -4,7 +4,7 @@ if (typeof window === 'undefined' || typeof document === 'undefined') {
   )
 }
 
-await import('../dist/hydra-synth.js')
+await import('../dist/triode.js')
 
 const Hydra = globalThis.Hydra || (typeof window !== 'undefined' ? window.Hydra : undefined)
 

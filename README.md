@@ -10,7 +10,7 @@ triode is a three.js-powered live coding engine for 3D scene APIs while keeping 
 ## Hydra Compatibility
 
 - triode can be used as a drop-in runtime replacement for `hydra-synth` in Hydra editor/REPL-style setups.
-- Replace the loaded runtime bundle with triode's `dist/hydra-synth.js`, keeping the same `Hydra` global entrypoint.
+- Replace the loaded runtime bundle with triode's `dist/triode.js`, keeping the same `Hydra` global entrypoint.
 - This repository includes Hydra-compatible runtime pieces, but the main product direction is 3D live coding through triode's Three.js API.
 
 ## Distribution Model
@@ -49,7 +49,7 @@ npm run site:build:versioned
 Use jsDelivr from this repository:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/kasparsj/triode@v1.0.0/dist/hydra-synth.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/kasparsj/triode@v1.0.0/dist/triode.js"></script>
 <script>
   const hydra = new Hydra({ detectAudio: false });
   osc(8, 0.1, 0.8).render();

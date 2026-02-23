@@ -6,14 +6,14 @@ This package is intentionally `private: true` so release distribution stays on G
 
 Runtime note: this package targets browser execution. Importing it in pure Node/SSR without a browser-like runtime is unsupported.
 
-Hydra editor/REPL note: triode is compatible as a drop-in runtime replacement by loading triode's `dist/hydra-synth.js` bundle in place of `hydra-synth`.
+Hydra editor/REPL note: triode is compatible as a drop-in runtime replacement by loading triode's `dist/triode.js` bundle in place of `hydra-synth`.
 
 ### 1. Choose your runtime path
 
 #### Script tag (fastest)
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/kasparsj/triode@v1.0.0/dist/hydra-synth.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/kasparsj/triode@v1.0.0/dist/triode.js"></script>
 <script>
   const hydra = new Hydra({ detectAudio: false, makeGlobal: true });
   osc(8, 0.1, 0.8).render();

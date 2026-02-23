@@ -98,7 +98,7 @@
   - hydra-synth: `browserify` + `budo` + `esmify`.
   - triode: Vite (`vite`, `vite-plugin-glslify`) + ESM-first scripts.
 - Distribution entrypoint changed:
-  - `package.json` `main` now points to `dist/hydra-synth.js`.
+  - `package.json` `main` now points to `dist/triode.js`.
   - ESM import now routes through `src/package-entry.js`, which explicitly enforces browser runtime and then loads bundle.
 - Package metadata changed:
   - Version line reset to `1.0.0` for triode.

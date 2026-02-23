@@ -334,7 +334,7 @@ const runSketch = () => {
   try {
     if (typeof window.Hydra !== "function") {
       throw new Error(
-        "Hydra runtime is unavailable. Ensure dist/hydra-synth.js is loaded.",
+        "Hydra runtime is unavailable. Ensure dist/triode.js is loaded.",
       );
     }
 

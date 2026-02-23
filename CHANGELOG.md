@@ -18,6 +18,7 @@
 
 ### Changed
 - Package name is now `triode` (repository distribution remains Git tags + GitHub artifacts).
+- Browser bundle filename is now `dist/triode.js` (replacing `dist/hydra-synth.js`).
 - Documentation now positions triode as a standalone 3D live coding engine with Hydra editor/REPL drop-in compatibility.
 - Distribution docs now define triode's release channel as Git tags + GitHub artifacts.
 - Quickstart install snippets are pinned to release tag `v1.0.0` instead of floating branch refs.

@@ -4,20 +4,20 @@
   "private": true,
   "description": "triode: three.js-powered live coding engine for 3D creative coding",
   "type": "module",
-  "main": "./dist/hydra-synth.js",
+  "main": "./dist/triode.js",
   "types": "./src/index.d.ts",
   "exports": {
     ".": {
       "types": "./src/index.d.ts",
       "import": "./src/package-entry.js",
-      "require": "./dist/hydra-synth.js"
+      "require": "./dist/triode.js"
     },
     "./src/glsl/glsl-functions.js": {
       "import": "./src/glsl/glsl-functions.js",
       "require": "./src/glsl/glsl-functions.js"
     }
   },
-  "unpkg": "./dist/hydra-synth.js",
+  "unpkg": "./dist/triode.js",
   "files": [
     "dist/",
     "src/",

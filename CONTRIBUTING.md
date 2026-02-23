@@ -41,5 +41,5 @@ npm run ci:check
 ## Commit and release hygiene
 
 - Keep commits reviewable and scoped to a single concern.
-- Ensure `dist/hydra-synth.js` is regenerated when source changes affect the bundle.
+- Ensure `dist/triode.js` is regenerated when source changes affect the bundle.
 - Release tags must use `vX.Y.Z` format and point to a green CI commit.

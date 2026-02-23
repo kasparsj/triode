@@ -47,7 +47,7 @@ const smokeHtml = `<!doctype html>
   </head>
   <body>
     <div id="root"></div>
-    <script src="/dist/hydra-synth.js"></script>
+    <script src="/dist/triode.js"></script>
     <script>
       window.__smoke = {
         ready: false,

@@ -29,7 +29,7 @@ export default defineConfig({
       entry: path.resolve(__dirname, "src/hydra-synth.js"),
       name: "Hydra",
       formats: ["umd"],
-      fileName: () => "hydra-synth.js",
+      fileName: () => "triode.js",
     },
     sourcemap: buildSourcemap,
     minify: false,

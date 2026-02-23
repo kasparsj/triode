@@ -40,4 +40,4 @@ npm run dev
 
 2. Edit `dev/index.js` to load one of these files, or paste snippets into your host app using the same APIs.
 
-For an immediate zero-edit sanity check, open `examples/quickstart.html` in a static server that serves the repository root (it expects `../dist/hydra-synth.js`).
+For an immediate zero-edit sanity check, open `examples/quickstart.html` in a static server that serves the repository root (it expects `../dist/triode.js`).
