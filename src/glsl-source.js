@@ -79,22 +79,41 @@ GlslSource.prototype.createPass = function(shaderInfo, options = {}) {
 }
 
 GlslSource.prototype.material = function(options) {
-  this._material = options;
+  if (typeof options === 'string') {
+    const type = options.toLowerCase();
+    const materialOptions = arguments.length > 1 ? arguments[1] : {};
+    switch (type) {
+      case 'basic':
+        this._material = Object.assign({}, mt.basicProps, materialOptions);
+        break;
+      case 'lambert':
+        this._material = Object.assign({}, mt.lambertProps, materialOptions);
+        break;
+      case 'phong':
+        this._material = Object.assign({}, mt.phongProps, materialOptions);
+        break;
+      default:
+        this._material = Object.assign({}, materialOptions);
+        break;
+    }
+    return this;
+  }
+  this._material = Object.assign({}, options);
   return this;
 }
 
 GlslSource.prototype.basic = function(options = {}) {
-  this.material(Object.assign(mt.basicProps, options));
+  this.material('basic', options);
   return this;
 }
 
 GlslSource.prototype.phong = function(options = {}) {
-  this.material(Object.assign(mt.phongProps, options));
+  this.material('phong', options);
   return this;
 }
 
 GlslSource.prototype.lambert = function(options = {}) {
-  this.material(Object.assign(mt.lambertProps, options));
+  this.material('lambert', options);
   return this;
 }
 

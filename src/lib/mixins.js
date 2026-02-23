@@ -8,6 +8,59 @@ const SCREEN = 'screen';
 const CARTESIAN = 'cartesian';
 
 const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
+const RENDER_OPTION_KEYS = new Set([
+    'to',
+    'output',
+    'target',
+    'renderTarget',
+    'css',
+    'cssRenderer',
+    'fx',
+    'layers',
+    'autoClear',
+]);
+
+const isRenderOptionsObject = (value) => {
+    if (!isObject(value)) {
+        return false;
+    }
+    return Object.keys(value).some((key) => RENDER_OPTION_KEYS.has(key));
+};
+
+const normalizeRenderArgs = (_output, options = {}) => {
+    if (!isRenderOptionsObject(_output)) {
+        return {
+            output: _output,
+            options: options || {},
+        };
+    }
+    const {
+        to,
+        output,
+        target,
+        renderTarget,
+        css,
+        cssRenderer,
+        ...rest
+    } = _output;
+    const mergedOptions = Object.assign({}, rest, options || {});
+    if (renderTarget !== undefined && mergedOptions.renderTarget === undefined) {
+        mergedOptions.renderTarget = renderTarget;
+    }
+    if (target !== undefined && mergedOptions.renderTarget === undefined) {
+        mergedOptions.renderTarget = target;
+    }
+    if (cssRenderer !== undefined && mergedOptions.cssRenderer === undefined) {
+        mergedOptions.cssRenderer = cssRenderer;
+    }
+    if (css !== undefined && mergedOptions.cssRenderer === undefined) {
+        mergedOptions.cssRenderer = css;
+    }
+    return {
+        output: to !== undefined ? to : output,
+        options: mergedOptions,
+    };
+};
 
 const resolveControlsOptions = (cameraOptions, target) => {
     const controls = cameraOptions.controls;
@@ -219,11 +272,12 @@ const sourceMixin = {
     },
 
     out(_output, options = {}) {
-        const output = _output || this.defaultOutput
+        const normalized = normalizeRenderArgs(_output, options);
+        const output = normalized.output || this.defaultOutput
         this.output = output
         const glsl = this.compile()
         try {
-            output._set(glsl, options)
+            output._set(glsl, normalized.options)
         } catch (error) {
             console.log('shader could not compile', error)
         }
@@ -235,10 +289,15 @@ const sourceMixin = {
     },
 
     tex(_output, options = {}) {
+        const normalized = normalizeRenderArgs(_output, options);
         if (!this.output) {
-            this.out(_output);
+            this.out(normalized.output, normalized.options);
         }
-        return this.output.renderTexture(options);
+        return this.output.renderTexture(normalized.options);
+    },
+
+    texture(_output, options = {}) {
+        return this.tex(_output, options);
     },
 
     texMat(_output, options = {}) {

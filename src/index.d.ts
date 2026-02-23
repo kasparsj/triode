@@ -82,8 +82,8 @@ export interface HydraStageConfig extends HydraSceneAttributes {
         [key: string]: unknown;
       };
   output?: unknown;
-  render?: boolean;
-  out?: boolean;
+  render?: boolean | HydraRenderCallOptions;
+  out?: boolean | HydraRenderCallOptions;
   cssRenderer?: HydraTransformRenderOptions["cssRenderer"];
   renderTarget?: unknown;
   fx?: Record<string, unknown>;
@@ -100,6 +100,13 @@ export interface HydraTransformRenderOptions {
   autoClear?: number | Record<string, unknown>;
   fx?: Record<string, unknown>;
   [key: string]: unknown;
+}
+
+export interface HydraRenderCallOptions extends HydraTransformRenderOptions {
+  to?: unknown;
+  output?: unknown;
+  target?: unknown;
+  css?: HydraTransformRenderOptions["cssRenderer"];
 }
 
 export interface HydraSceneAttributes {
@@ -140,16 +147,26 @@ export interface HydraTransformDefinition {
 }
 
 export interface HydraTransformChain {
-  out(output?: unknown, options?: HydraTransformRenderOptions): HydraTransformChain;
-  render(output?: unknown, options?: HydraTransformRenderOptions): HydraTransformChain;
+  out(
+    output?: unknown | HydraRenderCallOptions,
+    options?: HydraTransformRenderOptions,
+  ): HydraTransformChain;
+  render(
+    output?: unknown | HydraRenderCallOptions,
+    options?: HydraTransformRenderOptions,
+  ): HydraTransformChain;
   autoClear(amount?: number, color?: number, options?: Record<string, unknown>): HydraTransformChain;
   clear(amount?: number, color?: number, options?: Record<string, unknown>): HydraTransformChain;
   basic(options?: Record<string, unknown>): HydraTransformChain;
   phong(options?: Record<string, unknown>): HydraTransformChain;
   lambert(options?: Record<string, unknown>): HydraTransformChain;
-  material(options?: Record<string, unknown>): HydraTransformChain;
+  material(
+    typeOrOptions?: "basic" | "lambert" | "phong" | Record<string, unknown>,
+    options?: Record<string, unknown>,
+  ): HydraTransformChain;
   st(source: HydraTransformChain): HydraTransformChain;
-  tex(output?: unknown, options?: Record<string, unknown>): unknown;
+  tex(output?: unknown | HydraRenderCallOptions, options?: Record<string, unknown>): unknown;
+  texture(output?: unknown | HydraRenderCallOptions, options?: Record<string, unknown>): unknown;
   texMat(output?: unknown, options?: Record<string, unknown>): unknown;
   [method: string]: unknown;
 }
@@ -159,6 +176,8 @@ export type HydraTransformFactory = (...args: unknown[]) => HydraTransformChain;
 export interface HydraSceneApi {
   add(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
   mesh(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
+  box(material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
+  sphere(material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
   quad(material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
   points(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
   lines(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi;
@@ -177,11 +196,14 @@ export interface HydraSceneApi {
   group(attributes?: HydraSceneAttributes): HydraSceneApi;
   layer(id: number, options?: Record<string, unknown>): unknown;
   lookAt(target: unknown, options?: Record<string, unknown>): HydraSceneApi;
-  out(output?: unknown, options?: HydraTransformRenderOptions): HydraSceneApi;
-  render(output?: unknown, options?: HydraTransformRenderOptions): HydraSceneApi;
+  out(output?: unknown | HydraRenderCallOptions, options?: HydraTransformRenderOptions): HydraSceneApi;
+  render(output?: unknown | HydraRenderCallOptions, options?: HydraTransformRenderOptions): HydraSceneApi;
   autoClear(amount?: number, color?: number, options?: Record<string, unknown>): HydraSceneApi;
   clear(amount?: number, color?: number, options?: Record<string, unknown>): HydraSceneApi;
   at(index?: number): unknown;
+  obj(index?: number): unknown;
+  texture(output?: unknown | HydraRenderCallOptions, options?: Record<string, unknown>): unknown;
+  instanced(geometry: unknown, material: unknown, count: number, options?: HydraObjectOptions): unknown;
   find(filter?: Record<string, unknown>): unknown[];
   empty(): boolean;
   [key: string]: unknown;

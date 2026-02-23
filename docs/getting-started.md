@@ -72,10 +72,7 @@ You should see:
 
 ```js
 perspective([2, 2, 3], [0, 0, 0], { controls: true });
-const sc = stage()
-  .lights()
-  .mesh(geom.box(), osc().rotateDeg(30).phong())
-  .render();
+const sc = stage().lights().box(osc().rotateDeg(30).phong()).render();
 ```
 
 You can also run examples from the GitHub Pages site examples gallery.

@@ -19,6 +19,7 @@ Rule of thumb: use `rotateDeg(...)` for degree-based sketches, `rotateRad(...)` 
   - Ensures the current chain is compiled to an output.
   - Returns a `THREE.Texture` rendered from that output.
   - Use when you need a texture value to pass into materials, samplers, or additional texture utilities.
+  - `.texture(...)` is an alias of `.tex(...)`.
 
 - `.texMat(output?, options?)`
   - Calls `.tex(...)` internally and returns a material with that texture set as `map`.
@@ -43,9 +44,20 @@ Behavior:
 - `0 < amount < 1` inserts fade accumulation behavior.
 - If both output and pass `autoClear` are set, both effects are applied in sequence.
 
-## Render-target routing in `.render(..., options)`
+## Render-target routing in `.render(...)`
 
-When `renderTarget` is passed to `.render(...)` (or `.out(...)`), the runtime assigns it to the terminal pass for the compiled chain:
+`render(...)`/`out(...)` support both signatures:
+
+- positional: `.render(output, options)`
+- object: `.render({ to, target, css, fx, ... })`
+
+Mappings:
+
+- `to` -> output
+- `target` -> `renderTarget`
+- `css` -> `cssRenderer`
+
+When `renderTarget` (or `target` in object form) is passed, the runtime assigns it to the terminal pass for the compiled chain:
 
 - no FX chain: render target is applied to the scene/material pass.
 - with FX chain: render target is moved to the final FX pass.

@@ -1260,6 +1260,16 @@ const sceneMixin = {
         return this;
     },
 
+    box(material, options) {
+        this._mesh(gm.box(), material, options);
+        return this;
+    },
+
+    sphere(material, options) {
+        this._mesh(gm.sphere(), material, options);
+        return this;
+    },
+
     quad(material, options) {
         this._quad(material, options);
         return this;
@@ -1296,6 +1306,12 @@ const sceneMixin = {
     line(geometry, material, options) {
         this._line(geometry, material, options);
         return this;
+    },
+
+    instanced(geometry, material, count, options = {}) {
+        return this._mesh(geometry, material, Object.assign({}, options, {
+            instanced: count,
+        }));
     },
 
     circle(geometry, material, options) {
@@ -1393,6 +1409,14 @@ const sceneMixin = {
             markLiveTouch(this._runtime, sceneRoot, { scene: true });
         }
         return object;
+    },
+
+    obj(index = 0) {
+        return this.at(index);
+    },
+
+    texture(output, options = {}) {
+        return this.tex(output, options);
     },
 
     find(filter = {isMesh: true}) {

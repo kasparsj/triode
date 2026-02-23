@@ -140,14 +140,13 @@ perspective([2, 2, 3], [0, 0, 0], {
 });
 
 // create geometry and material
-const boxGeometry = geom.box();
 const boxMaterial = osc().rotateDeg(noise(1).mult(45)).phong();
 
 // compose scene
-const sc = stage().lights().mesh(boxGeometry, boxMaterial).render();
+const sc = stage().lights().box(boxMaterial).render();
 
 update = () => {
-  const box = sc.at(0);
+  const box = sc.obj(0);
   box.rotation.x += 0.01;
   box.rotation.y += 0.01;
 };

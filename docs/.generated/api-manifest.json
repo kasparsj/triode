@@ -94,6 +94,8 @@
   "sceneMembers": [
     "add",
     "mesh",
+    "box",
+    "sphere",
     "quad",
     "points",
     "lines",
@@ -115,6 +117,9 @@
     "autoClear",
     "clear",
     "at",
+    "obj",
+    "texture",
+    "instanced",
     "find",
     "empty"
   ],
@@ -129,6 +134,7 @@
     "material",
     "st",
     "tex",
+    "texture",
     "texMat"
   ],
   "modules": {
@@ -290,8 +296,8 @@
     "constructorOptions": 17,
     "hydraRendererMembers": 14,
     "hydraSynthMembers": 55,
-    "sceneMembers": 25,
-    "transformChainMembers": 11,
+    "sceneMembers": 30,
+    "transformChainMembers": 12,
     "modules": 10,
     "transforms": 69
   }

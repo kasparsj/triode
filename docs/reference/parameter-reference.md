@@ -28,22 +28,27 @@ For behavior-level edge cases (units, precedence, and internal/public boundaries
 
 ## Scene composition methods
 
-| Method                        | Purpose                                                   | Typical usage                                                       |
-| ----------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------- |
-| `stage()`                     | Create scene handle (`reuse: true` for name-based lookup) | `stage({ name: "main", key: "main" })`                              |
-| `scene()`                     | Alias of `stage()`                                        | `scene({ name: "main", key: "main" })`                              |
-| `.mesh(geom, mat, options)`   | Add mesh geometry                                         | `.mesh(geom.box(), osc().phong(), { key: "hero" })`                 |
-| `.points(geom, mat, options)` | Add points primitive                                      | `.points([100, 100], mat.dots())`                                   |
-| `.lines(...)`                 | Add line segments                                         | `.lines([100], mat.lines())`                                        |
-| `.lineStrip(...)`             | Add connected line strip                                  | `.lineStrip([200], mat.linestrip())`                                |
-| `.lineLoop(...)`              | Add closed line loop                                      | `.lineLoop([200], mat.lineloop())`                                  |
-| `.lights(options)`            | Configure runtime lights group                            | `.lights({ all: true })`                                            |
-| `.world(options)`             | Configure sky/ground/fog helpers                          | `.world({ ground: true, fog: true })`                               |
-| `.group(attrs)`               | Create/attach subgroup                                    | `stage({ key: "main" }).group({ name: "cluster", key: "cluster" })` |
-| `.render(output, options)`    | Bind scene to output pipeline                             | `.render(o0)`                                                       |
-| `.out(output, options)`       | Alias of `.render(...)`                                   | `.out(o0)`                                                          |
-| `.clear(amount, color)`       | Set accumulation clear behavior                           | `.clear(0.2)`                                                       |
-| `.autoClear(amount, color)`   | Alias of `.clear(...)`                                    | `.autoClear(0.2)`                                                   |
+| Method                                  | Purpose                                                   | Typical usage                                                       |
+| --------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------- |
+| `stage()`                               | Create scene handle (`reuse: true` for name-based lookup) | `stage({ name: "main", key: "main" })`                              |
+| `scene()`                               | Alias of `stage()`                                        | `scene({ name: "main", key: "main" })`                              |
+| `.box(mat?, options)`                   | Add default box mesh                                      | `.box(osc().phong(), { key: "hero" })`                              |
+| `.sphere(mat?, options)`                | Add default sphere mesh                                   | `.sphere(osc().lambert(), { key: "planet" })`                       |
+| `.mesh(geom, mat, options)`             | Add mesh geometry                                         | `.mesh(geom.box(), osc().phong(), { key: "hero" })`                 |
+| `.instanced(geom, mat, count, options)` | Add instanced mesh and return it                          | `.instanced(geom.box(), mat.meshPhong(), 4096, { key: "crowd" })`   |
+| `.points(geom, mat, options)`           | Add points primitive                                      | `.points([100, 100], mat.dots())`                                   |
+| `.lines(...)`                           | Add line segments                                         | `.lines([100], mat.lines())`                                        |
+| `.lineStrip(...)`                       | Add connected line strip                                  | `.lineStrip([200], mat.linestrip())`                                |
+| `.lineLoop(...)`                        | Add closed line loop                                      | `.lineLoop([200], mat.lineloop())`                                  |
+| `.lights(options)`                      | Configure runtime lights group                            | `.lights({ all: true })`                                            |
+| `.world(options)`                       | Configure sky/ground/fog helpers                          | `.world({ ground: true, fog: true })`                               |
+| `.group(attrs)`                         | Create/attach subgroup                                    | `stage({ key: "main" }).group({ name: "cluster", key: "cluster" })` |
+| `.render(output, options)`              | Bind scene to output pipeline                             | `.render(o0)`                                                       |
+| `.out(output, options)`                 | Alias of `.render(...)`                                   | `.out(o0)`                                                          |
+| `.texture(output, options)`             | Alias of `.tex(...)`                                      | `.texture(o1)`                                                      |
+| `.clear(amount, color)`                 | Set accumulation clear behavior                           | `.clear(0.2)`                                                       |
+| `.autoClear(amount, color)`             | Alias of `.clear(...)`                                    | `.autoClear(0.2)`                                                   |
+| `.obj(index)`                           | Alias of `.at(index)`                                     | `.obj(0)`                                                           |
 
 Legacy aliases `linestrip(...)` and `lineloop(...)` remain available for compatibility.
 
@@ -70,16 +75,16 @@ Long-form aliases are available alongside short module names:
 
 `stage(config)` is a readability-first scene bootstrap helper. It calls `scene(...)` under the hood and applies optional presets:
 
-| `stage` option                                | Type                                                            | Notes                                                                          |
-| --------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `reuse`                                       | `boolean`                                                       | Enables name-based scene reuse when `name` is provided.                        |
-| `camera`                                      | `false \| "perspective" \| "ortho" \| "orthographic" \| object` | Camera preset or full camera config (`type`, `eye`, `target`, camera options). |
-| `lights`                                      | `false \| "basic" \| "studio" \| object`                        | `basic` uses default lights, `studio` maps to `{ all: true }`.                 |
-| `world`                                       | `false \| "ground" \| "atmosphere" \| object`                   | `ground` enables ground, `atmosphere` enables ground + fog.                    |
-| `clear` / `autoClear`                         | `number \| { amount, color, ... }`                              | Configures scene accumulation clear behavior.                                  |
-| `output`                                      | `unknown`                                                       | Optional output target when rendering from config.                             |
-| `render` / `out`                              | `boolean`                                                       | If `true`, stage invokes `.render(...)` immediately.                           |
-| `cssRenderer`, `renderTarget`, `fx`, `layers` | varied                                                          | Forwarded to render options when auto-render is enabled.                       |
+| `stage` option                                | Type                                                            | Notes                                                                           |
+| --------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `reuse`                                       | `boolean`                                                       | Enables name-based scene reuse when `name` is provided.                         |
+| `camera`                                      | `false \| "perspective" \| "ortho" \| "orthographic" \| object` | Camera preset or full camera config (`type`, `eye`, `target`, camera options).  |
+| `lights`                                      | `false \| "basic" \| "studio" \| object`                        | `basic` uses default lights, `studio` maps to `{ all: true }`.                  |
+| `world`                                       | `false \| "ground" \| "atmosphere" \| object`                   | `ground` enables ground, `atmosphere` enables ground + fog.                     |
+| `clear` / `autoClear`                         | `number \| { amount, color, ... }`                              | Configures scene accumulation clear behavior.                                   |
+| `output`                                      | `unknown`                                                       | Optional output target when rendering from config.                              |
+| `render` / `out`                              | `boolean \| { to?, target?, css?, fx?, ... }`                   | If `true`, stage invokes `.render(...)`; object form maps to `render({ ... })`. |
+| `cssRenderer`, `renderTarget`, `fx`, `layers` | varied                                                          | Forwarded to render options when auto-render is enabled.                        |
 
 ## Camera helper options
 
@@ -108,14 +113,15 @@ Long-form aliases are available alongside short module names:
 
 ## Transform chain material helpers
 
-| Method                     | Output                           | Notes                                |
-| -------------------------- | -------------------------------- | ------------------------------------ |
-| `.basic(options)`          | MeshBasic-style Hydra material   | Lighting-independent shading path.   |
-| `.lambert(options)`        | MeshLambert-style Hydra material | Diffuse light response.              |
-| `.phong(options)`          | MeshPhong-style Hydra material   | Specular + shininess response.       |
-| `.material(options)`       | custom material properties       | Base helper used by presets above.   |
-| `.tex(output, options)`    | Texture                          | Render chain to texture for reuse.   |
-| `.texMat(output, options)` | Material                         | Material with rendered map attached. |
+| Method                               | Output                           | Notes                                                                        |
+| ------------------------------------ | -------------------------------- | ---------------------------------------------------------------------------- |
+| `.basic(options)`                    | MeshBasic-style Hydra material   | Lighting-independent shading path.                                           |
+| `.lambert(options)`                  | MeshLambert-style Hydra material | Diffuse light response.                                                      |
+| `.phong(options)`                    | MeshPhong-style Hydra material   | Specular + shininess response.                                               |
+| `.material(typeOrOptions, options?)` | custom material properties       | Use `"basic"`, `"lambert"`, `"phong"` presets or pass object props directly. |
+| `.tex(output, options)`              | Texture                          | Render chain to texture for reuse.                                           |
+| `.texture(output, options)`          | Texture                          | Alias of `.tex(...)`.                                                        |
+| `.texMat(output, options)`           | Material                         | Material with rendered map attached.                                         |
 
 ## Output render options
 
@@ -125,6 +131,17 @@ Long-form aliases are available alongside short module names:
 | `renderTarget` | compiled pass options   | Route pass output into explicit target.       |
 | `autoClear`    | output/scene/chain      | `1` = clear, `<1` = accumulation fade.        |
 | `fx`           | output/scene/chain      | Adds post-processing passes.                  |
+
+Object-style render shorthand is also supported:
+
+- `render({ to, target, css, fx, ... })`
+- `out({ to, target, css, fx, ... })`
+
+Mappings:
+
+- `to` -> render output
+- `target` -> `renderTarget`
+- `css` -> `cssRenderer`
 
 ## Runtime hooks
 

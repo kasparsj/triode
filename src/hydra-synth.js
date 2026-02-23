@@ -868,9 +868,15 @@ class HydraRenderer {
       this._applyStageClear(stageScene, clearValue)
     }
 
+    const renderConfig =
+      (isPlainObject(render) && render) ||
+      (isPlainObject(out) && out) ||
+      null
+
     const shouldRender =
       render === true ||
       out === true ||
+      !!renderConfig ||
       output !== undefined ||
       cssRenderer !== undefined ||
       renderTarget !== undefined ||
@@ -879,11 +885,51 @@ class HydraRenderer {
 
     if (shouldRender) {
       const renderOptions = {}
-      if (cssRenderer !== undefined) renderOptions.cssRenderer = cssRenderer
-      if (renderTarget !== undefined) renderOptions.renderTarget = renderTarget
-      if (fx !== undefined) renderOptions.fx = fx
-      if (layers !== undefined) renderOptions.layers = layers
-      stageScene.render(output, renderOptions)
+      let renderOutput = output
+
+      if (renderConfig) {
+        const {
+          to,
+          output: configuredOutput,
+          target,
+          renderTarget: configuredRenderTarget,
+          css,
+          cssRenderer: configuredCssRenderer,
+          ...configuredOptions
+        } = renderConfig
+        renderOutput =
+          to !== undefined
+            ? to
+            : configuredOutput !== undefined
+              ? configuredOutput
+              : output
+        Object.assign(renderOptions, configuredOptions)
+        if (configuredCssRenderer !== undefined) {
+          renderOptions.cssRenderer = configuredCssRenderer
+        } else if (css !== undefined) {
+          renderOptions.cssRenderer = css
+        }
+        if (configuredRenderTarget !== undefined) {
+          renderOptions.renderTarget = configuredRenderTarget
+        } else if (target !== undefined) {
+          renderOptions.renderTarget = target
+        }
+      }
+
+      if (cssRenderer !== undefined && renderOptions.cssRenderer === undefined) {
+        renderOptions.cssRenderer = cssRenderer
+      }
+      if (renderTarget !== undefined && renderOptions.renderTarget === undefined) {
+        renderOptions.renderTarget = renderTarget
+      }
+      if (fx !== undefined && renderOptions.fx === undefined) {
+        renderOptions.fx = fx
+      }
+      if (layers !== undefined && renderOptions.layers === undefined) {
+        renderOptions.layers = layers
+      }
+
+      stageScene.render(renderOutput, renderOptions)
     }
 
     return stageScene
