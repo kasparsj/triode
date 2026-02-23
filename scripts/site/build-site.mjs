@@ -9,18 +9,18 @@ const rootDir = path.resolve(__dirname, "..", "..");
 const outDir = path.resolve(rootDir, process.env.SITE_OUT_DIR || "site-dist");
 const githubRepoUrl = "https://github.com/kasparsj/triode";
 
-const sidebarGroups = [
-  { key: "home", label: "Overview" },
-  { key: "getting-started", label: "Getting Started" },
-  { key: "concepts", label: "Core Concepts" },
-  { key: "api", label: "API Reference" },
-  { key: "recipes", label: "Cookbook" },
-  { key: "workflow", label: "Livecoding Workflow" },
-  { key: "interop", label: "Hydra Interop" },
-  { key: "support", label: "Troubleshooting" },
-  { key: "reference", label: "Reference" },
-  { key: "project", label: "Project" },
+const primaryNavItems = [
+  { key: "overview", label: "Home", output: "index.html" },
+  { key: "start", label: "Start", output: "docs/getting-started.html" },
+  { key: "api", label: "API", output: "docs/api.html" },
+  { key: "playground", label: "Playground", output: "playground/index.html" },
+  { key: "examples", label: "Examples", output: "examples/index.html" },
 ];
+
+const sidebarSections = primaryNavItems.map(({ key, label }) => ({
+  key,
+  label,
+}));
 
 const docPages = [
   {
@@ -622,16 +622,8 @@ const renderLayout = ({
   content,
   scripts = "",
 }) => {
-  const navItems = [
-    { key: "overview", label: "Home", output: "index.html" },
-    { key: "start", label: "Start", output: "docs/getting-started.html" },
-    { key: "api", label: "API", output: "docs/api.html" },
-    { key: "playground", label: "Playground", output: "playground/index.html" },
-    { key: "examples", label: "Examples", output: "examples/index.html" },
-  ];
-
   const cssHref = relativeHref(normalize(outputPath), "assets/site.css");
-  const navHtml = navItems
+  const navHtml = primaryNavItems
     .map((item) => {
       const href = relativeHref(normalize(outputPath), item.output);
       const classes = item.key === activeKey ? "active" : "";
@@ -695,26 +687,67 @@ const resolveActiveKey = (outputPath) => {
 
 const paginationPages = docPages.filter((page) => page.sidebar !== false);
 
+const resolveSidebarSectionKey = (outputPath) => {
+  const normalized = normalize(outputPath);
+  if (normalized === "index.html") return "overview";
+  if (normalized.includes("getting-started")) return "start";
+  if (
+    normalized === "docs/playground.html" ||
+    normalized.includes("/workflows/")
+  ) {
+    return "playground";
+  }
+  if (normalized === "docs/examples-source.html") return "examples";
+  if (normalized.startsWith("docs/")) return "api";
+  return null;
+};
+
 const renderDocSidebar = (currentPage) => {
-  const sections = sidebarGroups
-    .map((group) => {
-      const groupedPages = docPages.filter(
-        (page) => page.group === group.key && page.sidebar !== false,
-      );
-      if (!groupedPages.length) {
+  const currentOutput = normalize(currentPage.output);
+  const sections = sidebarSections
+    .map((section) => {
+      const links = [];
+      const seenOutputs = new Set();
+
+      const navItem = primaryNavItems.find((item) => item.key === section.key);
+      if (navItem) {
+        links.push({
+          label: navItem.label,
+          output: normalize(navItem.output),
+        });
+        seenOutputs.add(normalize(navItem.output));
+      }
+
+      docPages.forEach((page) => {
+        if (page.sidebar === false) {
+          return;
+        }
+        if (resolveSidebarSectionKey(page.output) !== section.key) {
+          return;
+        }
+        const output = normalize(page.output);
+        if (seenOutputs.has(output)) {
+          return;
+        }
+        links.push({
+          label: page.label,
+          output,
+        });
+        seenOutputs.add(output);
+      });
+
+      if (!links.length) {
         return "";
       }
-      const links = groupedPages
-        .map((page) => {
-          const href = relativeHref(
-            normalize(currentPage.output),
-            normalize(page.output),
-          );
-          const classes = page.output === currentPage.output ? "active" : "";
-          return `<a class="${classes}" href="${escapeAttr(href)}">${escapeHtml(page.label)}</a>`;
+
+      const linksHtml = links
+        .map((entry) => {
+          const href = relativeHref(currentOutput, entry.output);
+          const classes = entry.output === currentOutput ? "active" : "";
+          return `<a class="${classes}" href="${escapeAttr(href)}">${escapeHtml(entry.label)}</a>`;
         })
         .join("\n");
-      return `<section class="doc-sidebar-group"><h3>${escapeHtml(group.label)}</h3>${links}</section>`;
+      return `<section class="doc-sidebar-group"><h3>${escapeHtml(section.label)}</h3>${linksHtml}</section>`;
     })
     .filter(Boolean)
     .join("\n");
