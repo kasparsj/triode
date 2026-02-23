@@ -1140,8 +1140,44 @@ const renderExamplePages = async (exampleSources, outputBySource) => {
             errorBanner.textContent = message;
           };
           const canvas = document.getElementById('hydra-canvas');
-          canvas.width = window.innerWidth;
-          canvas.height = Math.max(window.innerHeight * 0.68, 420);
+          const viewer = canvas.parentElement;
+          const getDisplaySize = () => {
+            const rect = canvas.getBoundingClientRect();
+            return {
+              width: Math.max(1, Math.round(rect.width)),
+              height: Math.max(1, Math.round(rect.height))
+            };
+          };
+          const getRenderSize = () => {
+            const dpr = window.devicePixelRatio || 1;
+            const display = getDisplaySize();
+            return {
+              width: Math.max(1, Math.round(display.width * dpr)),
+              height: Math.max(1, Math.round(display.height * dpr))
+            };
+          };
+          const applyCanvasSize = (runtime) => {
+            const next = getRenderSize();
+            if (runtime && typeof runtime.setResolution === 'function') {
+              if (runtime.canvas.width !== next.width || runtime.canvas.height !== next.height) {
+                runtime.setResolution(next.width, next.height);
+              }
+              return;
+            }
+            canvas.width = next.width;
+            canvas.height = next.height;
+          };
+          let resizeFrame = 0;
+          const scheduleResize = () => {
+            if (resizeFrame) {
+              return;
+            }
+            resizeFrame = window.requestAnimationFrame(() => {
+              resizeFrame = 0;
+              applyCanvasSize(window.triodeSynth);
+            });
+          };
+          applyCanvasSize(null);
           const code = ${exampleCode};
 
           try {
@@ -1151,12 +1187,19 @@ const renderExamplePages = async (exampleSources, outputBySource) => {
               makeGlobal: true
             });
             window.hydraSynth = window.triodeSynth;
-            if (typeof canvas.setAutoResize === 'function') {
-              canvas.setAutoResize(true);
-            }
+            applyCanvasSize(window.triodeSynth);
             (0, eval)(code);
           } catch (error) {
             showError(error && error.stack ? error.stack : String(error));
+          }
+
+          window.addEventListener('resize', scheduleResize, { passive: true });
+          window.addEventListener('orientationchange', scheduleResize, { passive: true });
+          if (viewer && typeof ResizeObserver === 'function') {
+            const observer = new ResizeObserver(() => {
+              scheduleResize();
+            });
+            observer.observe(viewer);
           }
 
           window.addEventListener('error', (event) => {
