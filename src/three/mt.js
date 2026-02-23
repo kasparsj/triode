@@ -53,7 +53,7 @@ const worldPosGradientY = (options, uniOptions) => {
     return new THREE.ShaderMaterial(parameters);
 }
 
-const triode = (source, properties = {}) => {
+const hydra = (source, properties = {}) => {
     let options = source;
     if (source instanceof GlslSource) {
         // todo: compile only single pass?
@@ -180,7 +180,7 @@ const dotsFunc = processFunction({
     blendMode: true,
 });
 const dots = (pos, size, color, fade, options = {}) => {
-    return triode(createRuntimeSource('dots', dotsFunc, [pos, size, color, fade]), Object.assign({
+    return hydra(createRuntimeSource('dots', dotsFunc, [pos, size, color, fade]), Object.assign({
         transparent: true,
         blendMode: 'normal',
     }, options));
@@ -201,7 +201,7 @@ const squaresFunc = processFunction({
     blendMode: true,
 });
 const squares = (pos, size, color, fade, options = {}) => {
-    return triode(createRuntimeSource('squares', squaresFunc, [pos, size, color, fade]), Object.assign({
+    return hydra(createRuntimeSource('squares', squaresFunc, [pos, size, color, fade]), Object.assign({
         transparent: true,
         blendMode: 'normal',
     }, options));
@@ -219,7 +219,7 @@ const linesFunc = processFunction({
     primitive: 'lines',
 });
 const lines = (pos, color, options = {}) => {
-    return triode(createRuntimeSource('lines', linesFunc, [pos, color]), Object.assign({
+    return hydra(createRuntimeSource('lines', linesFunc, [pos, color]), Object.assign({
         transparent: true,
         blendMode: 'normal',
     }, options));
@@ -237,7 +237,7 @@ const linestripFunc = processFunction({
     primitive: 'line strip',
 });
 const linestrip = (pos, color, options = {}) => {
-    return triode(createRuntimeSource('linestrip', linestripFunc, [pos, color]), Object.assign({
+    return hydra(createRuntimeSource('linestrip', linestripFunc, [pos, color]), Object.assign({
         transparent: true,
         blendMode: 'normal',
     }, options));
@@ -255,7 +255,7 @@ const lineloopFunc = processFunction({
     primitive: 'line loop',
 });
 const lineloop = (pos, color, options = {}) => {
-    return triode(createRuntimeSource('lineloop', lineloopFunc, [pos, color]), Object.assign({
+    return hydra(createRuntimeSource('lineloop', lineloopFunc, [pos, color]), Object.assign({
         transparent: true,
         blendMode: 'normal',
     }, options));
@@ -272,7 +272,7 @@ const textFunc = processFunction({
     useNormal: false,
 });
 const text = (color, options = {}) => {
-    return triode(createRuntimeSource('text', textFunc, [color]), options);
+    return hydra(createRuntimeSource('text', textFunc, [color]), options);
 }
 
 const meshFunc = processFunction({
@@ -285,10 +285,10 @@ const meshFunc = processFunction({
     primitive: 'triangles',
 });
 const mesh = (color, options = {}) => {
-    return triode(createRuntimeSource('mesh', meshFunc, [color]), options);
+    return hydra(createRuntimeSource('mesh', meshFunc, [color]), options);
 }
 
-const hydra = (...args) => triode(...args);
+const triode = (...args) => hydra(...args);
 
 const getBlend = (blendMode) => {
     switch (blendMode) {
@@ -314,8 +314,8 @@ export {
     meshBasic, meshPhong, meshLambert, meshStandard,
     lineBasic, points,
     worldPosGradientY,
-    triode,
     hydra,
+    triode,
     dots, squares, lines, linestrip, lineloop, text, mesh,
     getBlend,
 };

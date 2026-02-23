@@ -15,7 +15,7 @@ triode supports both quick in-browser sketching and host-application embedding.
 
 ## Global vs non-global
 
-Triode global sketching:
+Hydra-style global sketching:
 
 ```js
 const triode = new Triode({ makeGlobal: true, detectAudio: false });

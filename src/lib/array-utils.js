@@ -1,6 +1,6 @@
 // WIP utils for working with arrays
 // Possibly should be integrated with lfo extension, etc.
-// to do: transform time rather than array values, similar to working with coordinates in triode
+// to do: transform time rather than array values, similar to working with coordinates in hydra
 
 import easing from './easing-functions.js'
 

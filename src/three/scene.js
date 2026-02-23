@@ -1284,7 +1284,7 @@ const sceneMixin = {
                 material.color = color;
             }
             else if (material instanceof GlslSource) {
-                material = this._triodeMaterial(geometry, material, options);
+                material = this._hydraMaterial(geometry, material, options);
             }
         }
         material.transparent = type !== 'quad';
@@ -1313,7 +1313,7 @@ const sceneMixin = {
         });
     },
 
-    _triodeMaterial(geometry, material, options) {
+    _hydraMaterial(geometry, material, options) {
         return this._withRuntimeScope(() => {
             const {type} = options || {};
             switch (type) {
@@ -1325,15 +1325,15 @@ const sceneMixin = {
                 case 'lineStrip':
                 case 'linestrip':
                 case 'lines':
-                    return mt.triode(material, options.material);
+                    return mt.hydra(material, options.material);
                 default:
                     return mt.mesh(material, options.material);
             }
         });
     },
 
-    _hydraMaterial(geometry, material, options) {
-        return this._triodeMaterial(geometry, material, options);
+    _triodeMaterial(geometry, material, options) {
+        return this._hydraMaterial(geometry, material, options);
     },
 
     _createMesh(geometry, material, options = {}) {

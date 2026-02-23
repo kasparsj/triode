@@ -4,7 +4,7 @@ triode supports multiple composition styles. These patterns help keep sketches r
 
 ## Pattern 1: Texture-first material flow
 
-Use triode chains to design texture behavior first, then apply to scene objects.
+Use Hydra chains to design texture behavior first, then apply to scene objects.
 
 ```js
 const mat = osc(8, 0.1, 0.8)

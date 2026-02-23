@@ -81,7 +81,7 @@ Long-form aliases are available alongside short module names:
 
 Runtime scope note:
 
-- Use runtime-bound module APIs (`H.mat`, `H.geom`, `H.tex`, etc. or global helpers when enabled) instead of unscoped internal module imports, so helper calls resolve to the intended Triode instance.
+- Use runtime-bound module APIs (`H.mat`, `H.geom`, `H.tex`, etc. or global helpers when enabled) instead of unscoped internal module imports, so helper calls resolve to the intended Hydra runtime instance.
 
 ## Stage helper config
 
@@ -125,15 +125,15 @@ Runtime scope note:
 
 ## Transform chain material helpers
 
-| Method                               | Output                            | Notes                                                                        |
-| ------------------------------------ | --------------------------------- | ---------------------------------------------------------------------------- |
-| `.basic(options)`                    | MeshBasic-style Triode material   | Lighting-independent shading path.                                           |
-| `.lambert(options)`                  | MeshLambert-style Triode material | Diffuse light response.                                                      |
-| `.phong(options)`                    | MeshPhong-style Triode material   | Specular + shininess response.                                               |
-| `.material(typeOrOptions, options?)` | custom material properties        | Use `"basic"`, `"lambert"`, `"phong"` presets or pass object props directly. |
-| `.tex(output, options)`              | Texture                           | Render chain to texture for reuse.                                           |
-| `.texture(output, options)`          | Texture                           | Alias of `.tex(...)`.                                                        |
-| `.texMat(output, options)`           | Material                          | Material with rendered map attached.                                         |
+| Method                               | Output                           | Notes                                                                        |
+| ------------------------------------ | -------------------------------- | ---------------------------------------------------------------------------- |
+| `.basic(options)`                    | MeshBasic-style Hydra material   | Lighting-independent shading path.                                           |
+| `.lambert(options)`                  | MeshLambert-style Hydra material | Diffuse light response.                                                      |
+| `.phong(options)`                    | MeshPhong-style Hydra material   | Specular + shininess response.                                               |
+| `.material(typeOrOptions, options?)` | custom material properties       | Use `"basic"`, `"lambert"`, `"phong"` presets or pass object props directly. |
+| `.tex(output, options)`              | Texture                          | Render chain to texture for reuse.                                           |
+| `.texture(output, options)`          | Texture                          | Alias of `.tex(...)`.                                                        |
+| `.texMat(output, options)`           | Material                         | Material with rendered map attached.                                         |
 
 ## Output render options
 

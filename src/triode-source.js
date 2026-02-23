@@ -71,7 +71,7 @@ class TriodeSource {
     }
   }
 
-  // index only relevant in atom-triode + desktop apps
+  // index only relevant in atom-hydra + desktop apps
   initScreen (index = 0, options = {}) {
     const self = this
     Screen()

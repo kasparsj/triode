@@ -292,8 +292,8 @@ Math helper namespace
 - `lineBasic(options)`
 - `points(options)`
 - `worldPosGradientY(options, uniOptions)`
-- `triode(source, properties = {})`
-- `hydra(...args)`
+- `hydra(source, properties = {})`
+- `triode(...args)`
 - `dots(pos, size, color, fade, options = {})`
 - `squares(pos, size, color, fade, options = {})`
 - `lines(pos, color, options = {})`

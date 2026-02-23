@@ -101,7 +101,7 @@ class TriodeMaterialPass extends TriodePass {
 
         const material = options.material || {};
         material.depthTest = false;
-        this.material = mt.triode(options, material);
+        this.material = mt.hydra(options, material);
 
         this.fsQuad = new FullScreenQuad( this.material );
     }
