@@ -12,6 +12,7 @@ npm ci
 npm run release:verify-meta
 npm run docs:verify-sync
 npm run docs:verify-coverage
+npm run docs:check-snippets
 npm run docs:check-links
 npm run lint
 npm run typecheck

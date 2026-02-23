@@ -139,6 +139,666 @@
     "texture",
     "texMat"
   ],
+  "constructorOptionEntries": [
+    {
+      "name": "pb",
+      "signature": "pb?: unknown",
+      "description": ""
+    },
+    {
+      "name": "width",
+      "signature": "width?: number",
+      "description": ""
+    },
+    {
+      "name": "height",
+      "signature": "height?: number",
+      "description": ""
+    },
+    {
+      "name": "numSources",
+      "signature": "numSources?: number",
+      "description": ""
+    },
+    {
+      "name": "numOutputs",
+      "signature": "numOutputs?: number",
+      "description": ""
+    },
+    {
+      "name": "makeGlobal",
+      "signature": "makeGlobal?: boolean",
+      "description": ""
+    },
+    {
+      "name": "autoLoop",
+      "signature": "autoLoop?: boolean",
+      "description": ""
+    },
+    {
+      "name": "detectAudio",
+      "signature": "detectAudio?: boolean",
+      "description": ""
+    },
+    {
+      "name": "enableStreamCapture",
+      "signature": "enableStreamCapture?: boolean",
+      "description": ""
+    },
+    {
+      "name": "webgl",
+      "signature": "webgl?: 1 | 2",
+      "description": ""
+    },
+    {
+      "name": "canvas",
+      "signature": "canvas?: HTMLCanvasElement",
+      "description": ""
+    },
+    {
+      "name": "css2DElement",
+      "signature": "css2DElement?: HTMLElement",
+      "description": ""
+    },
+    {
+      "name": "css3DElement",
+      "signature": "css3DElement?: HTMLElement",
+      "description": ""
+    },
+    {
+      "name": "precision",
+      "signature": "precision?: \"lowp\" | \"mediump\" | \"highp\"",
+      "description": ""
+    },
+    {
+      "name": "onError",
+      "signature": "onError?: HydraRuntimeErrorHandler",
+      "description": ""
+    },
+    {
+      "name": "liveMode",
+      "signature": "liveMode?: HydraLiveMode",
+      "description": ""
+    },
+    {
+      "name": "legacy",
+      "signature": "legacy?: boolean",
+      "description": ""
+    },
+    {
+      "name": "extendTransforms",
+      "signature": "extendTransforms?: Record<string, unknown> | Array<Record<string, unknown>>",
+      "description": ""
+    }
+  ],
+  "hydraRendererEntries": [
+    {
+      "name": "constructor",
+      "signature": "constructor(options?: HydraOptions)",
+      "description": ""
+    },
+    {
+      "name": "eval",
+      "signature": "eval(code: string): void",
+      "description": ""
+    },
+    {
+      "name": "getScreenImage",
+      "signature": "getScreenImage(callback: (blob: Blob) => void): void",
+      "description": ""
+    },
+    {
+      "name": "hush",
+      "signature": "hush(): void",
+      "description": ""
+    },
+    {
+      "name": "resetRuntime",
+      "signature": "resetRuntime(): void",
+      "description": ""
+    },
+    {
+      "name": "loadScript",
+      "signature": "loadScript(url?: string, once?: boolean): Promise<void>",
+      "description": ""
+    },
+    {
+      "name": "setResolution",
+      "signature": "setResolution(width: number, height: number): void",
+      "description": ""
+    },
+    {
+      "name": "tick",
+      "signature": "tick(dt: number, uniforms?: unknown): void",
+      "description": ""
+    },
+    {
+      "name": "shadowMap",
+      "signature": "shadowMap(options?: Record<string, unknown>): void",
+      "description": ""
+    },
+    {
+      "name": "scene",
+      "signature": "scene(attributes?: HydraSceneAttributes): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "stage",
+      "signature": "stage(config?: HydraStageConfig): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "onFrame",
+      "signature": "onFrame(callback: (dt: number, time: number) => void): void",
+      "description": ""
+    },
+    {
+      "name": "liveGlobals",
+      "signature": "liveGlobals(enable?: boolean): boolean",
+      "description": ""
+    },
+    {
+      "name": "dispose",
+      "signature": "dispose(): void",
+      "description": ""
+    }
+  ],
+  "hydraSynthEntries": [
+    {
+      "name": "time",
+      "signature": "time: number",
+      "description": ""
+    },
+    {
+      "name": "bpm",
+      "signature": "bpm: number",
+      "description": ""
+    },
+    {
+      "name": "canvas",
+      "signature": "canvas: HTMLCanvasElement",
+      "description": ""
+    },
+    {
+      "name": "width",
+      "signature": "width: number",
+      "description": ""
+    },
+    {
+      "name": "height",
+      "signature": "height: number",
+      "description": ""
+    },
+    {
+      "name": "fps",
+      "signature": "fps?: number",
+      "description": ""
+    },
+    {
+      "name": "stats",
+      "signature": "stats: HydraStats",
+      "description": ""
+    },
+    {
+      "name": "speed",
+      "signature": "speed: number",
+      "description": ""
+    },
+    {
+      "name": "mouse",
+      "signature": "mouse: unknown",
+      "description": ""
+    },
+    {
+      "name": "update",
+      "signature": "update: (dt: number) => void",
+      "description": ""
+    },
+    {
+      "name": "onFrame",
+      "signature": "onFrame: (callback: (dt: number, time: number) => void) => void",
+      "description": ""
+    },
+    {
+      "name": "afterUpdate",
+      "signature": "afterUpdate: (dt: number) => void",
+      "description": ""
+    },
+    {
+      "name": "click",
+      "signature": "click: (event: Event) => void",
+      "description": ""
+    },
+    {
+      "name": "mousedown",
+      "signature": "mousedown: (event: Event) => void",
+      "description": ""
+    },
+    {
+      "name": "mouseup",
+      "signature": "mouseup: (event: Event) => void",
+      "description": ""
+    },
+    {
+      "name": "mousemove",
+      "signature": "mousemove: (event: Event) => void",
+      "description": ""
+    },
+    {
+      "name": "keydown",
+      "signature": "keydown: (event: KeyboardEvent) => void",
+      "description": ""
+    },
+    {
+      "name": "keyup",
+      "signature": "keyup: (event: KeyboardEvent) => void",
+      "description": ""
+    },
+    {
+      "name": "onError",
+      "signature": "onError?: HydraRuntimeErrorHandler",
+      "description": ""
+    },
+    {
+      "name": "liveMode",
+      "signature": "liveMode: HydraLiveMode",
+      "description": ""
+    },
+    {
+      "name": "legacy",
+      "signature": "legacy: boolean",
+      "description": ""
+    },
+    {
+      "name": "render",
+      "signature": "render: (output?: unknown) => void",
+      "description": ""
+    },
+    {
+      "name": "liveGlobals",
+      "signature": "liveGlobals: (enable?: boolean) => boolean",
+      "description": ""
+    },
+    {
+      "name": "setResolution",
+      "signature": "setResolution: (width: number, height: number) => void",
+      "description": ""
+    },
+    {
+      "name": "hush",
+      "signature": "hush: () => void",
+      "description": ""
+    },
+    {
+      "name": "resetRuntime",
+      "signature": "resetRuntime: () => void",
+      "description": ""
+    },
+    {
+      "name": "tick",
+      "signature": "tick: (dt: number, uniforms?: unknown) => void",
+      "description": ""
+    },
+    {
+      "name": "shadowMap",
+      "signature": "shadowMap: (options?: Record<string, unknown>) => void",
+      "description": ""
+    },
+    {
+      "name": "scene",
+      "signature": "scene: (attributes?: HydraSceneAttributes) => HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "stage",
+      "signature": "stage: (config?: HydraStageConfig) => HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "ortho",
+      "signature": "ortho: (eye?: HydraNumericTuple, target?: HydraNumericTuple, options?: HydraCameraOptions) => unknown",
+      "description": ""
+    },
+    {
+      "name": "perspective",
+      "signature": "perspective: (eye?: HydraNumericTuple, target?: HydraNumericTuple, options?: HydraCameraOptions) => unknown",
+      "description": ""
+    },
+    {
+      "name": "screenCoords",
+      "signature": "screenCoords: (width?: number, height?: number) => unknown",
+      "description": ""
+    },
+    {
+      "name": "normalizedCoords",
+      "signature": "normalizedCoords: () => unknown",
+      "description": ""
+    },
+    {
+      "name": "cartesianCoords",
+      "signature": "cartesianCoords: (width?: number, height?: number) => unknown",
+      "description": ""
+    },
+    {
+      "name": "setFunction",
+      "signature": "setFunction: (definition: HydraTransformDefinition) => void",
+      "description": ""
+    },
+    {
+      "name": "osc",
+      "signature": "osc: HydraTransformFactory",
+      "description": ""
+    },
+    {
+      "name": "noise",
+      "signature": "noise: HydraTransformFactory",
+      "description": ""
+    },
+    {
+      "name": "solid",
+      "signature": "solid: HydraTransformFactory",
+      "description": ""
+    },
+    {
+      "name": "src",
+      "signature": "src: HydraTransformFactory",
+      "description": ""
+    },
+    {
+      "name": "tx",
+      "signature": "tx: HydraTextureApi",
+      "description": ""
+    },
+    {
+      "name": "gm",
+      "signature": "gm: HydraGeometryApi",
+      "description": ""
+    },
+    {
+      "name": "mt",
+      "signature": "mt: HydraModuleApi",
+      "description": ""
+    },
+    {
+      "name": "cmp",
+      "signature": "cmp: HydraModuleApi",
+      "description": ""
+    },
+    {
+      "name": "rnd",
+      "signature": "rnd: HydraModuleApi",
+      "description": ""
+    },
+    {
+      "name": "nse",
+      "signature": "nse: HydraModuleApi",
+      "description": ""
+    },
+    {
+      "name": "tex",
+      "signature": "tex: HydraTextureApi",
+      "description": ""
+    },
+    {
+      "name": "geom",
+      "signature": "geom: HydraGeometryApi",
+      "description": ""
+    },
+    {
+      "name": "mat",
+      "signature": "mat: HydraModuleApi",
+      "description": ""
+    },
+    {
+      "name": "compose",
+      "signature": "compose: HydraModuleApi",
+      "description": ""
+    },
+    {
+      "name": "random",
+      "signature": "random: HydraModuleApi",
+      "description": ""
+    },
+    {
+      "name": "noiseUtil",
+      "signature": "noiseUtil: HydraModuleApi",
+      "description": ""
+    },
+    {
+      "name": "gui",
+      "signature": "gui: HydraGuiApi",
+      "description": ""
+    },
+    {
+      "name": "arr",
+      "signature": "arr: HydraModuleApi",
+      "description": ""
+    },
+    {
+      "name": "el",
+      "signature": "el: HydraModuleApi",
+      "description": ""
+    },
+    {
+      "name": "math",
+      "signature": "math: Record<string, (value: number, ...args: number[]) => number>",
+      "description": ""
+    }
+  ],
+  "sceneEntries": [
+    {
+      "name": "add",
+      "signature": "add(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "mesh",
+      "signature": "mesh(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "box",
+      "signature": "box(material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "sphere",
+      "signature": "sphere(material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "quad",
+      "signature": "quad(material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "points",
+      "signature": "points(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "lines",
+      "signature": "lines(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "lineStrip",
+      "signature": "lineStrip(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "lineLoop",
+      "signature": "lineLoop(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "linestrip",
+      "signature": "linestrip(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "description": "@deprecated Use lineStrip(...) instead."
+    },
+    {
+      "name": "lineloop",
+      "signature": "lineloop(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "description": "@deprecated Use lineLoop(...) instead."
+    },
+    {
+      "name": "line",
+      "signature": "line(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "circle",
+      "signature": "circle(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "ellipse",
+      "signature": "ellipse(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "triangle",
+      "signature": "triangle(geometry?: unknown, material?: unknown, options?: HydraObjectOptions): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "lights",
+      "signature": "lights(options?: Record<string, unknown>): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "world",
+      "signature": "world(options?: Record<string, unknown>): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "group",
+      "signature": "group(attributes?: HydraSceneAttributes): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "layer",
+      "signature": "layer(id: number, options?: Record<string, unknown>): unknown",
+      "description": ""
+    },
+    {
+      "name": "lookAt",
+      "signature": "lookAt(target: unknown, options?: Record<string, unknown>): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "out",
+      "signature": "out(output?: unknown | HydraRenderCallOptions, options?: HydraTransformRenderOptions): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "render",
+      "signature": "render(output?: unknown | HydraRenderCallOptions, options?: HydraTransformRenderOptions): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "autoClear",
+      "signature": "autoClear(amount?: number, color?: number, options?: Record<string, unknown>): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "clear",
+      "signature": "clear(amount?: number, color?: number, options?: Record<string, unknown>): HydraSceneApi",
+      "description": ""
+    },
+    {
+      "name": "at",
+      "signature": "at(index?: number): unknown",
+      "description": ""
+    },
+    {
+      "name": "obj",
+      "signature": "obj(index?: number): unknown",
+      "description": ""
+    },
+    {
+      "name": "texture",
+      "signature": "texture(output?: unknown | HydraRenderCallOptions, options?: Record<string, unknown>): unknown",
+      "description": ""
+    },
+    {
+      "name": "instanced",
+      "signature": "instanced(geometry: unknown, material: unknown, count: number, options?: HydraObjectOptions): unknown",
+      "description": ""
+    },
+    {
+      "name": "find",
+      "signature": "find(filter?: Record<string, unknown>): unknown[]",
+      "description": ""
+    },
+    {
+      "name": "empty",
+      "signature": "empty(): boolean",
+      "description": ""
+    }
+  ],
+  "transformChainEntries": [
+    {
+      "name": "out",
+      "signature": "out( output?: unknown | HydraRenderCallOptions, options?: HydraTransformRenderOptions, ): HydraTransformChain",
+      "description": ""
+    },
+    {
+      "name": "render",
+      "signature": "render( output?: unknown | HydraRenderCallOptions, options?: HydraTransformRenderOptions, ): HydraTransformChain",
+      "description": ""
+    },
+    {
+      "name": "autoClear",
+      "signature": "autoClear(amount?: number, color?: number, options?: Record<string, unknown>): HydraTransformChain",
+      "description": ""
+    },
+    {
+      "name": "clear",
+      "signature": "clear(amount?: number, color?: number, options?: Record<string, unknown>): HydraTransformChain",
+      "description": ""
+    },
+    {
+      "name": "basic",
+      "signature": "basic(options?: Record<string, unknown>): HydraTransformChain",
+      "description": ""
+    },
+    {
+      "name": "phong",
+      "signature": "phong(options?: Record<string, unknown>): HydraTransformChain",
+      "description": ""
+    },
+    {
+      "name": "lambert",
+      "signature": "lambert(options?: Record<string, unknown>): HydraTransformChain",
+      "description": ""
+    },
+    {
+      "name": "material",
+      "signature": "material( typeOrOptions?: \"basic\" | \"lambert\" | \"phong\" | Record<string, unknown>, options?: Record<string, unknown>, ): HydraTransformChain",
+      "description": ""
+    },
+    {
+      "name": "st",
+      "signature": "st(source: HydraTransformChain): HydraTransformChain",
+      "description": ""
+    },
+    {
+      "name": "tex",
+      "signature": "tex(output?: unknown | HydraRenderCallOptions, options?: Record<string, unknown>): unknown",
+      "description": ""
+    },
+    {
+      "name": "texture",
+      "signature": "texture(output?: unknown | HydraRenderCallOptions, options?: Record<string, unknown>): unknown",
+      "description": ""
+    },
+    {
+      "name": "texMat",
+      "signature": "texMat(output?: unknown, options?: Record<string, unknown>): unknown",
+      "description": ""
+    }
+  ],
   "modules": {
     "gm": [
       "box",

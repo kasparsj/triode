@@ -56,3 +56,5 @@ The playground runtime is initialized with `makeGlobal: false` and evaluates sni
 - `Mode: Restart` disposes/recreates runtime on every run.
 
 For host applications and multi-instance integration, prefer non-global mode.
+
+Related guide: [Livecoding Workflow](./workflows/livecoding.md).

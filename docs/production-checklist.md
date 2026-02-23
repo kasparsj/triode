@@ -33,6 +33,7 @@ Use this checklist before deploying triode in a production creative-coding envir
 - Run docs quality gates in CI:
   - `npm run docs:verify-sync`
   - `npm run docs:verify-coverage`
+  - `npm run docs:check-snippets`
   - `npm run docs:check-links`
 - Run `npm run lint` and `npm run typecheck` in CI.
 - Run `npm run site:build` in CI to ensure docs/examples site generation stays healthy.

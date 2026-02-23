@@ -9,90 +9,277 @@ const rootDir = path.resolve(__dirname, "..", "..");
 const outDir = path.resolve(rootDir, process.env.SITE_OUT_DIR || "site-dist");
 const githubRepoUrl = "https://github.com/kasparsj/triode";
 
+const sidebarGroups = [
+  { key: "home", label: "Overview" },
+  { key: "getting-started", label: "Getting Started" },
+  { key: "concepts", label: "Core Concepts" },
+  { key: "api", label: "API Reference" },
+  { key: "recipes", label: "Cookbook" },
+  { key: "workflow", label: "Livecoding Workflow" },
+  { key: "interop", label: "Hydra Interop" },
+  { key: "support", label: "Troubleshooting" },
+  { key: "reference", label: "Reference" },
+  { key: "project", label: "Project" },
+];
+
 const docPages = [
-  { source: "README.md", output: "index.html", label: "Overview" },
+  {
+    source: "docs/index.md",
+    output: "index.html",
+    label: "Home",
+    group: "home",
+  },
+
+  {
+    source: "docs/getting-started/index.md",
+    output: "docs/getting-started/index.html",
+    label: "Getting Started",
+    group: "getting-started",
+  },
+  {
+    source: "docs/getting-started/installation.md",
+    output: "docs/getting-started/installation.html",
+    label: "Installation",
+    group: "getting-started",
+  },
+  {
+    source: "docs/getting-started/quickstart.md",
+    output: "docs/getting-started/quickstart.html",
+    label: "Quickstart",
+    group: "getting-started",
+  },
+  {
+    source: "docs/getting-started/first-patch.md",
+    output: "docs/getting-started/first-patch.html",
+    label: "First Patch",
+    group: "getting-started",
+  },
   {
     source: "docs/getting-started.md",
     output: "docs/getting-started.html",
-    label: "Getting Started",
+    label: "Legacy Getting Started",
+    group: "getting-started",
+    sidebar: false,
   },
+
   {
-    source: "docs/api.md",
-    output: "docs/api.html",
-    label: "API Reference",
+    source: "docs/concepts/index.md",
+    output: "docs/concepts/index.html",
+    label: "Concepts Overview",
+    group: "concepts",
   },
   {
     source: "docs/concepts/hydra-to-3d-mental-model.md",
     output: "docs/concepts/hydra-to-3d-mental-model.html",
-    label: "Hydra to 3D",
+    label: "Hydra to 3D Mental Model",
+    group: "concepts",
+  },
+  {
+    source: "docs/concepts/evaluation-model.md",
+    output: "docs/concepts/evaluation-model.html",
+    label: "Evaluation Model",
+    group: "concepts",
+  },
+  {
+    source: "docs/concepts/timing-state.md",
+    output: "docs/concepts/timing-state.html",
+    label: "Timing and State",
+    group: "concepts",
   },
   {
     source: "docs/concepts/scene-graph.md",
     output: "docs/concepts/scene-graph.html",
     label: "Scene Graph",
+    group: "concepts",
   },
   {
     source: "docs/concepts/rendering-pipeline.md",
     output: "docs/concepts/rendering-pipeline.html",
     label: "Rendering Pipeline",
+    group: "concepts",
   },
   {
     source: "docs/concepts/chaining-composition.md",
     output: "docs/concepts/chaining-composition.html",
     label: "Chaining Patterns",
+    group: "concepts",
+  },
+
+  {
+    source: "docs/api/index.md",
+    output: "docs/api/index.html",
+    label: "API Overview",
+    group: "api",
+  },
+  {
+    source: "docs/api.md",
+    output: "docs/api.html",
+    label: "Generated API",
+    group: "api",
   },
   {
     source: "docs/reference/parameter-reference.md",
     output: "docs/reference/parameter-reference.html",
     label: "Parameter Reference",
+    group: "api",
   },
   {
     source: "docs/reference/semantic-clarifications.md",
     output: "docs/reference/semantic-clarifications.html",
     label: "Semantic Clarifications",
+    group: "api",
+  },
+
+  {
+    source: "docs/recipes/index.md",
+    output: "docs/recipes/index.html",
+    label: "Cookbook Overview",
+    group: "recipes",
   },
   {
     source: "docs/recipes/common-recipes.md",
     output: "docs/recipes/common-recipes.html",
     label: "Common Recipes",
+    group: "recipes",
+  },
+
+  {
+    source: "docs/workflows/livecoding.md",
+    output: "docs/workflows/livecoding.html",
+    label: "Livecoding Workflow",
+    group: "workflow",
   },
   {
     source: "docs/playground.md",
     output: "docs/playground.html",
     label: "Playground Guide",
+    group: "workflow",
+  },
+
+  {
+    source: "docs/interop/hydra-in-triode.md",
+    output: "docs/interop/hydra-in-triode.html",
+    label: "Hydra in triode",
+    group: "interop",
+  },
+  {
+    source: "docs/interop/hydra-equivalents.md",
+    output: "docs/interop/hydra-equivalents.html",
+    label: "Hydra Equivalents",
+    group: "interop",
+  },
+  {
+    source: "docs/upstream-differences.md",
+    output: "docs/upstream-differences.html",
+    label: "Compatibility Differences",
+    group: "interop",
+  },
+
+  {
+    source: "docs/support/troubleshooting-faq.md",
+    output: "docs/support/troubleshooting-faq.html",
+    label: "Troubleshooting + FAQ",
+    group: "support",
+  },
+  {
+    source: "docs/support/glossary.md",
+    output: "docs/support/glossary.html",
+    label: "Glossary",
+    group: "support",
+  },
+
+  {
+    source: "docs/reference/index.md",
+    output: "docs/reference/index.html",
+    label: "Reference Index",
+    group: "reference",
+  },
+  {
+    source: "docs/reference/examples-index.md",
+    output: "docs/reference/examples-index.html",
+    label: "Examples Index",
+    group: "reference",
+  },
+  {
+    source: "docs/reference/live-key-migration.md",
+    output: "docs/reference/live-key-migration.html",
+    label: "Live-Key Migration",
+    group: "reference",
   },
   {
     source: "docs/performance/advanced-performance.md",
     output: "docs/performance/advanced-performance.html",
     label: "Performance Notes",
-  },
-  {
-    source: "docs/upstream-differences.md",
-    output: "docs/upstream-differences.html",
-    label: "Hydra Compatibility",
+    group: "reference",
   },
   {
     source: "docs/production-checklist.md",
     output: "docs/production-checklist.html",
     label: "Production Checklist",
+    group: "reference",
+  },
+  {
+    source: "docs/reference/release-notes.md",
+    output: "docs/reference/release-notes.html",
+    label: "Release Notes",
+    group: "reference",
   },
   {
     source: "docs/release.md",
     output: "docs/release.html",
     label: "Release Process",
+    group: "reference",
   },
   {
+    source: "docs/reference/documentation-checklist.md",
+    output: "docs/reference/documentation-checklist.html",
+    label: "Documentation Checklist",
+    group: "reference",
+  },
+  {
+    source: "docs/reference/docs-audit.md",
+    output: "docs/reference/docs-audit.html",
+    label: "Documentation Audit",
+    group: "reference",
+  },
+  {
+    source: "docs/reference/information-architecture.md",
+    output: "docs/reference/information-architecture.html",
+    label: "Docs IA",
+    group: "reference",
+  },
+  {
+    source: "docs/search.md",
+    output: "docs/search.html",
+    label: "Search",
+    group: "reference",
+    sidebar: false,
+  },
+
+  {
     source: "examples/README.md",
-    output: "docs/examples.html",
-    label: "Examples Guide",
+    output: "docs/examples-source.html",
+    label: "Examples Source Guide",
+    group: "project",
   },
   {
     source: "CONTRIBUTING.md",
     output: "docs/contributing.html",
     label: "Contributing",
+    group: "project",
   },
-  { source: "SECURITY.md", output: "docs/security.html", label: "Security" },
-  { source: "CHANGELOG.md", output: "docs/changelog.html", label: "Changelog" },
+  {
+    source: "SECURITY.md",
+    output: "docs/security.html",
+    label: "Security",
+    group: "project",
+  },
+  {
+    source: "CHANGELOG.md",
+    output: "docs/changelog.html",
+    label: "Changelog",
+    group: "project",
+  },
 ];
 
 const normalize = (value) => value.split(path.sep).join("/");
@@ -229,6 +416,31 @@ const formatInline = (line, context) => {
   return next;
 };
 
+const parseTableCells = (line) =>
+  line
+    .trim()
+    .replace(/^\|/, "")
+    .replace(/\|$/, "")
+    .split("|")
+    .map((cell) => cell.trim());
+
+const isTableSeparator = (line) => {
+  const trimmed = line.trim();
+  if (!trimmed.includes("|")) {
+    return false;
+  }
+  const cells = trimmed
+    .replace(/^\|/, "")
+    .replace(/\|$/, "")
+    .split("|")
+    .map((cell) => cell.trim())
+    .filter(Boolean);
+  if (!cells.length) {
+    return false;
+  }
+  return cells.every((cell) => /^:?-{3,}:?$/.test(cell));
+};
+
 const renderMarkdown = (markdown, context) => {
   const lines = markdown.replace(/\r\n/g, "\n").split("\n");
   const html = [];
@@ -238,6 +450,7 @@ const renderMarkdown = (markdown, context) => {
   let inCode = false;
   let codeLanguage = "";
   let codeBuffer = [];
+  let table = null;
 
   const closeList = () => {
     if (listType) {
@@ -264,8 +477,29 @@ const renderMarkdown = (markdown, context) => {
     codeLanguage = "";
   };
 
-  for (const rawLine of lines) {
-    const line = rawLine;
+  const closeTable = () => {
+    if (!table) {
+      return;
+    }
+    const headRow = table.headers
+      .map((cell) => `<th>${formatInline(cell, context)}</th>`)
+      .join("");
+    const bodyRows = table.rows
+      .map(
+        (row) =>
+          `<tr>${row
+            .map((cell) => `<td>${formatInline(cell, context)}</td>`)
+            .join("")}</tr>`,
+      )
+      .join("\n");
+    html.push(
+      `<table><thead><tr>${headRow}</tr></thead><tbody>${bodyRows}</tbody></table>`,
+    );
+    table = null;
+  };
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
 
     if (line.startsWith("```")) {
       if (inCode) {
@@ -274,6 +508,7 @@ const renderMarkdown = (markdown, context) => {
       } else {
         flushParagraph();
         closeList();
+        closeTable();
         inCode = true;
         codeLanguage = line.replace(/^```/, "").trim();
       }
@@ -285,9 +520,31 @@ const renderMarkdown = (markdown, context) => {
       continue;
     }
 
+    if (table) {
+      if (line.trim() && line.includes("|")) {
+        table.rows.push(parseTableCells(line));
+        continue;
+      }
+      closeTable();
+    }
+
     if (/^\s*$/.test(line)) {
       flushParagraph();
       closeList();
+      closeTable();
+      continue;
+    }
+
+    const nextLine = lines[index + 1] || "";
+    if (line.includes("|") && isTableSeparator(nextLine)) {
+      flushParagraph();
+      closeList();
+      closeTable();
+      table = {
+        headers: parseTableCells(line),
+        rows: [],
+      };
+      index += 1;
       continue;
     }
 
@@ -295,6 +552,7 @@ const renderMarkdown = (markdown, context) => {
     if (headingMatch) {
       flushParagraph();
       closeList();
+      closeTable();
       const level = headingMatch[1].length;
       const headingText = headingMatch[2].trim();
       const baseId = slugify(headingText);
@@ -307,8 +565,18 @@ const renderMarkdown = (markdown, context) => {
       continue;
     }
 
+    if (/^>\s?/.test(line)) {
+      flushParagraph();
+      closeList();
+      closeTable();
+      const quoteText = line.replace(/^>\s?/, "");
+      html.push(`<blockquote>${formatInline(quoteText, context)}</blockquote>`);
+      continue;
+    }
+
     if (/^[-*]\s+/.test(line)) {
       flushParagraph();
+      closeTable();
       if (listType !== "ul") {
         closeList();
         listType = "ul";
@@ -322,6 +590,7 @@ const renderMarkdown = (markdown, context) => {
 
     if (/^\d+\.\s+/.test(line)) {
       flushParagraph();
+      closeTable();
       if (listType !== "ol") {
         closeList();
         listType = "ol";
@@ -340,45 +609,58 @@ const renderMarkdown = (markdown, context) => {
     flushCode();
   }
 
+  closeTable();
   flushParagraph();
   closeList();
   return html.join("\n");
 };
 
-const renderLayout = ({ title, outputPath, activeKey, content }) => {
+const renderLayout = ({
+  title,
+  outputPath,
+  activeKey,
+  content,
+  scripts = "",
+}) => {
   const navItems = [
     { key: "overview", label: "Home", output: "index.html" },
     {
       key: "start",
       label: "Start",
-      output: "docs/getting-started.html",
+      output: "docs/getting-started/index.html",
     },
     {
       key: "concepts",
       label: "Concepts",
-      output: "docs/concepts/hydra-to-3d-mental-model.html",
+      output: "docs/concepts/index.html",
     },
-    { key: "api", label: "API", output: "docs/api.html" },
-    {
-      key: "playground",
-      label: "Playground",
-      output: "playground/index.html",
-    },
+    { key: "api", label: "API", output: "docs/api/index.html" },
     {
       key: "recipes",
-      label: "Recipes",
-      output: "docs/recipes/common-recipes.html",
+      label: "Cookbook",
+      output: "docs/recipes/index.html",
+    },
+    {
+      key: "workflow",
+      label: "Workflow",
+      output: "docs/workflows/livecoding.html",
+    },
+    {
+      key: "interop",
+      label: "Interop",
+      output: "docs/interop/hydra-in-triode.html",
+    },
+    {
+      key: "reference",
+      label: "Reference",
+      output: "docs/reference/index.html",
     },
     { key: "examples", label: "Examples", output: "examples/index.html" },
-    {
-      key: "production",
-      label: "Production",
-      output: "docs/production-checklist.html",
-    },
-    { key: "release", label: "Release", output: "docs/release.html" },
+    { key: "playground", label: "Playground", output: "playground/index.html" },
   ];
 
   const cssHref = relativeHref(normalize(outputPath), "assets/site.css");
+  const searchHref = relativeHref(normalize(outputPath), "docs/search.html");
   const versionsHref = relativeHref(
     normalize(outputPath),
     "docs/versions.json",
@@ -394,11 +676,19 @@ const renderLayout = ({ title, outputPath, activeKey, content }) => {
   const repoLink =
     '<a class="repo" href="https://github.com/kasparsj/triode">GitHub</a>';
 
-  const versionScript = `
+  const initScript = `
       <script>
         (function () {
           const picker = document.getElementById("docs-version-picker");
           const select = document.getElementById("docs-version-select");
+          const searchInputs = document.querySelectorAll('[data-docs-search-input]');
+          const query = new URLSearchParams(window.location.search).get("q") || "";
+          searchInputs.forEach((input) => {
+            if (query && !input.value) {
+              input.value = query;
+            }
+          });
+
           if (!picker || !select) return;
 
           const versionsUrl = new URL("${escapeAttr(versionsHref)}", window.location.href);
@@ -422,7 +712,11 @@ const renderLayout = ({ title, outputPath, activeKey, content }) => {
                 ? currentVersion
                 : versions[0];
 
-              const baseHref = versionsUrl.toString().replace(/docs\\/versions\\.json$/, "");
+              let baseHref = versionsUrl.toString().replace(/docs\\/versions\\.json$/, "");
+              const nestedVersionMatch = baseHref.match(/^(.*\\/docs\\/)(latest|v[^/]+)\\/$/);
+              if (nestedVersionMatch) {
+                baseHref = nestedVersionMatch[1].replace(/docs\\/$/, "");
+              }
               select.addEventListener("change", function () {
                 const target = new URL("docs/" + select.value + "/index.html", baseHref);
                 window.location.href = target.toString();
@@ -456,6 +750,15 @@ const renderLayout = ({ title, outputPath, activeKey, content }) => {
               ${navHtml}
               ${repoLink}
             </nav>
+            <form class="search-form" action="${escapeAttr(searchHref)}" method="get">
+              <input
+                type="search"
+                name="q"
+                data-docs-search-input
+                placeholder="Search docs"
+                aria-label="Search documentation"
+              />
+            </form>
             <div class="version-picker" id="docs-version-picker">
               <label for="docs-version-select">Docs Version</label>
               <select id="docs-version-select" aria-label="Select documentation version">
@@ -468,7 +771,8 @@ const renderLayout = ({ title, outputPath, activeKey, content }) => {
       ${content}
       <p class="footer-note">Generated from repository docs and examples.</p>
     </div>
-    ${versionScript}
+    ${initScript}
+    ${scripts}
   </body>
 </html>
 `;
@@ -477,20 +781,123 @@ const renderLayout = ({ title, outputPath, activeKey, content }) => {
 const resolveActiveKey = (outputPath) => {
   const normalized = normalize(outputPath);
   if (normalized.includes("/playground")) return "playground";
+  if (normalized.includes("/workflows/")) return "workflow";
   if (normalized.includes("/concepts/")) return "concepts";
-  if (normalized.endsWith("/api.html") || normalized.includes("/api."))
+  if (normalized.includes("/interop/")) return "interop";
+  if (normalized.includes("/api/") || normalized.endsWith("/api.html"))
     return "api";
-  if (normalized.includes("/reference/")) return "api";
+  if (normalized.includes("/support/")) return "reference";
+  if (normalized.includes("/reference/")) return "reference";
   if (normalized.includes("/recipes/")) return "recipes";
-  if (normalized.includes("/performance/")) return "production";
+  if (normalized.includes("/performance/")) return "reference";
   if (normalized.includes("/examples")) return "examples";
-  if (normalized.includes("release")) return "release";
-  if (normalized.includes("production")) return "production";
+  if (normalized.includes("release")) return "reference";
+  if (normalized.includes("production")) return "reference";
   if (normalized.includes("getting-started")) return "start";
   return "overview";
 };
 
+const paginationPages = docPages.filter((page) => page.sidebar !== false);
+
+const renderDocSidebar = (currentPage) => {
+  const sections = sidebarGroups
+    .map((group) => {
+      const groupedPages = docPages.filter(
+        (page) => page.group === group.key && page.sidebar !== false,
+      );
+      if (!groupedPages.length) {
+        return "";
+      }
+      const links = groupedPages
+        .map((page) => {
+          const href = relativeHref(
+            normalize(currentPage.output),
+            normalize(page.output),
+          );
+          const classes = page.output === currentPage.output ? "active" : "";
+          return `<a class="${classes}" href="${escapeAttr(href)}">${escapeHtml(page.label)}</a>`;
+        })
+        .join("\n");
+      return `<section class="doc-sidebar-group"><h3>${escapeHtml(group.label)}</h3>${links}</section>`;
+    })
+    .filter(Boolean)
+    .join("\n");
+  return sections;
+};
+
+const stripMarkdownSyntax = (value) =>
+  value
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1")
+    .replace(/^>\s?/gm, "")
+    .replace(/[|*_#]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const collectSearchEntries = (page, markdown) => {
+  const entries = [];
+  const lines = markdown.replace(/\r\n/g, "\n").split("\n");
+  let inCode = false;
+  let current = {
+    title: page.label,
+    hash: "",
+    text: [],
+  };
+
+  const flushEntry = () => {
+    const excerpt = stripMarkdownSyntax(current.text.join(" ")).slice(0, 240);
+    if (!current.title) {
+      return;
+    }
+    const href = appendHash(
+      relativeHref("docs/search.html", normalize(page.output)),
+      current.hash,
+    );
+    entries.push({
+      page: page.label,
+      section: current.title,
+      href,
+      excerpt,
+    });
+  };
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (line.startsWith("```")) {
+      inCode = !inCode;
+      continue;
+    }
+    if (inCode) {
+      continue;
+    }
+
+    const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
+    if (headingMatch) {
+      flushEntry();
+      const headingText = stripMarkdownSyntax(headingMatch[2].trim());
+      current = {
+        title: headingText || page.label,
+        hash: slugify(headingText),
+        text: [],
+      };
+      continue;
+    }
+
+    if (!line.trim()) {
+      continue;
+    }
+
+    current.text.push(line.trim());
+  }
+
+  flushEntry();
+
+  return entries.filter((entry) => entry.section && entry.href);
+};
+
 const buildDocPages = async (exampleOutputBySource) => {
+  const searchEntries = [];
+
   for (const page of docPages) {
     const markdown = await readText(page.source);
     const body = renderMarkdown(markdown, {
@@ -498,19 +905,56 @@ const buildDocPages = async (exampleOutputBySource) => {
       outputPath: page.output,
       exampleOutputBySource,
     });
+    searchEntries.push(...collectSearchEntries(page, markdown));
 
-    const sidebar = docPages
-      .map((doc) => {
-        const href = relativeHref(
-          normalize(page.output),
-          normalize(doc.output),
-        );
-        const classes = doc.output === page.output ? "active" : "";
-        return `<a class="${classes}" href="${escapeAttr(href)}">${escapeHtml(doc.label)}</a>`;
-      })
-      .join("\n");
+    const sidebar = renderDocSidebar(page);
+    const paginationIndex = paginationPages.findIndex(
+      (entry) => entry.output === page.output,
+    );
+    const prevPage =
+      paginationIndex > 0 ? paginationPages[paginationIndex - 1] : null;
+    const nextPage =
+      paginationIndex >= 0 && paginationIndex + 1 < paginationPages.length
+        ? paginationPages[paginationIndex + 1]
+        : null;
+    const pagination = `
+      <nav class="doc-pagination">
+        ${
+          prevPage
+            ? `<a class="doc-pagination-link prev" href="${escapeAttr(
+                relativeHref(
+                  normalize(page.output),
+                  normalize(prevPage.output),
+                ),
+              )}"><span>Previous</span><strong>${escapeHtml(prevPage.label)}</strong></a>`
+            : '<span class="doc-pagination-empty"></span>'
+        }
+        ${
+          nextPage
+            ? `<a class="doc-pagination-link next" href="${escapeAttr(
+                relativeHref(
+                  normalize(page.output),
+                  normalize(nextPage.output),
+                ),
+              )}"><span>Next</span><strong>${escapeHtml(nextPage.label)}</strong></a>`
+            : '<span class="doc-pagination-empty"></span>'
+        }
+      </nav>
+    `;
 
     const sourceHref = `${githubRepoUrl}/blob/main/${normalize(page.source)}`;
+    const searchPanel =
+      page.output === "docs/search.html"
+        ? `
+          <section class="search-panel">
+            <label for="search-query-input">Query</label>
+            <input id="search-query-input" type="search" placeholder="Search docs..." />
+            <p id="search-status" class="search-status"></p>
+            <ul id="search-results" class="search-results"></ul>
+          </section>
+        `
+        : "";
+
     const content = `
       <main class="page doc-grid">
         <aside class="doc-sidebar">
@@ -519,20 +963,99 @@ const buildDocPages = async (exampleOutputBySource) => {
         </aside>
         <section class="doc-main">
           <div class="doc-meta">Source: <a href="${escapeAttr(sourceHref)}">${escapeHtml(page.source)}</a></div>
-          <article class="prose">${body}</article>
+          <article class="prose">${body}${searchPanel}</article>
+          ${pagination}
         </section>
       </main>
     `;
+
+    const searchScript =
+      page.output === "docs/search.html"
+        ? `
+          <script>
+            (function () {
+              const input = document.getElementById("search-query-input");
+              const list = document.getElementById("search-results");
+              const status = document.getElementById("search-status");
+              if (!input || !list || !status) return;
+
+              const searchParams = new URLSearchParams(window.location.search);
+              const initialQuery = (searchParams.get("q") || "").trim();
+              if (initialQuery) input.value = initialQuery;
+
+              const indexUrl = new URL("${escapeAttr(
+                relativeHref(page.output, "docs/search-index.json"),
+              )}", window.location.href);
+
+              const renderResults = (entries, query) => {
+                list.innerHTML = "";
+                const normalizedQuery = query.trim().toLowerCase();
+                if (!normalizedQuery) {
+                  status.textContent = "Enter a query to search docs pages and headings.";
+                  return;
+                }
+
+                const terms = normalizedQuery.split(/\\s+/).filter(Boolean);
+                const matches = entries.filter((entry) => {
+                  const haystack = (entry.section + " " + (entry.excerpt || "") + " " + entry.page).toLowerCase();
+                  return terms.every((term) => haystack.includes(term));
+                });
+
+                status.textContent = matches.length
+                  ? matches.length + " result" + (matches.length === 1 ? "" : "s")
+                  : "No results.";
+
+                matches.slice(0, 80).forEach((entry) => {
+                  const li = document.createElement("li");
+                  const a = document.createElement("a");
+                  a.href = entry.href;
+                  a.textContent = entry.section;
+                  const meta = document.createElement("p");
+                  meta.textContent = entry.page + (entry.excerpt ? " - " + entry.excerpt : "");
+                  li.appendChild(a);
+                  li.appendChild(meta);
+                  list.appendChild(li);
+                });
+              };
+
+              fetch(indexUrl.toString())
+                .then((response) => {
+                  if (!response.ok) throw new Error("Search index unavailable");
+                  return response.json();
+                })
+                .then((payload) => {
+                  const entries = Array.isArray(payload.entries) ? payload.entries : [];
+                  const run = () => {
+                    const query = input.value || "";
+                    const params = new URLSearchParams(window.location.search);
+                    if (query.trim()) params.set("q", query.trim());
+                    else params.delete("q");
+                    history.replaceState({}, "", window.location.pathname + (params.toString() ? "?" + params.toString() : ""));
+                    renderResults(entries, query);
+                  };
+                  input.addEventListener("input", run);
+                  run();
+                })
+                .catch((error) => {
+                  status.textContent = "Search index unavailable: " + error.message;
+                });
+            })();
+          </script>
+        `
+        : "";
 
     const html = renderLayout({
       title: page.label,
       outputPath: page.output,
       activeKey: resolveActiveKey(page.output),
       content,
+      scripts: searchScript,
     });
 
     await writeText(page.output, html);
   }
+
+  return searchEntries;
 };
 
 const collectExampleSources = async () => {
@@ -652,14 +1175,17 @@ const renderExamplePages = async (exampleSources, outputBySource) => {
     const exampleCode = JSON.stringify(code);
     const codeBlock = escapeHtml(code);
     const backToExamples = relativeHref(outputPath, "examples/index.html");
-    const backToDocs = relativeHref(outputPath, "docs/examples.html");
+    const backToDocs = relativeHref(
+      outputPath,
+      "docs/reference/examples-index.html",
+    );
 
     const content = `
       <main class="page example-page">
         <section class="example-head">
           <div class="actions">
             <a class="btn ghost" href="${escapeAttr(backToExamples)}">Back To Examples</a>
-            <a class="btn ghost" href="${escapeAttr(backToDocs)}">Examples Guide</a>
+            <a class="btn ghost" href="${escapeAttr(backToDocs)}">Examples Index</a>
             <a class="btn ghost" href="${escapeAttr(sourceHref)}">View Source</a>
           </div>
           <h1>${escapeHtml(title)}</h1>
@@ -778,7 +1304,18 @@ const build = async () => {
   const exampleOutputBySource = createExampleOutputMap(exampleSources);
 
   await copyStaticAssets();
-  await buildDocPages(exampleOutputBySource);
+  const searchEntries = await buildDocPages(exampleOutputBySource);
+  await writeText(
+    "docs/search-index.json",
+    `${JSON.stringify(
+      {
+        generatedAt: new Date().toISOString(),
+        entries: searchEntries,
+      },
+      null,
+      2,
+    )}\n`,
+  );
   await renderExamplesIndex(exampleSources, exampleOutputBySource);
   await renderExamplePages(exampleSources, exampleOutputBySource);
   await writeNotFoundPage();

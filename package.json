@@ -35,6 +35,7 @@
     "docs:generate": "node ./scripts/docs/generate-api-docs.mjs",
     "docs:verify-sync": "node ./scripts/docs/generate-api-docs.mjs --check",
     "docs:verify-coverage": "node ./scripts/docs/verify-doc-coverage.mjs",
+    "docs:check-snippets": "node ./scripts/docs/check-snippets.mjs",
     "docs:check-links": "node ./scripts/docs/check-links.mjs",
     "migrate:report-live-keys": "node ./scripts/migrate/find-unkeyed-live-calls.mjs",
     "migrate:check-live-keys:playground": "node ./scripts/migrate/find-unkeyed-live-calls.mjs --strict site/playground/examples.js",
@@ -63,7 +64,7 @@
     "site:build": "node ./scripts/site/build-site.mjs",
     "site:build:versioned": "node ./scripts/site/build-versioned-site.mjs",
     "pack:check": "npm pack --dry-run",
-    "ci:check": "npm run release:verify-meta && npm run docs:verify-sync && npm run docs:verify-coverage && npm run docs:check-links && npm run lint && npm run typecheck && npm run build && npm run site:build && npm run test:smoke && npm run pack:check"
+    "ci:check": "npm run release:verify-meta && npm run docs:verify-sync && npm run docs:verify-coverage && npm run docs:check-snippets && npm run docs:check-links && npm run lint && npm run typecheck && npm run build && npm run site:build && npm run test:smoke && npm run pack:check"
   },
   "repository": {
     "type": "git",

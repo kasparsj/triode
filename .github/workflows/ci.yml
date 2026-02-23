@@ -38,6 +38,9 @@ jobs:
       - name: Verify Docs Coverage
         run: npm run docs:verify-coverage
 
+      - name: Check Docs Snippets
+        run: npm run docs:check-snippets
+
       - name: Check Docs Links
         run: npm run docs:check-links
 

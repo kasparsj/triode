@@ -102,6 +102,7 @@ H.osc(8, 0.1, 0.8).render();
 If Vite reports `ReferenceError: global is not defined`, add:
 
 ```js
+// @illustrative
 define: {
   global: {},
 }

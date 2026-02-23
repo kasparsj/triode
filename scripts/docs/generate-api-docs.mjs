@@ -17,6 +17,8 @@ const ensureDir = async (relativePath) => {
   await fs.mkdir(path.join(rootDir, relativePath), { recursive: true });
 };
 
+const toUniqueList = (values) => Array.from(new Set(values.filter(Boolean)));
+
 const extractBraceBlock = (source, marker) => {
   const start = source.indexOf(marker);
   if (start === -1) {
@@ -44,25 +46,134 @@ const extractBraceBlock = (source, marker) => {
   throw new Error(`Could not find closing brace for marker: ${marker}`);
 };
 
-const extractTopLevelMembers = (block) => {
-  const members = [];
-  const seen = new Set();
+const normalizeDocComment = (commentLines) => {
+  if (!commentLines.length) {
+    return "";
+  }
+  const joined = commentLines
+    .join("\n")
+    .replace(/^\s*\/\*\*\s*/, "")
+    .replace(/\s*\*\/\s*$/, "");
+  const cleaned = joined
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^\s*\*\s?/, "").trim())
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+  return cleaned;
+};
 
-  block.split(/\r?\n/).forEach((line) => {
-    const methodMatch = line.match(
-      /^ {2}([A-Za-z_][A-Za-z0-9_]*)\??\s*(?:\(|:)/,
-    );
-    if (!methodMatch) {
+const measureDepthDelta = (value) => {
+  const stack = {
+    paren: 0,
+    brace: 0,
+    bracket: 0,
+  };
+  const chars = value.split("");
+  for (let index = 0; index < chars.length; index += 1) {
+    const char = chars[index];
+    if (char === "(") stack.paren += 1;
+    if (char === ")") stack.paren -= 1;
+    if (char === "{") stack.brace += 1;
+    if (char === "}") stack.brace -= 1;
+    if (char === "[") stack.bracket += 1;
+    if (char === "]") stack.bracket -= 1;
+  }
+  return stack;
+};
+
+const extractEntryName = (signature) => {
+  const normalized = signature.replace(/\s+/g, " ").trim().replace(/;$/, "");
+  const match = normalized.match(/^([A-Za-z_][A-Za-z0-9_]*)\??\s*(?:\(|:)/);
+  return match ? match[1] : null;
+};
+
+const extractTopLevelEntries = (block) => {
+  const entries = [];
+  const lines = block.split(/\r?\n/);
+  let pendingCommentLines = [];
+  let inComment = false;
+  let pendingComment = "";
+  let declarationLines = [];
+  let depth = {
+    paren: 0,
+    brace: 0,
+    bracket: 0,
+  };
+
+  const flushDeclaration = () => {
+    if (!declarationLines.length) {
       return;
     }
-    const name = methodMatch[1];
-    if (!seen.has(name)) {
-      seen.add(name);
-      members.push(name);
+    const signature = declarationLines.join(" ").replace(/\s+/g, " ").trim();
+    const name = extractEntryName(signature);
+    if (name) {
+      entries.push({
+        name,
+        signature: signature.replace(/;$/, ""),
+        description: pendingComment,
+      });
     }
-  });
+    declarationLines = [];
+    depth = { paren: 0, brace: 0, bracket: 0 };
+    pendingComment = "";
+  };
 
-  return members;
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const trimmed = line.trim();
+
+    if (!declarationLines.length) {
+      if (!inComment && trimmed.startsWith("/**")) {
+        inComment = true;
+        pendingCommentLines = [line];
+        if (trimmed.includes("*/")) {
+          inComment = false;
+          pendingComment = normalizeDocComment(pendingCommentLines);
+          pendingCommentLines = [];
+        }
+        continue;
+      }
+      if (inComment) {
+        pendingCommentLines.push(line);
+        if (trimmed.includes("*/")) {
+          inComment = false;
+          pendingComment = normalizeDocComment(pendingCommentLines);
+          pendingCommentLines = [];
+        }
+        continue;
+      }
+      if (!trimmed) {
+        continue;
+      }
+    }
+
+    declarationLines.push(trimmed);
+    const lineDepth = measureDepthDelta(trimmed);
+    depth.paren += lineDepth.paren;
+    depth.brace += lineDepth.brace;
+    depth.bracket += lineDepth.bracket;
+    depth.paren = Math.max(0, depth.paren);
+    depth.brace = Math.max(0, depth.brace);
+    depth.bracket = Math.max(0, depth.bracket);
+
+    if (
+      /;\s*$/.test(trimmed) &&
+      depth.paren === 0 &&
+      depth.brace === 0 &&
+      depth.bracket === 0
+    ) {
+      flushDeclaration();
+    }
+  }
+
+  flushDeclaration();
+
+  return entries;
+};
+
+const extractTopLevelMembers = (block) => {
+  return toUniqueList(extractTopLevelEntries(block).map((entry) => entry.name));
 };
 
 const extractModuleExports = (source) => {
@@ -79,6 +190,51 @@ const extractModuleExports = (source) => {
     .filter(Boolean)
     .map((entry) => entry.replace(/\s+as\s+.*/, "").trim())
     .filter(Boolean);
+};
+
+const extractModuleSignatures = (source, exportNames) => {
+  const signatures = {};
+
+  exportNames.forEach((name) => {
+    const functionMatch = source.match(
+      new RegExp(`function\\s+${name}\\s*\\(([^)]*)\\)`, "m"),
+    );
+    if (functionMatch) {
+      signatures[name] =
+        `${name}(${functionMatch[1].replace(/\s+/g, " ").trim()})`;
+      return;
+    }
+
+    const arrowMatch = source.match(
+      new RegExp(
+        `const\\s+${name}\\s*=\\s*(?:async\\s*)?\\(([^)]*)\\)\\s*=>`,
+        "m",
+      ),
+    );
+    if (arrowMatch) {
+      signatures[name] =
+        `${name}(${arrowMatch[1].replace(/\s+/g, " ").trim()})`;
+      return;
+    }
+
+    const singleArgArrowMatch = source.match(
+      new RegExp(
+        `const\\s+${name}\\s*=\\s*(?:async\\s*)?([^=\\n]+?)\\s*=>`,
+        "m",
+      ),
+    );
+    if (singleArgArrowMatch) {
+      signatures[name] = `${name}(${singleArgArrowMatch[1]
+        .replace(/[()]/g, "")
+        .replace(/\s+/g, " ")
+        .trim()})`;
+      return;
+    }
+
+    signatures[name] = `${name}(...)`;
+  });
+
+  return signatures;
 };
 
 const extractTransforms = (source) => {
@@ -147,12 +303,153 @@ const toTransformTypeIndex = (transforms) => {
   return byType;
 };
 
-const toMarkdown = (manifest, transforms, transformsByType) => {
-  const moduleRows = Object.entries(manifest.modules)
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([moduleName, methods]) => {
-      return `| \`${moduleName}\` | ${methods.length} | ${methods.map((name) => `\`${name}\``).join(", ")} |`;
+const constructorOptionNotes = {
+  width: "Initial canvas width.",
+  height: "Initial canvas height.",
+  numSources: "Number of source slots (`s0..sN`).",
+  numOutputs: "Number of output slots (`o0..oN`).",
+  makeGlobal:
+    "Installs helpers globally when true; keep false for host-safe embedding.",
+  autoLoop: "Starts the internal RAF loop automatically.",
+  detectAudio: "Enables audio analysis helpers.",
+  enableStreamCapture: "Enables recorder/capture setup.",
+  webgl: "Renderer backend version selection.",
+  canvas: "Use an existing canvas element instead of auto-creating one.",
+  css2DElement: "Optional mount target for CSS2D renderer.",
+  css3DElement: "Optional mount target for CSS3D renderer.",
+  precision: "Shader precision hint.",
+  onError: "Runtime error hook for update/afterUpdate/tick contexts.",
+  liveMode:
+    "`continuous` keeps runtime state; `restart` recreates runtime behavior.",
+  legacy: "Compatibility mode restoring older defaults and warning behavior.",
+  extendTransforms: "Registers additional transform definitions at startup.",
+  pb: "Legacy integration surface.",
+};
+
+const rendererNotes = {
+  eval: "Evaluates livecoding source against the runtime sandbox.",
+  setResolution: "Resizes canvas, outputs, and source buffers.",
+  resetRuntime:
+    "Clears scene and runtime state without destroying the instance.",
+  liveGlobals: "Toggles global helper installation at runtime.",
+  stage: "Creates/reuses scene and applies stage presets.",
+  dispose: "Fully disposes the runtime and related resources.",
+};
+
+const synthNotes = {
+  scene: "Returns a scene handle for manual scene composition.",
+  stage: "Convenience scene bootstrap with camera/lights/world/render options.",
+  setFunction: "Registers a custom transform definition.",
+  liveGlobals: "Toggles helper globals in the active runtime.",
+  onFrame: "Installs an update callback receiving `(dt, time)`.",
+  hush: "Clears outputs and reset frame hooks to no-op handlers.",
+};
+
+const sceneNotes = {
+  render: "Compiles the scene into output passes.",
+  texture: "Alias of `.tex(...)`.",
+  group: "Creates or reuses a scene subgroup.",
+  find: "Returns matching child objects by property filter.",
+  instanced: "Creates an instanced mesh object.",
+};
+
+const transformNotes = {
+  render: "Alias of `.out(...)`.",
+  tex: "Renders the current chain to a texture.",
+  texMat: "Returns a Three material with current chain texture attached.",
+  material: "Material bridge for basic/lambert/phong/custom options.",
+  clear: "Alias of `.autoClear(...)`.",
+};
+
+const moduleAliasNotes = {
+  tx: "Alias: `tex`",
+  gm: "Alias: `geom`",
+  mt: "Alias: `mat`",
+  cmp: "Alias: `compose`",
+  rnd: "Alias: `random`",
+  nse: "Alias: `noiseUtil`",
+  arr: "Typed-array utilities",
+  el: "DOM element helpers",
+  gui: "GUI helpers",
+  math: "Math helper namespace",
+};
+
+const toOptionRows = (entries) => {
+  return entries
+    .map((entry) => {
+      const propertyMatch = entry.signature.match(
+        /^([A-Za-z_][A-Za-z0-9_]*)(\?)?:\s*([\s\S]+)$/,
+      );
+      if (!propertyMatch) {
+        return null;
+      }
+      const [, name, optional, typeValue] = propertyMatch;
+      return {
+        name,
+        type: typeValue.trim(),
+        optional: optional === "?" ? "yes" : "no",
+        description: constructorOptionNotes[name] || "",
+      };
     })
+    .filter(Boolean);
+};
+
+const toSignatureList = (entries, notes = {}) => {
+  if (!entries.length) {
+    return "- _(none)_";
+  }
+  return entries
+    .map((entry) => {
+      const note = Object.prototype.hasOwnProperty.call(notes, entry.name)
+        ? notes[entry.name]
+        : entry.description || "";
+      return `- \`${entry.signature}\`${note ? ` - ${note}` : ""}`;
+    })
+    .join("\n");
+};
+
+const escapeTableCell = (value) => {
+  return String(value || "").replace(/\|/g, "\\|");
+};
+
+const toModuleSections = (moduleDetails) => {
+  return Object.entries(moduleDetails)
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([moduleName, details]) => {
+      const exportsList = details.exports
+        .map((exportName) => {
+          const signature =
+            details.signatures[exportName] || `${exportName}(...)`;
+          return `- \`${signature}\``;
+        })
+        .join("\n");
+      const aliasNote = moduleAliasNotes[moduleName]
+        ? `\n\n${moduleAliasNotes[moduleName]}`
+        : "";
+      return `### \`${moduleName}\`\n\n${exportsList}${aliasNote}`;
+    })
+    .join("\n\n");
+};
+
+const toMarkdown = ({
+  manifest,
+  moduleDetails,
+  transforms,
+  transformsByType,
+}) => {
+  const constructorRows = toOptionRows(manifest.constructorOptionEntries)
+    .map(
+      (row) =>
+        `| \`${row.name}\` | \`${escapeTableCell(row.type)}\` | ${row.optional} | ${escapeTableCell(row.description)} |`,
+    )
+    .join("\n");
+
+  const moduleRows = Object.entries(moduleDetails)
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(
+      ([moduleName, details]) =>
+        `| \`${moduleName}\` | ${details.exports.length} | ${moduleAliasNotes[moduleName] || ""} |`,
+    )
     .join("\n");
 
   const typeSections = Object.entries(transformsByType)
@@ -172,45 +469,55 @@ This file is generated by \`npm run docs:generate\` from source-of-truth APIs in
 
 Do not edit this file manually.
 
-### Surface Summary
+## Surface Summary
 
 - Constructor options: **${manifest.constructorOptions.length}**
 - \`HydraRenderer\` members: **${manifest.hydraRendererMembers.length}**
 - \`HydraSynthApi\` members: **${manifest.hydraSynthMembers.length}**
 - \`HydraSceneApi\` members: **${manifest.sceneMembers.length}**
 - Transform chain members: **${manifest.transformChainMembers.length}**
-- Module namespaces: **${Object.keys(manifest.modules).length}**
+- Module namespaces: **${Object.keys(moduleDetails).length}**
 - GLSL transforms: **${transforms.length}**
 
-### Constructor Options
+## Constructor Options (\`new Hydra(options)\`)
 
-${manifest.constructorOptions.map((name) => `- \`${name}\``).join("\n")}
+| Option | Type | Optional | Notes |
+| --- | --- | --- | --- |
+${constructorRows}
 
-### HydraRenderer Members
+## \`HydraRenderer\` Members
 
-${manifest.hydraRendererMembers.map((name) => `- \`${name}\``).join("\n")}
+${toSignatureList(manifest.hydraRendererEntries, rendererNotes)}
 
-### HydraSynthApi Members
+## \`HydraSynthApi\` Members
 
-${manifest.hydraSynthMembers.map((name) => `- \`${name}\``).join("\n")}
+${toSignatureList(manifest.hydraSynthEntries, synthNotes)}
 
-### HydraSceneApi Members
+## \`HydraSceneApi\` Members
 
-${manifest.sceneMembers.map((name) => `- \`${name}\``).join("\n")}
+${toSignatureList(manifest.sceneEntries, sceneNotes)}
 
-### Transform Chain Members
+## Transform Chain Members
 
-${manifest.transformChainMembers.map((name) => `- \`${name}\``).join("\n")}
+${toSignatureList(manifest.transformChainEntries, transformNotes)}
 
-### Module Namespaces
+## Module Namespaces
 
-| Namespace | Export Count | Exports |
+| Namespace | Export Count | Notes |
 | --- | ---: | --- |
 ${moduleRows}
 
-### Transform Catalog
+${toModuleSections(moduleDetails)}
+
+## Transform Catalog
 
 ${typeSections}
+
+## Related Guides
+
+- [API Overview](./api/index.md)
+- [Parameter Reference](./reference/parameter-reference.md)
+- [Semantic Clarifications](./reference/semantic-clarifications.md)
 `;
 };
 
@@ -262,31 +569,34 @@ const main = async () => {
     math: "src/three/math.js",
   };
 
-  const constructorOptions = extractTopLevelMembers(
+  const constructorOptionEntries = extractTopLevelEntries(
     extractBraceBlock(typesSource, "export interface HydraOptions {"),
   );
-
-  const hydraRendererMembers = extractTopLevelMembers(
+  const hydraRendererEntries = extractTopLevelEntries(
     extractBraceBlock(typesSource, "declare class HydraRenderer {"),
   );
-
-  const hydraSynthMembers = extractTopLevelMembers(
+  const hydraSynthEntries = extractTopLevelEntries(
     extractBraceBlock(typesSource, "export interface HydraSynthApi {"),
   );
-
-  const sceneMembers = extractTopLevelMembers(
+  const sceneEntries = extractTopLevelEntries(
     extractBraceBlock(typesSource, "export interface HydraSceneApi {"),
   );
-
-  const transformChainMembers = extractTopLevelMembers(
+  const transformChainEntries = extractTopLevelEntries(
     extractBraceBlock(typesSource, "export interface HydraTransformChain {"),
   );
 
   const modules = {};
+  const moduleDetails = {};
   const moduleEntries = Object.entries(moduleFiles);
   for (let index = 0; index < moduleEntries.length; index += 1) {
     const [moduleName, modulePath] = moduleEntries[index];
-    modules[moduleName] = extractModuleExports(await readText(modulePath));
+    const moduleSource = await readText(modulePath);
+    const exportsList = extractModuleExports(moduleSource);
+    modules[moduleName] = exportsList;
+    moduleDetails[moduleName] = {
+      exports: exportsList,
+      signatures: extractModuleSignatures(moduleSource, exportsList),
+    };
   }
 
   const transforms = extractTransforms(transformSource).sort((a, b) => {
@@ -298,25 +608,43 @@ const main = async () => {
   const transformsByType = toTransformTypeIndex(transforms);
 
   const apiManifest = {
-    constructorOptions,
-    hydraRendererMembers,
-    hydraSynthMembers,
-    sceneMembers,
-    transformChainMembers,
+    constructorOptions: toUniqueList(
+      constructorOptionEntries.map((entry) => entry.name),
+    ),
+    hydraRendererMembers: toUniqueList(
+      hydraRendererEntries.map((entry) => entry.name),
+    ),
+    hydraSynthMembers: toUniqueList(
+      hydraSynthEntries.map((entry) => entry.name),
+    ),
+    sceneMembers: toUniqueList(sceneEntries.map((entry) => entry.name)),
+    transformChainMembers: toUniqueList(
+      transformChainEntries.map((entry) => entry.name),
+    ),
+    constructorOptionEntries,
+    hydraRendererEntries,
+    hydraSynthEntries,
+    sceneEntries,
+    transformChainEntries,
     modules,
     counts: {
-      constructorOptions: constructorOptions.length,
-      hydraRendererMembers: hydraRendererMembers.length,
-      hydraSynthMembers: hydraSynthMembers.length,
-      sceneMembers: sceneMembers.length,
-      transformChainMembers: transformChainMembers.length,
+      constructorOptions: constructorOptionEntries.length,
+      hydraRendererMembers: hydraRendererEntries.length,
+      hydraSynthMembers: hydraSynthEntries.length,
+      sceneMembers: sceneEntries.length,
+      transformChainMembers: transformChainEntries.length,
       modules: Object.keys(modules).length,
       transforms: transforms.length,
     },
   };
 
   const markdown = await prettier.format(
-    toMarkdown(apiManifest, transforms, transformsByType),
+    toMarkdown({
+      manifest: apiManifest,
+      moduleDetails,
+      transforms,
+      transformsByType,
+    }),
     { parser: "markdown" },
   );
 
