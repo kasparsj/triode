@@ -333,8 +333,8 @@ Phase 3 (breaking cleanup, major version)
    Files: `src/glsl/glsl-functions.js:384`, `src/glsl/glsl-functions.js:408`, `docs/reference/semantic-clarifications.md:7`, `scripts/smoke/browser-non-global-smoke.mjs:95`  
    Why: resolves high-frequency unit confusion.
 
-6. Remove hidden global dependency from `arr.image`  
-   Files: `src/three/arr.js:191`, `src/index.d.ts:120`  
+6. Implemented: remove hidden global dependency from `arr.image`  
+   Files: `src/three/arr.js:191`, `scripts/smoke/module-load-smoke.mjs:154`, `scripts/smoke/regression-smoke.mjs:204`  
    Why: cleaner runtime ownership and fewer surprising failures.
 
 ## Notes on priority
@@ -388,6 +388,8 @@ Stale-object deletion, resource disposal, unkeyed hinting, and restart input reb
 | Eval-order object identity drift (when `key` is omitted)   | `src/three/scene.js:143`; `src/three/scene.js:187`; `src/three/scene.js:711`; `src/index.d.ts:53`              | Reordering lines can still retarget unnamed objects because fallback identity remains eval-order-based for sketches that do not opt into `key`        | Medium   | Continue migrating examples/docs to `key` and run the audit helper `scripts/migrate/find-unkeyed-live-calls.mjs`           |
 
 ## H) Updated Quick Wins (next 1-2 sprints)
+
+Update (2026-02-23): `arr.image()` now resolves texture loading through the active runtime (`runtime.modules.tx`) instead of `globalThis.tx`, removing hidden global coupling in non-global and multi-instance usage. Implementation and coverage are in `src/three/arr.js:191`, `scripts/smoke/module-load-smoke.mjs:154`, and `scripts/smoke/regression-smoke.mjs:204`.
 
 Update (2026-02-23): public docs/examples now avoid private `_mesh` usage for instancing and demonstrate the stable public path `scene().mesh(..., { instanced })`. Implementation is in `examples/box-instanced-grid.js:34` and `docs/reference/semantic-clarifications.md:57`.
 

@@ -203,17 +203,24 @@ try {
 
   // arr.image(): should resolve image pixels and metadata
   let callbackData = null;
-  setGlobal("tx", {
-    load: (_url, onLoad) => {
-      const image = { width: 2, height: 1, complete: true };
-      const texture = { image };
-      if (typeof onLoad === "function") onLoad(texture);
-      return texture;
+  const imageRuntime = {
+    modules: {
+      tx: {
+        load: (_url, onLoad) => {
+          const image = { width: 2, height: 1, complete: true };
+          const texture = { image };
+          if (typeof onLoad === "function") onLoad(texture);
+          return texture;
+        },
+      },
     },
-  });
+  };
+  runtime.clearRuntime();
+  runtime.setRuntime(imageRuntime);
   const data = await arr.image("mock://image.png", (value) => {
     callbackData = value;
   });
+  runtime.clearRuntime(imageRuntime);
   assert.ok(data instanceof Uint8Array);
   assert.equal(data.width, 2);
   assert.equal(data.height, 1);

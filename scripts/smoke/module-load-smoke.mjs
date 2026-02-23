@@ -151,7 +151,7 @@ try {
   );
   assert.throws(
     () => arr.image("mock://image.png"),
-    /requires a global tx loader/,
+    /requires an active Hydra runtime/,
   );
 } finally {
   restoreGlobal("window", originalDescriptors.window);
