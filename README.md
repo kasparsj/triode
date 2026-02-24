@@ -23,21 +23,6 @@ triode is a three.js-powered live coding engine for 3D scene APIs while keeping 
   - hydra-synth: <https://github.com/hydra-synth/hydra-synth>
 - Repository-level provenance details are tracked in [`NOTICE`](./NOTICE).
 
-## Distribution Model
-
-- Official distribution is via GitHub tags and release artifacts from this repository.
-- CDN usage should reference a pinned tag in this repository.
-- Package name is `triode`.
-- `package.json` remains `private: true` so releases stay on Git tags and GitHub artifacts.
-- Install triode from this repository tag: `npm i github:kasparsj/triode#v1.0.0 three`.
-- Install upstream Hydra separately with `npm i hydra-synth` only if you explicitly want upstream behavior.
-
-## Runtime Contract
-
-- Runtime target is browser execution (WebGL + DOM APIs required).
-- The ESM package entry is browser-only; importing in pure Node/SSR without a browser-like runtime is unsupported.
-- For server-side build pipelines, run triode code in browser contexts and publish artifacts from CI.
-
 ## Project Site
 
 - GitHub Pages publishes docs and runnable examples from this repository.
