@@ -37,6 +37,56 @@ npm run site:build
 npm run site:build:versioned
 ```
 
+## Example
+
+```javascript
+// setup perspective camera, enabling camera controls
+// default modifier is "alt"; use modifier:"none" for no-key live coding
+perspective([2, 2, 3], [0, 0, 0], {
+  controls: { enabled: true, modifier: "none" },
+});
+
+// create geometry and material
+const boxMaterial = osc().rotateDeg(noise(1).mult(45)).phong();
+
+// compose scene
+const sc = stage().lights().box(boxMaterial).render();
+
+update = () => {
+  const box = sc.obj(0);
+  box.rotation.x += 0.01;
+  box.rotation.y += 0.01;
+};
+```
+
+More examples: [`examples/README.md`](./examples/README.md)
+
+## 3D APIs (summary)
+
+### Camera + coordinate helpers
+
+- `perspective(eye, target, options)`
+- `ortho(eye, target, options)`
+- `screenCoords(w, h)`, `normalizedCoords()`, `cartesianCoords(w, h)`
+
+### Scene composition
+
+- `stage(config)` is the readability-first scene entry point (`scene(config)` remains available as an alias).
+- Core object methods: `.box()`, `.sphere()`, `.quad()`, `.mesh()`, `.instanced()`.
+- Line/point methods: `.points()`, `.lines()`, `.lineStrip()`, `.lineLoop()`.
+- Scene utilities: `.group()`, `.lights()`, `.world()`, `.clear()`, `.render()` (`.out()` alias).
+- Query helpers: `.at()`/`.obj()`, `.find()`, `.empty()`.
+- Compatibility aliases remain available: `.linestrip()` and `.lineloop()`.
+
+### Namespaces
+
+- Geometry API is exposed under `geom` (`gm` alias), e.g. `geom.box()`.
+- Material API is exposed under `mat` (`mt` alias), e.g. `mat.meshPhong()`, `mat.meshStandard()`.
+- Texture API is exposed under `tex` (`tx` alias), e.g. `tex.load(...)`, `tex.fbo(...)`.
+
+For full signatures and options, see [`docs/reference/parameter-reference.md`](./docs/reference/parameter-reference.md) and [`docs/api.md`](./docs/api.md).
+
+
 ## 10-minute quickstart
 
 ### Option A: Browser script tag (fastest)
@@ -146,7 +196,7 @@ npm run test:smoke:browser
 npm run site:build
 ```
 
-## Testing
+## Tests
 
 Run the unit and integration-lite test suite:
 
@@ -194,87 +244,8 @@ GUI note:
 - `gui.init()` now tries local vendored `dat.gui` first (`/vendor/dat.gui.min.js`, `vendor/dat.gui.min.js`), then CDN fallback.
 - If all script loads fail, it falls back to a no-op GUI object so runtime code does not crash.
 
-## Example
-
-```javascript
-// setup perspective camera, enabling camera controls
-// default modifier is "alt"; use modifier:"none" for no-key live coding
-perspective([2, 2, 3], [0, 0, 0], {
-  controls: { enabled: true, modifier: "none" },
-});
-
-// create geometry and material
-const boxMaterial = osc().rotateDeg(noise(1).mult(45)).phong();
-
-// compose scene
-const sc = stage().lights().box(boxMaterial).render();
-
-update = () => {
-  const box = sc.obj(0);
-  box.rotation.x += 0.01;
-  box.rotation.y += 0.01;
-};
-```
-
-More examples: [`examples/README.md`](./examples/README.md)
-
-## 3D APIs (summary)
-
-### Camera
-
-- `perspective(eye, target, options)`
-- `ortho(eye, target, options)`
-
-### Scene
-
-- `stage()` is the readability-first scene handle entry point (`scene()` remains available as an alias).
-
-### Geometry
-
-- Geometry functions are exposed under `geom` (`gm` remains available for compatibility).
-- Example: `geom.box()`.
-
-### Material
-
-- Material functions are exposed under `mat` (`mt` remains available for compatibility).
-- Example: `mat.meshPhong()`.
-
-## Production guidance
-
-Use these docs before shipping:
-
-- Getting started: [`docs/getting-started.md`](./docs/getting-started.md)
-- API reference (generated from source): [`docs/api.md`](./docs/api.md)
-- Hydra -> 3D mental model: [`docs/concepts/hydra-to-3d-mental-model.md`](./docs/concepts/hydra-to-3d-mental-model.md)
-- Scene graph guide: [`docs/concepts/scene-graph.md`](./docs/concepts/scene-graph.md)
-- Rendering pipeline guide: [`docs/concepts/rendering-pipeline.md`](./docs/concepts/rendering-pipeline.md)
-- Chaining patterns: [`docs/concepts/chaining-composition.md`](./docs/concepts/chaining-composition.md)
-- Parameter reference tables: [`docs/reference/parameter-reference.md`](./docs/reference/parameter-reference.md)
-- Semantic clarifications: [`docs/reference/semantic-clarifications.md`](./docs/reference/semantic-clarifications.md)
-- Common creative recipes: [`docs/recipes/common-recipes.md`](./docs/recipes/common-recipes.md)
-- Playground guide: [`docs/playground.md`](./docs/playground.md)
-- Advanced performance notes: [`docs/performance/advanced-performance.md`](./docs/performance/advanced-performance.md)
-- Hydra compatibility + architecture differences: [`docs/upstream-differences.md`](./docs/upstream-differences.md)
-- Production checklist: [`docs/production-checklist.md`](./docs/production-checklist.md)
-- Release process: [`docs/release.md`](./docs/release.md)
-- Security policy: [`SECURITY.md`](./SECURITY.md)
-- Contribution guide: [`CONTRIBUTING.md`](./CONTRIBUTING.md)
-- Issue templates: [`.github/ISSUE_TEMPLATE`](./.github/ISSUE_TEMPLATE)
-
-## Trust signals
-
-- CI runs build + smoke + package checks on Node 20 and 22.
-- CI runs real Chromium and Firefox smoke tests of `examples/quickstart.html` on Node 20.
-- CI runs non-global and multi-instance 3D browser smoke tests on Chromium and Firefox.
-- CI validates all source examples for syntax integrity and runs generated examples + playground preset browser smoke coverage in Chromium.
-- Release tags (`v*`) run version/changelog/tag metadata verification and attach tarball + checksum artifacts.
-- GitHub Pages deploys generated docs and runnable examples from repository sources on every push to `main`.
-
 ## License (AGPL-3.0)
 
 - triode is licensed `AGPL-3.0-only` (see [`LICENSE`](./LICENSE)).
 - triode includes portions derived from Hydra / hydra-synth; see [`NOTICE`](./NOTICE) and [`docs/compliance/agpl_audit.md`](./docs/compliance/agpl_audit.md).
-- Corresponding source for this project is published at: <https://github.com/kasparsj/triode>.
-- Hosted docs/examples built by `npm run site:build` include a visible footer link labeled `Source code` that points to the repository and, when available, the exact build commit (`TRIODE_GIT_SHA`/`GIT_SHA`/`GITHUB_SHA`).
-- For hosted deployments of modified versions, publish the running source revision and keep a visible `Source code` link in the UI (the generated site footer is the default mechanism in this repository).
 - Third-party dependency license inventory: [`docs/compliance/third_party_licenses.md`](./docs/compliance/third_party_licenses.md).
